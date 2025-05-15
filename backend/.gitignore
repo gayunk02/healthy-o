@@ -1,0 +1,5 @@
+# Keep environment variables out of version control
+#라이브러리 폴더 제외
+node_modules/
+#환경 변수 제외
+.env
