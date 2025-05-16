@@ -1,0 +1,114 @@
+.title{
+    font-size: 70px;
+    text-align: center;
+}
+
+.divider{
+    margin-bottom: 50px;
+    margin-top: 50px;
+    height: 1px;
+    background-color: #ccc;
+    width: 100%;
+  }
+
+.state{
+    font-size: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     
+    justify-content: center; 
+    gap: 1.5rem;              
+    margin-top: 2rem;
+  }
+
+.result{
+    font-size: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     
+    justify-content: center; 
+    gap: 1.5rem;              
+    margin-top: 2rem;
+  }
+
+  .resultDescription{
+    font-size: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     /* 가로 방향 가운데 정렬 */
+    justify-content: center; /* 세로 방향 가운데 정렬 (필요 시) */
+    gap: 1.5rem;              /* 항목 사이 간격 */
+    margin-top: 2rem;
+}
+
+.map {
+  width: 100%;
+  height: 400px;
+  margin: 1rem 0;
+}
+
+.hospitalList {
+  list-style: none;
+  padding-left: 0;
+  margin-top: 1rem;
+}
+
+.hospitalItem {
+  margin-bottom: 0.5rem;
+}
+
+.routeButton {
+  margin-left: 10px;
+  padding: 3px 8px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+.supplementbtn{
+    color: gray;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    display: block;
+    margin: 0 auto;
+    font-size: 40px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border-color: #ccc;
+    cursor: pointer;
+    margin-bottom: 50px;
+    margin-top: 50px;
+}
+
+.subDescription{
+    font-size: 20px;
+}
+
+.supplementbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}
+
+
+.mainbtn{
+    color: gray;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    display: block;
+    margin: 0 auto;
+    font-size: 40px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border-color: #ccc;
+    cursor: pointer;
+    margin-bottom: 50px;
+    margin-top: 50px;
+}
+
+.mainbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}

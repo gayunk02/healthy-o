@@ -1,0 +1,17 @@
+html,body {
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  background-color: rgb(250, 250, 250);
+}
+
+@font-face {
+  font-family: 'NOTOSANSREGULAR';  /* 폰트 이름을 정의합니다 */
+  src: url('/fonts/NotoSansKR-Regular.TTF') format('truetype'); /* public 폴더 내 폰트 파일 경로 */
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'NOTOSANSREGULAR', sans-serif;  /* 전체 글씨체를 해당 폰트로 설정 */
+}

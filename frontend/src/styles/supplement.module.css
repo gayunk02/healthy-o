@@ -1,0 +1,90 @@
+.title{
+    font-size: 70px;
+    text-align: center;
+}
+
+.divider{
+    margin-bottom: 50px;
+    margin-top: 50px;
+    height: 1px;
+    background-color: #ccc;
+    width: 100%;
+  }
+
+.state{
+    font-size: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     
+    justify-content: center; 
+    gap: 1.5rem;              
+    margin-top: 2rem;
+  }
+
+
+  .resultDescriptionWrapper {
+    display: flex;
+    justify-content: center;     /* ✅ 전체 mockResult 묶음은 가운데 정렬 */
+    margin-top: 2rem;
+  }
+  
+  .resultDescription {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;     
+    text-align: left;
+    gap: 1.5rem;
+    padding: 1rem 5rem;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+  
+  .result{
+    font-size: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;     
+    justify-content: center; 
+    gap: 1.5rem;              
+    margin-top: 2rem;
+  }
+
+  .hospitalbtn{
+    color: gray;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    display: block;
+    margin: 0 auto;
+    font-size: 40px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border-color: #ccc;
+    cursor: pointer;
+    margin-bottom: 50px;
+}
+
+.hospitalbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}
+
+.mainbtn{
+    color: gray;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    display: block;
+    margin: 0 auto;
+    font-size: 40px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border-color: #ccc;
+    cursor: pointer;
+    margin-bottom: 50px;
+    margin-top: 50px;
+}
+
+.mainbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}

@@ -1,0 +1,64 @@
+.title{
+    font-size: 70px;
+    text-align: center;
+}
+
+.divider{
+    margin-bottom: 50px;
+    margin-top: 50px;
+    height: 1px;
+    background-color: #ccc;
+    width: 100%;
+  }
+
+.mainQuestion {
+    font-size: 40px;
+    display: flex;
+    flex-direction: column; /* 세로 정렬 */
+    align-items: flex-start;     /* 가로축(수평) 중앙 정렬 */
+    gap: 3rem;               /* 항목 간 간격 */
+    margin-top: 2rem;
+  }
+
+
+.mainQuestion input{
+    border-radius: 5px;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+  }
+
+.mainQuestion select{
+    border-radius: 5px;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+  }
+
+  .mainQuestion textarea{
+    border-radius: 5px;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+.example{
+  font-size: 20px;
+  color: #969696
+  ;
+}
+
+.questbtn{
+  color: gray;
+  font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+  display: block;
+  margin: 0 auto;
+  font-size: 40px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border-color: #ccc;
+  cursor: pointer;
+  margin-bottom: 50px;
+}
+
+.questbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}

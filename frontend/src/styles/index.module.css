@@ -1,0 +1,44 @@
+.title{
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   margin-top: 150px;
+   margin-bottom: 80px;
+}
+
+.description{
+    font-size: 1.7rem;
+    text-align: center;
+    margin-bottom: 80px;
+}
+
+.subDescription{
+    font-size: 50px;
+    font-weight: bold;
+}
+
+.divider{
+    margin-bottom: 50px;
+    height: 1px;
+    background-color: #ccc;
+    width: 100%;
+  }
+
+.startbtn{
+    color: gray;
+    font-family: 'ASSACOMFREEGOTHIC', sans-serif;
+    display: block;
+    margin: 0 auto;
+    font-size: 40px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    border-color: #ccc;
+    cursor: pointer;
+    margin-bottom: 50px;
+}
+
+.startbtn:hover{
+    background-color: #104023;
+    border-color: black;
+    color: white;
+}
