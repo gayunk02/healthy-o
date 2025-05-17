@@ -11,7 +11,7 @@ export default function Home() {
 
   const router = useRouter();
 
-  // 🧠 입력값 저장
+  // 입력값 저장
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
@@ -63,8 +63,8 @@ export default function Home() {
             onChange={(e) => setGender(e.target.value)}
           >
             <option value="">성별을 선택하세요</option>
-            <option value="여성">여성</option>
             <option value="남성">남성</option>
+            <option value="여성">여성</option>
           </select>
         </div>
 
@@ -87,7 +87,7 @@ export default function Home() {
 
       <div className={style.divider}></div>
       <button className={style.questbtn} onClick={onSubmit}>
-        결과 확인하기
+        제출하기
       </button>
     </div>
   );
