@@ -1,133 +1,171 @@
-.wrapper {
-  display: flex;
-  flex-direction: column; /* 세로 정렬 */
-  align-items: center;     /* 수평 가운데 정렬 */
-  padding: 2rem;
-}
+    .wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
 
-.divider{
-  height: 1px;
-  background-color: #ccc;
-  width: 100%;
-  margin-bottom: 40px;
-}
-  
-  .error {
-    color: red;
-    height: 10px;
-    font-size: 11px;
-  }
-  
-.h3 {
-    font-size: 32px;
-    color: #0068ff;
-    font-weight: bold;
-    width: 380px;
-    margin-bottom: 10px;
-  }
-  
-  .inputbox {
-    width: 380px;
-    height: 60px;
-    background-color: white;
-    border-radius: 7px;
-    border: 1px solid #d2d2d2;
-    padding: 18px;
-    margin-top: 20px;
-  }
-  
-  .inputbox::placeholder {
-    color: #797979;
-    font-size: 16px;
-  }
-  
-  .phone__wrapper {
-    width: 380px;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 20px;
-  }
-  
-  .phoneNum {
-    width: 100px;
-    height: 40px;
-    border: 1px solid #d2d2d2;
-    border-radius: 7px;
-    font-size: 16px;
-    text-align: center;
-  }
-  
-  .token__wrapper {
-    width: 380px;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 20px;
-  }
-  
-  .token {
-    color: #0068ff;
-    font-size: 18px;
-  }
-  
-  .token__timer {
-    color: #0068ff;
-    font-size: 18px;
-  }
-  
-  #token__button,
-  #token__timer__confirm__button {
-    width: 120px;
-    height: 40px;
-    border-radius: 7px;
-    margin-left: 20px;
-    border: 1px solid #d2d2d2;
-    font-size: 16px;
-  }
-  
-  .location {
-    margin-top: 20px;
-    width: 380px;
-    height: 60px;
-    border: 1px solid #d2d2d2;
-    border-radius: 7px;
-    font-size: 16px;
-    padding: 18px;
-    color: #797979;
-  }
-  
-  .gender__wrapper {
-    width: 380px;
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    margin-top: 30px;
-  }
-  
-  .gender {
-    width: 70px;
-    text-align: center;
-  }
-  
-  .hr {
-    margin-top: 30px;
-    margin-bottom: 20px;
-    border: 1px solid #e6e6e6;
-    width: 380px;
-  }
-  
-  .signup__button {
-    width: 380px;
-    height: 75px;
-    border: 1px solid #d2d2d2;
-    border-radius: 10px;
-    font-size: 18px;
-    margin-top: 20px;
-  }
+    .divider {
+      height: 1px;
+      background-color: #ccc;
+      width: 100%;
+      margin-bottom: 40px;
+    }
+
+    .error {
+      color: red;
+      height: 12px;
+      font-size: 11px;
+      margin-bottom: 16px;
+    }
+
+    .h3 {
+      font-size: 32px;
+      color: #000000;
+      font-weight: bold;
+      width: 380px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .label {
+      width: 380px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 20px;
+      margin-bottom: 2px;
+      color: #333;
+    }
+
+    .labelCenter {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 20px;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .inputbox {
+      width: 380px;
+      height: 24px;
+      background-color: white;
+      border-radius: 7px;
+      border: 1px solid #d2d2d2;
+      padding: 10px 12px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    .inputbox::placeholder {
+      color: #797979;
+      font-size: 14px;
+    }
+
+    .phone__wrapper {
+      width: 380px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+
+    .phoneNum {
+      width: 100px;
+      height: 40px;
+      border: 1px solid #d2d2d2;
+      border-radius: 7px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .token__wrapper {
+      width: 380px;
+      height: 40px;
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .token {
+      color: #0068ff;
+      font-size: 18px;
+    }
+
+    .token__timer {
+      color: #0068ff;
+      font-size: 18px;
+    }
+
+    #token__button,
+    #token__timer__confirm__button {
+      width: 120px;
+      height: 40px;
+      border-radius: 7px;
+      margin-left: 20px;
+      border: 1px solid #d2d2d2;
+      font-size: 16px;
+    }
+
+    .location {
+      margin-top: 20px;
+      width: 380px;
+      height: 60px;
+      border: 1px solid #d2d2d2;
+      border-radius: 7px;
+      font-size: 16px;
+      padding: 18px;
+      color: #797979;
+    }
+
+    .genderSection {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .gender__wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      gap: 20px;
+    }
+
+    .gender {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+    }
+
+    .hr {
+      margin-top: 30px;
+      margin-bottom: 20px;
+      border: 1px solid #e6e6e6;
+      width: 380px;
+    }
+
+    .signup__button {
+      width: 240px;
+      height: 48px;
+      border: 1px solid #d2d2d2;
+      border-radius: 10px;
+      font-size: 18px;
+      margin-top: 20px;
+      background-color: #4da6ff;
+      color: white;
+      cursor: pointer;
+    }
+
+    .signup__button:hover {
+      background-color: #1a8cff;
+    }
