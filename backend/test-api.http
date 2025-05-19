@@ -58,3 +58,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhd
   "lat": 35.2155,
   "lng": 126.8530
 }
+### 영양제 추천 조회 (최근 진단 기반)
+GET http://localhost:3000/api/supplements/recommend
+Authorization: Bearer (JWT 토큰)
