@@ -1,3 +1,5 @@
+//routes/health.js
+
 import express from 'express';
 import authMiddleware from '../middleware/auth.js';
 import {
@@ -8,13 +10,13 @@ import {
 
 const router = express.Router();
 
-// ✅ 비회원도 가능 → 인증 미들웨어 제거
+// GPT 진단 요청 및 DB 저장
 router.post('/safe-health-info', getSafeHealthInfo);
 
-// 🔐 로그인한 사용자만 진단 이력 조회 가능
+// 진단 기록 전체 조회
 router.get('/history', authMiddleware, getDiagnosisHistory);
 
-// 🔐 진단 상세 조회 (id 기반)
+// 진단 기록 상세 조회
 router.get('/history/:id', authMiddleware, getDiagnosisDetail);
 
 export default router;

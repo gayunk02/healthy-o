@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken'
 import { PrismaClient } from '@prisma/client';
 import { success, error } from '../utils/response.js';
 
@@ -11,6 +12,18 @@ const prisma = new PrismaClient();
  */
 export const getSafeHealthInfo = async (req, res) => {
   try {
+
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.userId;
+      } catch (err) {
+        // 토큰 유효하지 않으면 userId는 그대로 null → 비회원 처리
+      }
+    }
     const { sex, age, height, weight, chronic, symptoms } = req.body;
 
     const prompt = `
@@ -77,7 +90,7 @@ export const getSafeHealthInfo = async (req, res) => {
       supplement_recommendations = [],
     } = parsedResult;
 
-    const userId = req.userId;
+
 
     // 비회원은 진단 결과만 응답하고 return
     if (!userId) {

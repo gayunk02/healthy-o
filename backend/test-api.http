@@ -19,45 +19,61 @@ Content-Type: application/json
   "password": "12345678"
 }
 
+### 건강 정보 요청 (비회원)
+POST http://localhost:3000/api/health/safe-health-info
+Content-Type: application/json
+
+{
+  "sex": "여자",
+  "age": 24,
+  "height": 160,
+  "weight": 50,
+  "chronic": "없음",
+  "symptoms": "기운이 없고 배가 꼬이는 기분"
+}
+
+
 
 ### 건강 정보 요청 (로그인 후 받은 JWT 필요)
 POST http://localhost:3000/api/health/safe-health-info
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTM1MiwiZXhwIjoxNzQ3Mzk0MTUyfQ.kMWhHxQ4AhKMl9LCs0xAizKSxlth-2_EjAiFnssCi24
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 
 {
-  "sex": "여성",
+  "sex": "여자",
   "age": 24,
   "height": 160,
-  "weight": 53,
+  "weight": 48,
   "chronic": "없음",
-  "symptoms": "기침, 피로"
+  "symptoms": "열이 나고 식욕이 없음"
 }
 
 ### 내 정보 조회
 GET http://localhost:3000/api/mypage/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTc4MiwiZXhwIjoxNzQ3Mzk0NTgyfQ.q_br79o0GUjfNQM7cl-XfuzKWDn4Xz-LkbRr9EE1RRY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 ### 토큰 유효성 검사
 GET http://localhost:3000/api/mypage/verify-token
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTc4MiwiZXhwIjoxNzQ3Mzk0NTgyfQ.q_br79o0GUjfNQM7cl-XfuzKWDn4Xz-LkbRr9EE1RRY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 
 ### 진단 기록 전체 조회
 GET http://localhost:3000/api/health/history
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTc4MiwiZXhwIjoxNzQ3Mzk0NTgyfQ.q_br79o0GUjfNQM7cl-XfuzKWDn4Xz-LkbRr9EE1RRY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 
 ### 진단 기록 상세 조회 (← 진짜 기록 ID로 바꿔야 함)
-GET http://localhost:3000/api/health/history/7
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTc4MiwiZXhwIjoxNzQ3Mzk0NTgyfQ.q_br79o0GUjfNQM7cl-XfuzKWDn4Xz-LkbRr9EE1RRY
+GET http://localhost:3000/api/health/history/9
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 
 ### 병원 추천 - 최신 진단 기록 기반 (카카오 위치 기반 추천)
 POST http://localhost:3000/api/hospital/search
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Njc4OTc4MiwiZXhwIjoxNzQ3Mzk0NTgyfQ.q_br79o0GUjfNQM7cl-XfuzKWDn4Xz-LkbRr9EE1RRY
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
 
 {
   "lat": 35.2155,
   "lng": 126.8530
 }
+
+
 ### 영양제 추천 조회 (최근 진단 기반)
 GET http://localhost:3000/api/supplements/recommend
-Authorization: Bearer (JWT 토큰)
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw

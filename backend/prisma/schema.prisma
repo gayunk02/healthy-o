@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,79 +8,66 @@ datasource db {
 }
 
 model User {
-  id                  Int       @id @default(autoincrement())
-  email               String    @unique
-  password            String
-  name                String
-  gender              Gender
-  birthDate           DateTime
-  height              Float?
-  weight              Float?
-  smoking             Boolean   @default(false)
-  drinkingFrequency   String?
-  chronicDisease      String?
-  medications         String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-
-  // Relations
+  id                        Int                        @id @default(autoincrement())
+  email                     String                     @unique
+  password                  String
+  name                      String
+  gender                    Gender
+  birthDate                 DateTime
+  height                    Float?
+  weight                    Float?
+  smoking                   Boolean                    @default(false)
+  drinkingFrequency         String?
+  chronicDisease            String?
+  medications               String?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
   diagnosisRecords          DiagnosisRecord[]
-  supplementRecommendations SupplementRecommendation[]
   hospitalRecommendations   HospitalRecommendation[]
+  supplementRecommendations SupplementRecommendation[]
+}
+
+model DiagnosisRecord {
+  id                           Int                        @id @default(autoincrement())
+  userId                       Int
+  symptoms                     String
+  diagnosisResult              String
+  departments                  String?
+  heightAtDiagnosis            Float?
+  weightAtDiagnosis            Float?
+  smokingAtDiagnosis           Boolean                    @default(false)
+  drinkingFrequencyAtDiagnosis String?
+  chronicDiseaseAtDiagnosis    String?
+  medicationsAtDiagnosis       String?
+  createdAt                    DateTime                   @default(now())
+  user                         User                       @relation(fields: [userId], references: [id])
+  hospitalRecommendations      HospitalRecommendation[]
+  supplementRecommendations    SupplementRecommendation[]
+}
+
+model SupplementRecommendation {
+  id                 Int              @id @default(autoincrement())
+  userId             Int
+  basedOnDiagnosisId Int?
+  recommendations    String
+  createdAt          DateTime         @default(now())
+  wasViewed          Boolean          @default(false)
+  diagnosisRecord    DiagnosisRecord? @relation(fields: [basedOnDiagnosisId], references: [id])
+  user               User             @relation(fields: [userId], references: [id])
+}
+
+model HospitalRecommendation {
+  id                   Int              @id @default(autoincrement())
+  userId               Int
+  basedOnDiagnosisId   Int?
+  location             String?
+  recommendedHospitals String
+  createdAt            DateTime         @default(now())
+  diagnosisRecord      DiagnosisRecord? @relation(fields: [basedOnDiagnosisId], references: [id])
+  user                 User             @relation(fields: [userId], references: [id])
 }
 
 enum Gender {
   M
   F
-}
-
-
-model DiagnosisRecord {
-  id                    Int      @id @default(autoincrement())
-  user                  User     @relation(fields: [userId], references: [id])
-  userId                Int
-
-  symptoms              String
-  diagnosisResult       String
-  departments           String?
-
-  heightAtDiagnosis     Float?
-  weightAtDiagnosis     Float?
-  smokingAtDiagnosis    Boolean  @default(false)
-  drinkingFrequencyAtDiagnosis String?
-  chronicDiseaseAtDiagnosis     String?
-  medicationsAtDiagnosis        String?
-
-  createdAt             DateTime @default(now())
-
-  // Relations
-  supplementRecommendations SupplementRecommendation[]
-  hospitalRecommendations   HospitalRecommendation[]
-}
-
-
-model SupplementRecommendation {
-  id                    Int      @id @default(autoincrement())
-  user                  User     @relation(fields: [userId], references: [id])
-  userId                Int
-
-  diagnosisRecord       DiagnosisRecord? @relation(fields: [basedOnDiagnosisId], references: [id])
-  basedOnDiagnosisId    Int?
-
-  recommendations       String
-  createdAt             DateTime @default(now())
-}
-
-
-model HospitalRecommendation {
-  id                    Int      @id @default(autoincrement())
-  user                  User     @relation(fields: [userId], references: [id])
-  userId                Int
-
-  diagnosisRecord       DiagnosisRecord? @relation(fields: [basedOnDiagnosisId], references: [id])
-  basedOnDiagnosisId    Int?
-
-  location              String?
-  recommendedHospitals  String
-  createdAt             DateTime @default(now())
 }
