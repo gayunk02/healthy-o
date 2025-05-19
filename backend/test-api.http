@@ -16,7 +16,7 @@ Content-Type: application/json
 
 {
   "email": "test2@example.com",
-  "password": "12345678"
+  "password": "87654321"
 }
 
 ### 건강 정보 요청 (비회원)
@@ -45,7 +45,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhd
   "height": 160,
   "weight": 48,
   "chronic": "없음",
-  "symptoms": "열이 나고 식욕이 없음"
+  "symptoms": "배가 아프고 설사함"
 }
 
 ### 내 정보 조회
@@ -77,3 +77,17 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhd
 ### 영양제 추천 조회 (최근 진단 기반)
 GET http://localhost:3000/api/supplements/recommend
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
+
+
+### 내 정보 수정
+PATCH http://localhost:3000/api/mypage/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0NzY2MTg0MSwiZXhwIjoxNzQ4MjY2NjQxfQ.PBO4cjAZxdOM9_2d98YStwZQ8Lyfza-reBIO0dvxWbw
+Content-Type: application/json
+
+{
+  "name": "김가윤2",
+  "currentPassword": "12345678",
+  "newPassword": "87654321",
+  "height": 170,
+  "weight": 50
+}
