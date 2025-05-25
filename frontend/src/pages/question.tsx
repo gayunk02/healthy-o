@@ -49,7 +49,7 @@ export default function Home() {
   return (
     <div>
       <h1 className={style.title}>
-        🩺 문진표 작성 🔍
+        🩺 건강 상태 입력 🔍
       </h1>
 
       <div className={style.divider}></div>

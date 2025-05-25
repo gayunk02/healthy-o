@@ -68,11 +68,11 @@ export default function Home(){
 
     return(
         <div>
-            <h1 className={style.title}>💊 영양제 검색 결과 💊</h1>
+            <h1 className={style.title}>💊 영양제 검색 💊</h1>
 
             <div className={style.divider}></div>
 
-            <div className={style.state}>사용자의 건강 상태를 기반으로 영양제를 검색합니다.</div>
+            <div className={style.state}>입력 정보를 기반으로 영양제를 검색합니다.</div>
 
             <div className={style.divider}></div>
 
@@ -95,12 +95,12 @@ export default function Home(){
             </div>
             
             <div className={style.result}>
-                    👇🏻 로그인하고, 아래에서 병원 추천도 받아보세요! 👇🏻
+                    👇🏻 아래에서 주변 병원도 검색해보세요! 👇🏻
             </div>
 
             <div className={style.divider}></div>
 
-            <button className={style.hospitalbtn} onClick={onClickHospital}>병원 추천받기</button>
+            <button className={style.hospitalbtn} onClick={onClickHospital}>병원 찾기</button>
             <button className={style.mainbtn} onClick={onClickMain}>메인 페이지로 돌아가기</button>
         </div>
     )

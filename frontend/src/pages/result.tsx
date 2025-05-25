@@ -53,11 +53,11 @@ export default function Home(){
 
     return(
         <div>
-            <h1 className={style.title}>✅ 건강 상태 검색 ✅</h1>
+            <h1 className={style.title}>✅ 건강 정보 검색 ✅</h1>
 
             <div className={style.divider}></div>
 
-            <div className={style.state}>사용자의 건강 상태를 검색합니다. </div>
+            <div className={style.state}>입력 정보와 유사한 건강 정보를 안내합니다. </div>
 
             <div className={style.divider}></div>
 
@@ -83,7 +83,7 @@ export default function Home(){
             </div>
 
             <div className={style.result}>
-                👇🏻 로그인하고, 아래에서 주변 병원과 영양제 추천을 받아보세요! 👇🏻
+                👇🏻 로그인하고, 아래에서 주변 병원과 영양제도 검색해보세요! 👇🏻
             </div>
 
             <div className={style.divider}></div>

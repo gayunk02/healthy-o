@@ -186,12 +186,12 @@ export default function HospitalPage() {
 
   return (
     <div>
-      <h1 className={style.title}>💉 주변 병원 찾기 🏥</h1>
+      <h1 className={style.title}>💉 내 위치 주변 병원 찾기 🏥</h1>
       <div className={style.divider} />
 
       {recommendedDepartment ? (
         <div className={style.state}>
-          {`사용자의 건강 상태에 따라 '${recommendedDepartment}' 진료과를 추천합니다.`}
+          {`입력 정보 기반으로 '${recommendedDepartment}' 진료과가 검색되었습니다.`}
         </div>
       ) : (
         <div className={style.state}>건강 상태 분석 중입니다...</div>
@@ -219,7 +219,7 @@ export default function HospitalPage() {
         <div id="map" className={style.map}></div>
 
         <div className={style.subDescription}>
-          👇🏻 아래에서 영양제 추천도 받아보세요! 👇🏻
+          👇🏻 아래에서 영양제 검색도 해보세요! 👇🏻
         </div>
       </div>
 
@@ -229,7 +229,7 @@ export default function HospitalPage() {
         className={style.supplementbtn}
         onClick={onClickSupplement}
       >
-        영양제 추천받기
+        영양제 찾기
       </button>
       <button className={style.mainbtn} onClick={onClickMain}>
         메인 페이지로 돌아가기

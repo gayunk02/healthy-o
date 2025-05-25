@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   return (
     <div className={styles.wrapper}>
-      <h2 className={styles.title}>로그인 화면입니다</h2>
+      <h2 className={styles.title}>Helthy-O 로그인</h2>
 
       <div className={styles.inputGroup}>
         <div className={styles.label}>ID:</div>
