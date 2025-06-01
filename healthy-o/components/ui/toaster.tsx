@@ -16,7 +16,7 @@ export function Toaster() {
   const { toasts } = useToast()
 
   return (
-    <ToastProvider>
+    <ToastProvider duration={5000}>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         return (
           <Toast 
@@ -25,8 +25,9 @@ export function Toaster() {
             className={cn(
               "bg-white border-2 shadow-lg backdrop-blur-sm",
               "data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out",
-              "data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-top-full data-[state=closed]:duration-300",
-              "data-[state=open]:slide-in-from-top-full data-[state=open]:duration-300",
+              "data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-top-full",
+              "data-[state=open]:slide-in-from-top-full",
+              "data-[state=closed]:duration-300 data-[state=open]:duration-500",
               variant === "destructive" ? 
                 "border-red-500 bg-red-500 text-white" : 
                 "border-[#0B4619]/10 text-[#0B4619]"
@@ -52,16 +53,15 @@ export function Toaster() {
             </div>
             {action}
             <ToastClose className={cn(
-              "transition-colors",
+              "absolute right-2 top-2 rounded-md p-1 opacity-70 transition-opacity hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2",
               variant === "destructive" ? 
-                "text-white/70 hover:text-white" : 
-                "text-[#0B4619]/50 hover:text-[#0B4619]"
+                "text-white focus:ring-red-400 focus:ring-offset-red-600" : 
+                "text-[#0B4619] focus:ring-[#0B4619] focus:ring-offset-[#0B4619]/10"
             )} />
           </Toast>
         )
       })}
-      <ToastViewport 
-        className="fixed top-0 left-1/2 -translate-x-1/2 flex flex-col gap-2 p-6 w-[420px] max-w-[100vw] m-0 list-none z-[100] outline-none items-center" />
+      <ToastViewport />
     </ToastProvider>
   )
 }

@@ -30,7 +30,7 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
 
-      const response = await fetch('/api/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -38,24 +38,29 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password })
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("로그인 실패");
+        throw new Error(data.message || "로그인 실패");
       }
 
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      
+      // 먼저 toast 알림을 표시
       toast({
-        title: "로그인 성공",
-        description: "환영합니다!"
+        title: "✨ 로그인 성공",
+        description: `${data.user.name}님, 환영합니다!`,
+        duration: 3000,
       });
-      
-      router.push('/question');
-    } catch (error) {
+
+      // toast가 표시된 후 약간의 지연을 두고 페이지 이동
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
+
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "로그인 실패",
-        description: "이메일과 비밀번호를 확인해주세요."
+        description: error.message || "이메일과 비밀번호를 확인해주세요."
       });
       console.error(error);
     } finally {

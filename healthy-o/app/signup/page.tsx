@@ -151,6 +151,46 @@ export default function SignupPage() {
     }));
   };
 
+  const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
+    if (type === 'year') {
+      setBirthYear(value);
+      setBirthDay("");
+    } else if (type === 'month') {
+      setBirthMonth(value);
+      setBirthDay("");
+    } else {
+      setBirthDay(value);
+    }
+
+    // 모든 값이 선택되었을 때만 날짜를 설정
+    if (type === 'day' && birthYear && birthMonth) {
+      const formattedDate = `${birthYear}-${birthMonth.padStart(2, '0')}-${value.padStart(2, '0')}`;
+      const newDate = new Date(formattedDate);
+      
+      // 유효한 날짜인지 확인
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+        handleInputChange("birthDate", formattedDate);
+      }
+    } else if (type === 'year' && birthMonth && birthDay) {
+      const formattedDate = `${value}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      const newDate = new Date(formattedDate);
+      
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+        handleInputChange("birthDate", formattedDate);
+      }
+    } else if (type === 'month' && birthYear && birthDay) {
+      const formattedDate = `${birthYear}-${value.padStart(2, '0')}-${birthDay.padStart(2, '0')}`;
+      const newDate = new Date(formattedDate);
+      
+      if (!isNaN(newDate.getTime())) {
+        setSelectedDate(newDate);
+        handleInputChange("birthDate", formattedDate);
+      }
+    }
+  };
+
   const validateForm = () => {
     const newErrors: any = {};
     const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
@@ -164,7 +204,25 @@ export default function SignupPage() {
     else if (form.password1 !== form.password2) newErrors.password2 = "비밀번호가 일치하지 않습니다.";
     if (phone1.length !== 3 || phone2.length !== 4 || phone3.length !== 4) newErrors.phone = "올바른 전화번호 형식이 아닙니다.";
     if (!form.gender) newErrors.gender = "성별을 선택해 주세요.";
-    if (!selectedDate) newErrors.birthDate = "생년월일을 선택해 주세요.";
+    
+    // 생년월일 유효성 검사 개선
+    if (!birthYear || !birthMonth || !birthDay) {
+      newErrors.birthDate = "생년월일을 선택해 주세요.";
+    } else {
+      const birthDate = new Date(form.birthDate);
+      const today = new Date();
+      const minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate());
+      const maxDate = new Date(today.getFullYear() - 14, today.getMonth(), today.getDate());
+      
+      if (isNaN(birthDate.getTime())) {
+        newErrors.birthDate = "올바른 생년월일을 선택해 주세요.";
+      } else if (birthDate > maxDate) {
+        newErrors.birthDate = "14세 이상만 가입이 가능합니다.";
+      } else if (birthDate < minDate) {
+        newErrors.birthDate = "올바른 생년월일을 입력해 주세요.";
+      }
+    }
+
     if (!agreements.termsOfService || !agreements.privacyPolicy) {
       newErrors.agreements = "필수 약관에 동의해 주세요.";
     }
@@ -174,68 +232,79 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
-    if (validateForm()) {
-      try {
-        const response = await fetch("/api/auth/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: form.email,
-            name: form.writer,
-            password: form.password1,
-            phone: `${phone1}-${phone2}-${phone3}`,
-            gender: form.gender,
-            birthDate: form.birthDate,
-          }),
-        });
+    // 먼저 폼 유효성 검사를 실행
+    const isValid = validateForm();
+    
+    // 유효성 검사를 통과하지 못하면 여기서 중단
+    if (!isValid) {
+      toast({
+        variant: "destructive",
+        title: "입력 오류",
+        description: "모든 필수 정보를 올바르게 입력해주세요."
+      });
+      return;
+    }
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '회원가입 실패');
-        }
+    try {
+      // 1. 회원가입 요청
+      const signupResponse = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          name: form.writer,
+          password: form.password1,
+          phone: `${phone1}-${phone2}-${phone3}`,
+          gender: form.gender,
+          birthDate: form.birthDate,
+        }),
+      });
 
-        const data = await response.json();
-        toast({
-          title: "회원가입 성공",
-          description: "Healthy-O 가입을 축하합니다."
-        });
-        router.push('/login');
-      } catch (error: any) {
-        toast({
-          variant: "destructive",
-          title: "회원가입 실패",
-          description: error.message || "회원가입 중 문제가 발생했습니다. 다시 시도해 주세요."
-        });
-        console.error(error);
+      if (!signupResponse.ok) {
+        const errorData = await signupResponse.json();
+        throw new Error(errorData.message || '회원가입 실패');
       }
+
+      // 2. 회원가입 성공 후 자동 로그인 요청
+      const loginResponse = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: form.email,
+          password: form.password1,
+        }),
+      });
+
+      if (!loginResponse.ok) {
+        throw new Error('자동 로그인 실패');
+      }
+
+      const loginData = await loginResponse.json();
+      
+      // 회원가입 및 로그인 성공 시 toast 알림 표시
+      toast({
+        title: "✨ 회원가입 성공",
+        description: "Healthy-O의 회원이 되신 것을 환영합니다!",
+        duration: 3000,
+      });
+
+      // 1초 후에 메인 페이지로 이동 (toast 알림이 보일 수 있도록)
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+      
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "회원가입 실패",
+        description: error.message || "회원가입 중 문제가 발생했습니다. 다시 시도해 주세요."
+      });
+      console.error(error);
     }
   };
 
   const handleGenderChange = (value: string) => {
     handleInputChange("gender", value);
-  };
-
-  const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
-    if (type === 'year') {
-      setBirthYear(value);
-      setBirthDay("");
-    } else if (type === 'month') {
-      setBirthMonth(value);
-      setBirthDay("");
-    } else {
-      setBirthDay(value);
-    }
-
-    if ((type === 'year' && birthMonth && birthDay) ||
-        (type === 'month' && birthYear && birthDay) ||
-        (type === 'day' && birthYear && birthMonth)) {
-      const year = type === 'year' ? value : birthYear;
-      const month = type === 'month' ? value : birthMonth;
-      const day = type === 'day' ? value : birthDay;
-      
-      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      handleInputChange("birthDate", formattedDate);
-    }
   };
 
   return (

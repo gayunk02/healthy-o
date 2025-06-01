@@ -2,24 +2,54 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from "next/navigation";
+import { Button } from '@/components/ui/button';
+import { useToast } from "@/hooks/use-toast";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 
 export default function Header() {
+  const pathname = usePathname();
+  const { toast } = useToast();
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
+    // 쿠키에서 토큰 확인
+    const checkLoginStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/check', {
+          method: 'GET',
+          credentials: 'include', // 쿠키 포함
+        });
+        setIsLoggedIn(response.ok);
+      } catch (error) {
+        setIsLoggedIn(false);
+      }
+    };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsLoggedIn(false);
-    alert('로그아웃 되었습니다.');
-    router.push('/');
+    checkLoginStatus();
+  }, [pathname]); // pathname이 변경될 때마다 로그인 상태 체크
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setIsLoggedIn(false);
+        toast({
+          title: "👋 로그아웃",
+          description: "안전하게 로그아웃되었습니다.",
+          duration: 3000,
+        });
+        router.push('/');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (
