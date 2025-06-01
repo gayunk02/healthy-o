@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PageLayout } from "@/components/layout/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Phone, Clock, Loader2, Crosshair } from "lucide-react";
+import { MapPin, Phone, Clock, Loader2, Crosshair, AlertTriangle, ChevronDown, Building2 } from "lucide-react";
 import { Map, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
 import { useEffect, useState } from "react";
 import {
@@ -145,7 +145,8 @@ export default function HospitalPage() {
                   가장 최근 건강 검색 기록을 분석하여 맞춤형 진료과를 안내합니다.
                 </CardDescription>
                 <CardDescription className="text-sm text-yellow-600 font-medium">
-                  ⚠️ 본 정보는 참고용이며, 정확한 진단은 반드시 의료 전문가와 상담하시기 바랍니다.
+                  <AlertTriangle className="w-4 h-4 inline-block mb-1 mr-1" />
+                  본 정보는 참고용이며, 정확한 진단은 반드시 의료 전문가와 상담하시기 바랍니다.
                 </CardDescription>
                 <Badge 
                   variant="outline" 
@@ -225,83 +226,78 @@ export default function HospitalPage() {
               </div>
 
               {/* 병원 목록 */}
-              <div className="space-y-4">
-                <h3 className="font-bold text-lg text-[#0B4619]">📍 주변 병원 목록</h3>
-                <div className="grid gap-6">
-                  {hospitals.map((hospital, index) => (
-                    <div 
-                      key={index} 
-                      className="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => {
-                        setSelectedHospital(hospital);
-                        setMapLevel(5);
-                      }}
-                    >
-                      <div className="space-y-4">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-200">
-                            <h3 className="flex items-center gap-2 text-xl font-bold tracking-wide text-[#0B4619] drop-shadow-[0_1px_1px_rgba(11,70,25,0.15)]">
-                              <span className="text-[#0B4619]/90">🏥</span>
-                              {hospital.name}
-                            </h3>
-                            <Badge 
-                              variant="outline" 
-                              className="text-sm px-2 py-0.5 bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20"
-                            >
-                              {hospital.category}
-                            </Badge>
-                            {hospital.distance && (
-                              <span className="text-sm font-medium text-gray-500 shrink-0">
-                                {hospital.distance.toFixed(1)}km
-                              </span>
-                            )}
-                          </div>
-                          <div className="space-y-4">
-                            <div>
-                              <div className="space-y-1.5">
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                  <MapPin className="w-4 h-4 text-[#0B4619]" />
-                                  <span>{hospital.address}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-gray-700">
-                                  <Phone className="w-4 h-4 text-[#0B4619]" />
-                                  <span>{hospital.phone}</span>
-                                </div>
-                                {hospital.operatingHours && (
-                                  <div className="flex items-center gap-2 text-sm text-gray-700">
-                                    <Clock className="w-4 h-4 text-[#0B4619]" />
-                                    <span>{hospital.operatingHours}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            {hospital.placeUrl && (
-                              <div className="pt-2">
-                                <a 
-                                  href={hospital.placeUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-[#0B4619] hover:underline inline-flex items-center gap-1"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  카카오맵에서 자세히 보기
-                                  <span className="text-xs">→</span>
-                                </a>
-                              </div>
-                            )}
-                          </div>
+              <div className="grid gap-4 mt-8">
+                {hospitals.map((hospital, index) => (
+                  <div 
+                    key={index} 
+                    className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => {
+                      setSelectedHospital(hospital);
+                      setMapLevel(5);
+                    }}
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
+                            <Building2 className="w-4 h-4 text-[#0B4619]/90" />
+                            {hospital.name}
+                          </h3>
+                          <Badge 
+                            variant="outline" 
+                            className="text-sm px-2 py-0.5 bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20"
+                          >
+                            {hospital.category}
+                          </Badge>
+                          {hospital.distance && (
+                            <span className="text-sm font-medium text-gray-500 shrink-0">
+                              {hospital.distance.toFixed(1)}km
+                            </span>
+                          )}
                         </div>
                       </div>
+
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <MapPin className="w-4 h-4 text-[#0B4619]" />
+                          <span>{hospital.address}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <Phone className="w-4 h-4 text-[#0B4619]" />
+                          <span>{hospital.phone}</span>
+                        </div>
+                        {hospital.operatingHours && (
+                          <div className="flex items-center gap-2 text-sm text-gray-700">
+                            <Clock className="w-4 h-4 text-[#0B4619]" />
+                            <span>{hospital.operatingHours}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {hospital.placeUrl && (
+                        <div className="pt-2">
+                          <a 
+                            href={hospital.placeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-[#0B4619] hover:underline inline-flex items-center gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            카카오맵에서 자세히 보기
+                            <span className="text-xs">→</span>
+                          </a>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
             <div className="text-center space-y-4 mt-12">
               <div className="flex items-center justify-center gap-2 text-base text-gray-600">
-                <span className="animate-bounce">👇</span>
+                <ChevronDown className="w-5 h-5 animate-bounce" />
                 <span>아래에서 다른 건강 정보도 확인해보세요</span>
-                <span className="animate-bounce">👇</span>
+                <ChevronDown className="w-5 h-5 animate-bounce" />
               </div>
               <div className="flex justify-center gap-4">
                 <Button

@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { UserPlus, FileText, ShieldCheck, ScrollText, Lock, Info, AlertCircle, FileSpreadsheet, AlertTriangle } from "lucide-react";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -239,400 +240,444 @@ export default function SignupPage() {
 
   return (
     <div className="w-full pt-[100px] pb-20">
-      <Card className="w-[500px] mx-auto">
-        <CardHeader className="pb-8">
-          <CardTitle className="text-3xl font-bold text-center">회원가입</CardTitle>
-          <CardDescription className="text-center text-base">
-            Healthy-O와 함께 건강한 삶을 시작하세요
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={(e) => { e.preventDefault(); handleSignup(); }} className="space-y-6 w-[400px] mx-auto">
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-bold">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="이메일을 입력해 주세요."
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                className="text-center"
-              />
-              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-            </div>
+      <div className="w-full max-w-[500px] mx-auto">
+        <Card className="bg-white shadow-lg">
+          <CardHeader className="pb-8">
+            <CardTitle className="text-3xl font-bold text-center text-[#0B4619]">
+              ✨ 회원가입
+            </CardTitle>
+            <CardDescription className="text-center text-base text-gray-600">
+              Healthy-O와 함께 건강한 삶을 시작하세요
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); handleSignup(); }} className="space-y-6 w-[400px] mx-auto">
+              <div className="space-y-3">
+                <Label htmlFor="email" className="text-sm font-bold">이메일</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="이메일을 입력해 주세요."
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  className="text-center bg-white"
+                />
+                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="writer" className="text-sm font-bold">이름</Label>
-              <Input
-                id="writer"
-                placeholder="이름을 입력해 주세요."
-                onChange={(e) => handleInputChange("writer", e.target.value)}
-                className="text-center"
-              />
-              {errors.writer && <p className="text-sm text-red-500">{errors.writer}</p>}
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="writer" className="text-sm font-bold">이름</Label>
+                <Input
+                  id="writer"
+                  placeholder="이름을 입력해 주세요."
+                  onChange={(e) => handleInputChange("writer", e.target.value)}
+                  className="text-center"
+                />
+                {errors.writer && <p className="text-sm text-red-500">{errors.writer}</p>}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="password1" className="text-sm font-bold">비밀번호</Label>
-              <Input
-                id="password1"
-                type="password"
-                placeholder="영문,숫자,특수문자 조합 8~20자리"
-                onChange={(e) => handleInputChange("password1", e.target.value)}
-                className="text-center"
-              />
-              {errors.password1 && <p className="text-sm text-red-500">{errors.password1}</p>}
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="password1" className="text-sm font-bold">비밀번호</Label>
+                <Input
+                  id="password1"
+                  type="password"
+                  placeholder="영문,숫자,특수문자 조합 8~20자리"
+                  onChange={(e) => handleInputChange("password1", e.target.value)}
+                  className="text-center"
+                />
+                {errors.password1 && <p className="text-sm text-red-500">{errors.password1}</p>}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="password2" className="text-sm font-bold">비밀번호 확인</Label>
-              <Input
-                id="password2"
-                type="password"
-                placeholder="영문,숫자,특수문자 조합 8~20자리"
-                onChange={(e) => handleInputChange("password2", e.target.value)}
-                className="text-center"
-              />
-              {errors.password2 && <p className="text-sm text-red-500">{errors.password2}</p>}
-            </div>
+              <div className="space-y-3">
+                <Label htmlFor="password2" className="text-sm font-bold">비밀번호 확인</Label>
+                <Input
+                  id="password2"
+                  type="password"
+                  placeholder="영문,숫자,특수문자 조합 8~20자리"
+                  onChange={(e) => handleInputChange("password2", e.target.value)}
+                  className="text-center"
+                />
+                {errors.password2 && <p className="text-sm text-red-500">{errors.password2}</p>}
+              </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-bold">생년월일</Label>
-              <div className="flex gap-2">
-                <Select value={birthYear} onValueChange={(value) => handleBirthDateChange('year', value)}>
-                  <SelectTrigger className={cn(
-                    "w-[140px]",
-                    !birthYear && "text-muted-foreground"
-                  )}>
-                    <SelectValue placeholder="연도" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    side="bottom"
-                    align="start"
-                    className="max-h-[300px]"
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">생년월일</Label>
+                <div className="flex gap-2">
+                  <Select value={birthYear} onValueChange={(value) => handleBirthDateChange('year', value)}>
+                    <SelectTrigger className={cn(
+                      "w-[140px]",
+                      !birthYear && "text-muted-foreground"
+                    )}>
+                      <SelectValue placeholder="연도" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      align="start"
+                      className="max-h-[300px]"
+                    >
+                      <SelectGroup>
+                        <SelectLabel className="px-2 py-1.5 text-sm font-semibold">연도</SelectLabel>
+                        {years.map((year) => (
+                          <SelectItem 
+                            key={year} 
+                            value={year.toString()}
+                            className="cursor-pointer"
+                          >
+                            {year}년
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={birthMonth} onValueChange={(value) => handleBirthDateChange('month', value)}>
+                    <SelectTrigger className={cn(
+                      "w-[120px]",
+                      !birthMonth && "text-muted-foreground"
+                    )}>
+                      <SelectValue placeholder="월" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      align="start"
+                      className="max-h-[300px]"
+                    >
+                      <SelectGroup>
+                        <SelectLabel className="px-2 py-1.5 text-sm font-semibold">월</SelectLabel>
+                        {months.map((month) => (
+                          <SelectItem 
+                            key={month} 
+                            value={month.toString().padStart(2, '0')}
+                            className="cursor-pointer"
+                          >
+                            {month}월
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  <Select 
+                    value={birthDay} 
+                    onValueChange={(value) => handleBirthDateChange('day', value)}
+                    disabled={!birthYear || !birthMonth}
                   >
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">연도</SelectLabel>
-                      {years.map((year) => (
-                        <SelectItem 
-                          key={year} 
-                          value={year.toString()}
-                          className="cursor-pointer"
-                        >
-                          {year}년
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                    <SelectTrigger className={cn(
+                      "w-[120px]",
+                      !birthDay && "text-muted-foreground"
+                    )}>
+                      <SelectValue placeholder="일" />
+                    </SelectTrigger>
+                    <SelectContent
+                      position="popper"
+                      side="bottom"
+                      align="start"
+                      className="max-h-[300px]"
+                    >
+                      <SelectGroup>
+                        <SelectLabel className="px-2 py-1.5 text-sm font-semibold">일</SelectLabel>
+                        {getDaysInMonth(birthYear, birthMonth).map((day) => (
+                          <SelectItem 
+                            key={day} 
+                            value={day.toString().padStart(2, '0')}
+                            className="cursor-pointer"
+                          >
+                            {day}일
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {errors.birthDate && <p className="text-sm text-red-500">{errors.birthDate}</p>}
+              </div>
 
-                <Select value={birthMonth} onValueChange={(value) => handleBirthDateChange('month', value)}>
-                  <SelectTrigger className={cn(
-                    "w-[120px]",
-                    !birthMonth && "text-muted-foreground"
-                  )}>
-                    <SelectValue placeholder="월" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    side="bottom"
-                    align="start"
-                    className="max-h-[300px]"
-                  >
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">월</SelectLabel>
-                      {months.map((month) => (
-                        <SelectItem 
-                          key={month} 
-                          value={month.toString().padStart(2, '0')}
-                          className="cursor-pointer"
-                        >
-                          {month}월
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">전화번호</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="phone1"
+                    className="w-[120px] text-center"
+                    maxLength={3}
+                    value={phone1}
+                    onChange={(e) => handlePhoneChange(1, e.target.value)}
+                  />
+                  <span className="text-gray-500">-</span>
+                  <Input
+                    id="phone2"
+                    className="w-[120px] text-center"
+                    maxLength={4}
+                    value={phone2}
+                    onChange={(e) => handlePhoneChange(2, e.target.value)}
+                  />
+                  <span className="text-gray-500">-</span>
+                  <Input
+                    id="phone3"
+                    className="w-[120px] text-center"
+                    maxLength={4}
+                    value={phone3}
+                    onChange={(e) => handlePhoneChange(3, e.target.value)}
+                  />
+                </div>
+                {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+              </div>
 
-                <Select 
-                  value={birthDay} 
-                  onValueChange={(value) => handleBirthDateChange('day', value)}
-                  disabled={!birthYear || !birthMonth}
+              <div className="space-y-3">
+                <Label className="text-sm font-bold">성별</Label>
+                <RadioGroup
+                  className="flex justify-center gap-4"
+                  onValueChange={handleGenderChange}
                 >
-                  <SelectTrigger className={cn(
-                    "w-[120px]",
-                    !birthDay && "text-muted-foreground"
-                  )}>
-                    <SelectValue placeholder="일" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    side="bottom"
-                    align="start"
-                    className="max-h-[300px]"
-                  >
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">일</SelectLabel>
-                      {getDaysInMonth(birthYear, birthMonth).map((day) => (
-                        <SelectItem 
-                          key={day} 
-                          value={day.toString().padStart(2, '0')}
-                          className="cursor-pointer"
-                        >
-                          {day}일
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="M" id="male" />
+                    <Label htmlFor="male">남성</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="F" id="female" />
+                    <Label htmlFor="female">여성</Label>
+                  </div>
+                </RadioGroup>
+                {errors.gender && <p className="text-sm text-red-500">{errors.gender}</p>}
               </div>
-              {errors.birthDate && <p className="text-sm text-red-500">{errors.birthDate}</p>}
-            </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-bold">전화번호</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="phone1"
-                  className="w-[120px] text-center"
-                  maxLength={3}
-                  value={phone1}
-                  onChange={(e) => handlePhoneChange(1, e.target.value)}
-                />
-                <span className="text-gray-500">-</span>
-                <Input
-                  id="phone2"
-                  className="w-[120px] text-center"
-                  maxLength={4}
-                  value={phone2}
-                  onChange={(e) => handlePhoneChange(2, e.target.value)}
-                />
-                <span className="text-gray-500">-</span>
-                <Input
-                  id="phone3"
-                  className="w-[120px] text-center"
-                  maxLength={4}
-                  value={phone3}
-                  onChange={(e) => handlePhoneChange(3, e.target.value)}
-                />
-              </div>
-              {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-bold">성별</Label>
-              <RadioGroup
-                className="flex justify-center gap-4"
-                onValueChange={handleGenderChange}
-              >
+              <div className="space-y-4 pt-4">
+                <p className="text-sm font-bold mb-2">약관 동의</p>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="M" id="male" />
-                  <Label htmlFor="male">남성</Label>
+                  <Checkbox 
+                    id="termsOfService" 
+                    checked={agreements.termsOfService}
+                    onCheckedChange={() => handleAgreementChange('termsOfService')}
+                  />
+                  <Label htmlFor="termsOfService" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <span className="text-red-500 mr-1">*</span>
+                    <Dialog>
+                      <DialogTrigger className="text-primary hover:underline">서비스 이용약관</DialogTrigger>
+                      <DialogContent className="max-w-[700px]">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-center pb-4 text-[#0B4619]">
+                            <div className="flex items-center justify-center gap-2">
+                              <FileText className="w-6 h-6" />
+                              서비스 이용약관
+                            </div>
+                          </DialogTitle>
+                          <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
+                            <div className="space-y-8 text-foreground">
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10 bg-[#0B4619]/5">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <Info className="w-5 h-5" />
+                                  서비스 이용 전 고지사항
+                                </h3>
+                                <div className="space-y-2 text-sm">
+                                  <p>본 서비스는 OpenAI의 생성형 인공지능(chatGPT) 기술을 기반으로, 사용자가 입력한 데이터를 바탕으로 참고용 검색 결과를 제공하는 AI 통합 정보 검색 도구입니다.</p>
+                                  <p className="text-red-500 font-medium">본 서비스는 의료법상 의료기관이 아니며, 의료인(의사, 약사, 간호사 등) 및 의료 면허를 가진 전문가에 의해 운영되지 않습니다.</p>
+                                  <p>따라서 본 서비스가 제공하는 정보는 의학적 진단, 치료, 예방, 처방을 위한 조언이나 의료행위에 해당하지 않습니다.</p>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <AlertCircle className="w-5 h-5" />
+                                  서비스의 제한사항
+                                </h3>
+                                <div className="space-y-4 text-sm">
+                                  <div>
+                                    <h4 className="font-semibold mb-2 text-[#0B4619]">1. AI 기술의 한계</h4>
+                                    <ul className="list-disc pl-4 space-y-1.5 text-gray-600">
+                                      <li>AI가 제시하는 정보는 일반적인 지식과 인공지능의 학습 결과를 기반으로 자동 생성된 것입니다.</li>
+                                      <li>개별 사용자에 맞춘 정확한 의학적 판단을 제공할 수 없습니다.</li>
+                                      <li>부정확하거나 오해의 소지가 있는 정보가 포함될 수 있습니다.</li>
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold mb-2 text-[#0B4619]">2. 책임의 제한</h4>
+                                    <ul className="list-disc pl-4 space-y-1.5 text-gray-600">
+                                      <li>제공된 정보를 기반으로 한 사용자의 판단이나 행동의 결과에 대해 법적·의료적 책임을 지지 않습니다.</li>
+                                      <li>추천하는 병원, 의료기관, 건강기능식품은 일반적인 정보 제공 목적이며, 효능, 적합성, 안전성을 보장하지 않습니다.</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <FileSpreadsheet className="w-5 h-5" />
+                                  이용자의 의무
+                                </h3>
+                                <div className="text-sm">
+                                  <ul className="list-decimal space-y-2 pl-4 text-gray-600">
+                                    <li>본 서비스의 정보는 단순 참고 자료로만 활용해야 합니다.</li>
+                                    <li>건강상 우려가 있을 경우 반드시 의료 전문가와 상담하거나 의료기관을 방문해야 합니다.</li>
+                                    <li>건강기능식품 관련 정보는 참고용이며, 전문가와 상의 후 복용해야 합니다.</li>
+                                    <li>정확하고 안전한 건강 관리를 위해 의료 전문가의 진단과 조언을 따라야 합니다.</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <ShieldCheck className="w-5 h-5" />
+                                  개인정보 보호
+                                </h3>
+                                <div className="text-sm text-gray-600">
+                                  <p>회사는 「개인정보 보호법」 등 관련 법령상의 개인정보보호 규정을 준수하며, 이용자의 개인정보 보호를 위해 노력합니다.</p>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <ScrollText className="w-5 h-5" />
+                                  약관의 효력
+                                </h3>
+                                <div className="text-sm">
+                                  <ul className="list-disc space-y-2 pl-4 text-gray-600">
+                                    <li>본 약관은 서비스를 이용하고자 하는 모든 회원에 대하여 그 효력을 발생합니다.</li>
+                                    <li>회사는 관련법을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.</li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </DialogDescription>
+                        </DialogHeader>
+                      </DialogContent>
+                    </Dialog>
+                    에 동의합니다.
+                  </Label>
                 </div>
+
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="F" id="female" />
-                  <Label htmlFor="female">여성</Label>
+                  <Checkbox 
+                    id="privacyPolicy" 
+                    checked={agreements.privacyPolicy}
+                    onCheckedChange={() => handleAgreementChange('privacyPolicy')}
+                  />
+                  <Label htmlFor="privacyPolicy" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    <span className="text-red-500 mr-1">*</span>
+                    <Dialog>
+                      <DialogTrigger className="text-primary hover:underline">개인정보 처리방침</DialogTrigger>
+                      <DialogContent className="max-w-[700px]">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-center pb-4 text-[#0B4619]">
+                            <div className="flex items-center justify-center gap-2">
+                              <Lock className="w-6 h-6" />
+                              개인정보 처리방침
+                            </div>
+                          </DialogTitle>
+                          <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
+                            <div className="space-y-8 text-foreground">
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <Info className="w-5 h-5" />
+                                  개인정보의 수집 및 이용 목적
+                                </h3>
+                                <div className="text-sm">
+                                  <ul className="list-disc space-y-1.5 pl-4 text-gray-600">
+                                    <li>회원 가입 및 관리</li>
+                                    <li>AI 기반 건강 정보 검색 서비스 제공</li>
+                                    <li>맞춤형 건강 정보 제공</li>
+                                    <li>서비스 개선 및 개발</li>
+                                    <li>고객 상담 및 불만 처리</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <FileText className="w-5 h-5" />
+                                  수집하는 개인정보의 항목
+                                </h3>
+                                <div className="space-y-4 text-sm">
+                                  <div>
+                                    <h4 className="font-semibold mb-2 text-[#0B4619]">필수항목</h4>
+                                    <ul className="list-disc pl-4 space-y-1.5 text-gray-600">
+                                      <li>이름</li>
+                                      <li>이메일 주소</li>
+                                      <li>비밀번호</li>
+                                      <li>생년월일</li>
+                                      <li>성별</li>
+                                      <li>전화번호</li>
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-semibold mb-2 text-[#0B4619]">선택항목</h4>
+                                    <ul className="list-disc pl-4 text-gray-600">
+                                      <li>마케팅 정보 수신 동의</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <ScrollText className="w-5 h-5" />
+                                  개인정보의 보유 및 이용기간
+                                </h3>
+                                <div className="text-sm">
+                                  <p className="mb-2 text-gray-600">회원 탈퇴 시까지 보관하며, 다음의 경우에는 해당 기간 종료 시까지 보관합니다:</p>
+                                  <ul className="list-disc pl-4 space-y-1.5 text-gray-600">
+                                    <li>계약 또는 청약철회 등에 관한 기록: 5년</li>
+                                    <li>대금결제 및 재화 등의 공급에 관한 기록: 5년</li>
+                                    <li>소비자의 불만 또는 분쟁처리에 관한 기록: 3년</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <AlertTriangle className="w-5 h-5" />
+                                  개인정보의 파기절차 및 방법
+                                </h3>
+                                <div className="text-sm text-gray-600">
+                                  <p>회사는 원칙적으로 개인정보 수집 및 이용목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다.</p>
+                                </div>
+                              </div>
+
+                              <div className="p-4 rounded-lg border border-[#0B4619]/10">
+                                <h3 className="text-lg font-bold text-[#0B4619] mb-3 flex items-center gap-2">
+                                  <ShieldCheck className="w-5 h-5" />
+                                  이용자의 권리와 행사방법
+                                </h3>
+                                <div className="text-sm text-gray-600">
+                                  <p>이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 회원탈퇴를 통해 개인정보의 수집 및 이용에 대한 동의를 철회할 수 있습니다.</p>
+                                </div>
+                              </div>
+                            </div>
+                          </DialogDescription>
+                        </DialogHeader>
+                      </DialogContent>
+                    </Dialog>
+                    에 동의합니다.
+                  </Label>
                 </div>
-              </RadioGroup>
-              {errors.gender && <p className="text-sm text-red-500">{errors.gender}</p>}
-            </div>
 
-            <div className="space-y-4 pt-4">
-              <p className="text-sm font-bold mb-2">약관 동의</p>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="termsOfService" 
-                  checked={agreements.termsOfService}
-                  onCheckedChange={() => handleAgreementChange('termsOfService')}
-                />
-                <Label htmlFor="termsOfService" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  <span className="text-red-500 mr-1">*</span>
-                  <Dialog>
-                    <DialogTrigger className="text-primary hover:underline">서비스 이용약관</DialogTrigger>
-                    <DialogContent className="max-w-[700px]">
-                      <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-center pb-4">서비스 이용약관</DialogTitle>
-                        <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
-                          <div className="space-y-6 text-foreground">
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">📋 서비스 이용 전 고지사항</h3>
-                              <div className="pl-4 space-y-2 text-sm">
-                                <p>본 서비스는 OpenAI의 생성형 인공지능(chatGPT) 기술을 기반으로, 사용자가 입력한 데이터를 바탕으로 참고용 검색 결과를 제공하는 AI 통합 정보 검색 도구입니다.</p>
-                                <p className="text-red-500">본 서비스는 의료법상 의료기관이 아니며, 의료인(의사, 약사, 간호사 등) 및 의료 면허를 가진 전문가에 의해 운영되지 않습니다.</p>
-                                <p>따라서 본 서비스가 제공하는 정보는 의학적 진단, 치료, 예방, 처방을 위한 조언이나 의료행위에 해당하지 않습니다.</p>
-                              </div>
-                            </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="marketing" 
+                    checked={agreements.marketing}
+                    onCheckedChange={() => handleAgreementChange('marketing')}
+                  />
+                  <Label htmlFor="marketing" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    [선택] 마케팅 정보 수신에 동의합니다.
+                  </Label>
+                </div>
 
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">⚠️ 서비스의 제한사항</h3>
-                              <div className="pl-4 space-y-4 text-sm">
-                                <div>
-                                  <h4 className="font-semibold mb-2">1. AI 기술의 한계</h4>
-                                  <ul className="list-disc pl-4 space-y-1">
-                                    <li>AI가 제시하는 정보는 일반적인 지식과 인공지능의 학습 결과를 기반으로 자동 생성된 것입니다.</li>
-                                    <li>개별 사용자에 맞춘 정확한 의학적 판단을 제공할 수 없습니다.</li>
-                                    <li>부정확하거나 오해의 소지가 있는 정보가 포함될 수 있습니다.</li>
-                                  </ul>
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold mb-2">2. 책임의 제한</h4>
-                                  <ul className="list-disc pl-4 space-y-1">
-                                    <li>제공된 정보를 기반으로 한 사용자의 판단이나 행동의 결과에 대해 법적·의료적 책임을 지지 않습니다.</li>
-                                    <li>추천하는 병원, 의료기관, 건강기능식품은 일반적인 정보 제공 목적이며, 효능, 적합성, 안전성을 보장하지 않습니다.</li>
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">✅ 이용자의 의무</h3>
-                              <div className="pl-4 text-sm">
-                                <ul className="list-decimal space-y-2">
-                                  <li>본 서비스의 정보는 단순 참고 자료로만 활용해야 합니다.</li>
-                                  <li>건강상 우려가 있을 경우 반드시 의료 전문가와 상담하거나 의료기관을 방문해야 합니다.</li>
-                                  <li>건강기능식품 관련 정보는 참고용이며, 전문가와 상의 후 복용해야 합니다.</li>
-                                  <li>정확하고 안전한 건강 관리를 위해 의료 전문가의 진단과 조언을 따라야 합니다.</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">🔒 개인정보 보호</h3>
-                              <div className="pl-4 text-sm">
-                                <p>회사는 「개인정보 보호법」 등 관련 법령상의 개인정보보호 규정을 준수하며, 이용자의 개인정보 보호를 위해 노력합니다.</p>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">📜 약관의 효력</h3>
-                              <div className="pl-4 text-sm">
-                                <ul className="list-disc space-y-2">
-                                  <li>본 약관은 서비스를 이용하고자 하는 모든 회원에 대하여 그 효력을 발생합니다.</li>
-                                  <li>회사는 관련법을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.</li>
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        </DialogDescription>
-                      </DialogHeader>
-                    </DialogContent>
-                  </Dialog>
-                  에 동의합니다.
-                </Label>
+                {errors.agreements && (
+                  <p className="text-sm text-red-500 mt-2">{errors.agreements}</p>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="privacyPolicy" 
-                  checked={agreements.privacyPolicy}
-                  onCheckedChange={() => handleAgreementChange('privacyPolicy')}
-                />
-                <Label htmlFor="privacyPolicy" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  <span className="text-red-500 mr-1">*</span>
-                  <Dialog>
-                    <DialogTrigger className="text-primary hover:underline">개인정보 처리방침</DialogTrigger>
-                    <DialogContent className="max-w-[700px]">
-                      <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-center pb-4">개인정보 처리방침</DialogTitle>
-                        <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
-                          <div className="space-y-6 text-foreground">
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">1. 개인정보의 수집 및 이용 목적</h3>
-                              <div className="pl-4 text-sm">
-                                <ul className="list-disc space-y-1">
-                                  <li>회원 가입 및 관리</li>
-                                  <li>AI 기반 건강 정보 검색 서비스 제공</li>
-                                  <li>맞춤형 건강 정보 제공</li>
-                                  <li>서비스 개선 및 개발</li>
-                                  <li>고객 상담 및 불만 처리</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">2. 수집하는 개인정보의 항목</h3>
-                              <div className="pl-4 text-sm">
-                                <div className="mb-4">
-                                  <h4 className="font-semibold mb-2">필수항목</h4>
-                                  <ul className="list-disc pl-4 space-y-1">
-                                    <li>이름</li>
-                                    <li>이메일 주소</li>
-                                    <li>비밀번호</li>
-                                    <li>생년월일</li>
-                                    <li>성별</li>
-                                    <li>전화번호</li>
-                                  </ul>
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold mb-2">선택항목</h4>
-                                  <ul className="list-disc pl-4">
-                                    <li>마케팅 정보 수신 동의</li>
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">3. 개인정보의 보유 및 이용기간</h3>
-                              <div className="pl-4 text-sm">
-                                <p className="mb-2">회원 탈퇴 시까지 보관하며, 다음의 경우에는 해당 기간 종료 시까지 보관합니다:</p>
-                                <ul className="list-disc pl-4 space-y-1">
-                                  <li>계약 또는 청약철회 등에 관한 기록: 5년</li>
-                                  <li>대금결제 및 재화 등의 공급에 관한 기록: 5년</li>
-                                  <li>소비자의 불만 또는 분쟁처리에 관한 기록: 3년</li>
-                                </ul>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">4. 개인정보의 파기절차 및 방법</h3>
-                              <div className="pl-4 text-sm">
-                                <p>회사는 원칙적으로 개인정보 수집 및 이용목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다.</p>
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <h3 className="text-lg font-bold text-primary">5. 이용자의 권리와 행사방법</h3>
-                              <div className="pl-4 text-sm">
-                                <p>이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 회원탈퇴를 통해 개인정보의 수집 및 이용에 대한 동의를 철회할 수 있습니다.</p>
-                              </div>
-                            </div>
-                          </div>
-                        </DialogDescription>
-                      </DialogHeader>
-                    </DialogContent>
-                  </Dialog>
-                  에 동의합니다.
-                </Label>
+              <div className="pt-6">
+                <Button 
+                  type="submit"
+                  className="w-full bg-[#0B4619] hover:bg-[#083613] text-white font-medium"
+                >
+                  가입하기
+                </Button>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="marketing" 
-                  checked={agreements.marketing}
-                  onCheckedChange={() => handleAgreementChange('marketing')}
-                />
-                <Label htmlFor="marketing" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  [선택] 마케팅 정보 수신에 동의합니다.
-                </Label>
-              </div>
-
-              {errors.agreements && (
-                <p className="text-sm text-red-500 mt-2">{errors.agreements}</p>
-              )}
-            </div>
-
-            <div className="pt-6">
-              <Button 
-                type="submit"
-                className="w-full bg-[#0B4619] hover:bg-[#083613] text-white"
-              >
-                가입하기
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 } 

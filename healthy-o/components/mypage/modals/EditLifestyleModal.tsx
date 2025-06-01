@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Activity, Coffee } from "lucide-react";
+import { Activity, Coffee, Dumbbell, Moon, Briefcase, PersonStanding, UtensilsCrossed, Clock, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface ILifestyle {
@@ -76,20 +76,19 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-[#0B4619]">
-            생활습관 수정
+        <DialogHeader className="mb-8">
+          <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
+            <Leaf className="w-8 h-8" />
+            생활 습관 정보 수정
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <Card>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="space-y-6">
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Activity className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Dumbbell className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">운동 빈도</Label>
                 </div>
                 <Select value={exercise} onValueChange={setExercise}>
@@ -107,9 +106,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Coffee className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Moon className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">평균 수면 시간</Label>
                 </div>
                 <Select value={sleep} onValueChange={setSleep}>
@@ -128,9 +125,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Activity className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Briefcase className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">직업</Label>
                 </div>
                 <Input
@@ -143,9 +138,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Activity className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <PersonStanding className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">근무 형태</Label>
                 </div>
                 <Select value={workStyle} onValueChange={setWorkStyle}>
@@ -163,9 +156,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Coffee className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <UtensilsCrossed className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">식사 형태</Label>
                 </div>
                 <Select value={diet} onValueChange={setDiet}>
@@ -184,9 +175,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Coffee className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Clock className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">식사 규칙성</Label>
                 </div>
                 <Select value={mealRegularity} onValueChange={setMealRegularity}>
@@ -201,22 +190,22 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              취소
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="bg-[#0B4619] hover:bg-[#083613] text-white"
-            >
-              저장
-            </Button>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="bg-[#0B4619] hover:bg-[#083613] text-white"
+              >
+                저장
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

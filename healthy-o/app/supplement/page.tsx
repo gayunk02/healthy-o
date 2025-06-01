@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabNavigation } from "@/components/layout/TabNavigation";
+import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope } from "lucide-react";
 
 interface ISupplement {
   name: string;
@@ -77,44 +78,60 @@ export default function SupplementPage() {
                   입력하신 건강 정보를 바탕으로 맞춤형 영양제를 추천해드립니다.
                 </CardDescription>
                 <CardDescription className="text-sm text-yellow-600 font-medium mb-6">
-                  ⚠️ 본 정보는 참고용이며, 정확한 복용은 반드시 전문가와 상담하시기 바랍니다.
+                  <AlertTriangle className="w-4 h-4 inline-block mb-1 mr-1" />
+                  본 정보는 참고용이며, 정확한 복용은 반드시 전문가와 상담하시기 바랍니다.
                 </CardDescription>
               </div>
             </CardHeader>
 
             <CardContent className="space-y-6">
-              <div className="grid gap-6">
+              <div className="grid gap-4">
                 {mockSupplements.map((supplement, index) => (
                   <div 
                     key={index} 
-                    className="p-6 rounded-lg border bg-white hover:shadow-md transition-shadow"
+                    className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
                   >
                     <div className="space-y-4">
-                      <div>
-                        <div className="flex items-center gap-3 mb-3 pb-3 border-b border-gray-200">
-                          <h3 className="flex items-center gap-2 text-xl font-bold tracking-wide text-[#0B4619] drop-shadow-[0_1px_1px_rgba(11,70,25,0.15)]">
-                            <span className="text-[#0B4619]/90">🌿</span>
+                      <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
+                            <Pill className="w-4 h-4 text-[#0B4619]/90" />
                             {supplement.name}
                           </h3>
                         </div>
-                        <p className="text-sm text-gray-600">{supplement.description}</p>
                       </div>
 
-                      <div className="space-y-5">
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                        <p className="text-sm text-gray-600 leading-relaxed">{supplement.description}</p>
+                      </div>
+
+                      <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <h4 className="font-bold text-base text-[#0B4619] mb-2">주요 효능</h4>
-                          <ul className="list-disc pl-5 space-y-1.5">
+                          <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
+                            <Zap className="w-4 h-4" />
+                            주요 효능
+                          </h4>
+                          <ul className="space-y-1.5">
                             {supplement.benefits.map((benefit, idx) => (
-                              <li key={idx} className="text-sm text-gray-700">{benefit}</li>
+                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
+                                <span className="text-[#0B4619] font-medium">•</span>
+                                {benefit}
+                              </li>
                             ))}
                           </ul>
                         </div>
 
                         <div>
-                          <h4 className="font-bold text-base text-[#0B4619] mb-2">관련 증상</h4>
-                          <ul className="list-disc pl-5 space-y-1.5">
+                          <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
+                            <Stethoscope className="w-4 h-4" />
+                            관련 증상
+                          </h4>
+                          <ul className="space-y-1.5">
                             {supplement.matchingSymptoms.map((symptom, idx) => (
-                              <li key={idx} className="text-sm text-gray-700">{symptom}</li>
+                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
+                                <span className="text-[#0B4619] font-medium">•</span>
+                                {symptom}
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -126,9 +143,9 @@ export default function SupplementPage() {
 
               <div className="text-center space-y-4 pt-6">
                 <div className="flex items-center justify-center gap-2 text-base text-gray-600">
-                  <span className="animate-bounce">👇</span>
+                  <ChevronDown className="w-5 h-5 animate-bounce" />
                   <span>아래에서 다른 건강 정보도 확인해보세요</span>
-                  <span className="animate-bounce">👇</span>
+                  <ChevronDown className="w-5 h-5 animate-bounce" />
                 </div>
                 <div className="flex justify-center gap-4">
                   <Button

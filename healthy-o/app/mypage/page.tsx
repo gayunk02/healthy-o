@@ -492,7 +492,7 @@ export default function MyPage() {
                       <div className="bg-[#0B4619]/10 p-2 rounded-lg">
                         <Activity className="w-5 h-5 text-[#0B4619]" />
                       </div>
-                      <h3 className="font-bold text-lg text-[#0B4619]">생활습관</h3>
+                      <h3 className="font-bold text-lg text-[#0B4619]">생활 습관 정보</h3>
                     </div>
                     <Button
                       variant="outline"
@@ -587,7 +587,7 @@ export default function MyPage() {
                   <div className="bg-[#0B4619]/10 p-2 rounded-lg">
                     <Stethoscope className="w-5 h-5 text-[#0B4619]" />
                   </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">건강 검진</h3>
+                  <h3 className="font-bold text-lg text-[#0B4619]">건강 검색 결과 기록</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {filteredHealthRecords.length > 0 ? (
@@ -634,7 +634,7 @@ export default function MyPage() {
                   <div className="bg-[#0B4619]/10 p-2 rounded-lg">
                     <Building2 className="w-5 h-5 text-[#0B4619]" />
                   </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">병원 추천</h3>
+                  <h3 className="font-bold text-lg text-[#0B4619]">병원 추천 기록</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {filteredHospitalRecs.length > 0 ? (
@@ -686,7 +686,7 @@ export default function MyPage() {
                   <div className="bg-[#0B4619]/10 p-2 rounded-lg">
                     <Pill className="w-5 h-5 text-[#0B4619]" />
                   </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">영양제 추천</h3>
+                  <h3 className="font-bold text-lg text-[#0B4619]">영양제 추천 기록</h3>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
                   {filteredSupplementRecs.length > 0 ? (

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, Ruler, Scale, History, Pill, Cigarette, Wine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface IHealthInfo {
@@ -74,20 +74,19 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center text-[#0B4619]">
+        <DialogHeader className="mb-8">
+          <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
+            <Heart className="w-8 h-8" />
             건강 정보 수정
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <Card>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+        <div className="space-y-6">
+          <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Ruler className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">키 (cm)</Label>
                 </div>
                 <Input
@@ -103,9 +102,7 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Scale className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">몸무게 (kg)</Label>
                 </div>
                 <Input
@@ -121,9 +118,7 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <History className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">과거 병력</Label>
                 </div>
                 <Input
@@ -136,9 +131,7 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Pill className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">복용 중인 약물</Label>
                 </div>
                 <Input
@@ -151,9 +144,7 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Cigarette className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">흡연</Label>
                 </div>
                 <Select value={smoking} onValueChange={setSmoking}>
@@ -170,9 +161,7 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
 
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#0B4619]/10 p-1.5 rounded">
-                    <Heart className="w-4 h-4 text-[#0B4619]" />
-                  </div>
+                  <Wine className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">음주</Label>
                 </div>
                 <Select value={drinking} onValueChange={setDrinking}>
@@ -187,22 +176,22 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <div className="flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              취소
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="bg-[#0B4619] hover:bg-[#083613] text-white"
-            >
-              저장
-            </Button>
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="bg-[#0B4619] hover:bg-[#083613] text-white"
+              >
+                저장
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

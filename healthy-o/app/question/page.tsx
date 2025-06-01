@@ -16,7 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useToast } from "@/hooks/use-toast";
-import { Save, Download, Loader2 } from "lucide-react";
+import { Save, Download, Loader2, Stethoscope, User, Ruler, Activity, HeartPulse, Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function QuestionPage() {
@@ -461,8 +461,11 @@ export default function QuestionPage() {
         </CardHeader>
 
         <CardContent className="space-y-8">
-          <div className="space-y-6">
-            <h3 className="font-bold text-lg text-[#0B4619]">👤 기본 정보</h3>
+          <div className="bg-gray-50 p-6 rounded-lg space-y-6 border border-gray-200 shadow-sm">
+            <h3 className="font-bold text-lg text-[#0B4619]">
+              <User className="w-5 h-5 inline-block mb-1 mr-2" />
+              기본 정보
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <Label htmlFor="name" className="text-sm font-bold">
@@ -511,7 +514,10 @@ export default function QuestionPage() {
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg space-y-6 border border-gray-200">
-            <h3 className="font-bold text-lg text-[#0B4619]">📊 신체 정보</h3>
+            <h3 className="font-bold text-lg text-[#0B4619]">
+              <Ruler className="w-5 h-5 inline-block mb-1 mr-2" />
+              신체 정보
+            </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
@@ -557,7 +563,10 @@ export default function QuestionPage() {
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg space-y-6 border border-gray-200">
-            <h3 className="font-bold text-lg text-[#0B4619]">🏥 건강 정보</h3>
+            <h3 className="font-bold text-lg text-[#0B4619]">
+              <HeartPulse className="w-5 h-5 inline-block mb-1 mr-2" />
+              건강 정보
+            </h3>
             <div className="space-y-6">
               <div className="space-y-3">
                 <Label htmlFor="chronicDiseases" className="text-sm font-bold">
@@ -629,7 +638,10 @@ export default function QuestionPage() {
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg space-y-6 border border-gray-200">
-            <h3 className="font-bold text-lg text-[#0B4619]">🏥 주요 증상</h3>
+            <h3 className="font-bold text-lg text-[#0B4619]">
+              <Activity className="w-5 h-5 inline-block mb-1 mr-2" />
+              주요 증상
+            </h3>
             <div className="space-y-3">
               <Label htmlFor="mainSymptoms" className="text-sm font-bold">
                 주요 증상 <span className="text-red-500 font-bold">*</span>
@@ -667,7 +679,10 @@ export default function QuestionPage() {
             <AccordionItem value="lifestyle" className="border rounded-lg">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-[#0B4619]">🌱 생활습관 정보</span>
+                  <span className="text-lg font-bold text-[#0B4619]">
+                    <Leaf className="w-5 h-5 inline-block mb-1 mr-2" />
+                    생활 습관 정보
+                  </span>
                   <span className="text-sm text-gray-500">(선택사항)</span>
                 </div>
               </AccordionTrigger>

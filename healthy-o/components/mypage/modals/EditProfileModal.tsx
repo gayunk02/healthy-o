@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Mail, Calendar, Lock, Key, KeyRound } from "lucide-react";
 
 interface IEditProfileModalProps {
   open: boolean;
@@ -243,180 +244,208 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center pb-4">기본 정보 수정</DialogTitle>
+      <DialogContent className="max-w-[600px]">
+        <DialogHeader className="mb-8">
+          <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
+            <User className="w-8 h-8" />
+            기본 정보 수정
+          </DialogTitle>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-2 w-full mb-6">
+          <TabsList className="grid grid-cols-2 w-full mb-8">
             <TabsTrigger value="info">기본 정보</TabsTrigger>
             <TabsTrigger value="password">비밀번호 변경</TabsTrigger>
           </TabsList>
 
           <TabsContent value="info" className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="name" className="text-sm font-bold">이름</Label>
-              <Input
-                id="name"
-                value={form.name}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-                placeholder="이름을 입력해 주세요"
-                className="text-center"
-              />
-              {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-            </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="email" className="text-sm font-bold">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                value={form.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                placeholder="이메일을 입력해 주세요"
-                className="text-center"
-              />
-              {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-bold">생년월일</Label>
-              <div className="flex gap-2">
-                <Select value={birthYear} onValueChange={(value) => handleBirthDateChange('year', value)}>
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="연도" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">연도</SelectLabel>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}년
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-
-                <Select value={birthMonth} onValueChange={(value) => handleBirthDateChange('month', value)}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="월" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">월</SelectLabel>
-                      {months.map((month) => (
-                        <SelectItem key={month} value={month.toString().padStart(2, '0')}>
-                          {month}월
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-
-                <Select 
-                  value={birthDay} 
-                  onValueChange={(value) => handleBirthDateChange('day', value)}
-                  disabled={!birthYear || !birthMonth}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="일" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    <SelectGroup>
-                      <SelectLabel className="px-2 py-1.5 text-sm font-semibold">일</SelectLabel>
-                      {getDaysInMonth(birthYear, birthMonth).map((day) => (
-                        <SelectItem key={day} value={day.toString().padStart(2, '0')}>
-                          {day}일
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#0B4619]" />
+                  <Label htmlFor="name" className="text-sm font-bold">이름</Label>
+                </div>
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  placeholder="이름을 입력해 주세요"
+                  className="text-center"
+                />
+                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
               </div>
-            </div>
 
-            <div className="space-y-3">
-              <Label className="text-sm font-bold">성별</Label>
-              <RadioGroup
-                className="flex justify-center gap-4"
-                value={form.gender}
-                onValueChange={(value) => handleInputChange("gender", value)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="M" id="male" />
-                  <Label htmlFor="male">남성</Label>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#0B4619]" />
+                  <Label htmlFor="email" className="text-sm font-bold">이메일</Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="F" id="female" />
-                  <Label htmlFor="female">여성</Label>
-                </div>
-              </RadioGroup>
-            </div>
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="이메일을 입력해 주세요"
+                  className="text-center"
+                />
+                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
+              </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                취소
-              </Button>
-              <Button onClick={handleSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
-                저장
-              </Button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#0B4619]" />
+                  <Label className="text-sm font-bold">생년월일</Label>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={birthYear} onValueChange={(value) => handleBirthDateChange('year', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="연도" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectGroup>
+                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">연도</SelectLabel>
+                        {years.map((year) => (
+                          <SelectItem key={year} value={year.toString()} className="text-center">
+                            {year}년
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={birthMonth} onValueChange={(value) => handleBirthDateChange('month', value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="월" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectGroup>
+                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">월</SelectLabel>
+                        {months.map((month) => (
+                          <SelectItem key={month} value={month.toString().padStart(2, '0')} className="text-center">
+                            {month}월
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+
+                  <Select 
+                    value={birthDay} 
+                    onValueChange={(value) => handleBirthDateChange('day', value)}
+                    disabled={!birthYear || !birthMonth}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="일" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      <SelectGroup>
+                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">일</SelectLabel>
+                        {getDaysInMonth(birthYear, birthMonth).map((day) => (
+                          <SelectItem key={day} value={day.toString().padStart(2, '0')} className="text-center">
+                            {day}일
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#0B4619]" />
+                  <Label className="text-sm font-bold">성별</Label>
+                </div>
+                <RadioGroup
+                  className="flex justify-center gap-4"
+                  value={form.gender}
+                  onValueChange={(value) => handleInputChange("gender", value)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="M" id="male" />
+                    <Label htmlFor="male">남성</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="F" id="female" />
+                    <Label htmlFor="female">여성</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  취소
+                </Button>
+                <Button onClick={handleSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
+                  저장
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
           <TabsContent value="password" className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="currentPassword" className="text-sm font-bold">현재 비밀번호</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
-                placeholder="현재 비밀번호를 입력해 주세요"
-                className="text-center"
-              />
-              {passwordErrors.currentPassword && (
-                <p className="text-sm text-red-500">{passwordErrors.currentPassword}</p>
-              )}
-            </div>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-[#0B4619]" />
+                  <Label htmlFor="currentPassword" className="text-sm font-bold">현재 비밀번호</Label>
+                </div>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
+                  placeholder="현재 비밀번호를 입력해 주세요"
+                  className="text-center"
+                />
+                {passwordErrors.currentPassword && (
+                  <p className="text-sm text-red-500">{passwordErrors.currentPassword}</p>
+                )}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="newPassword" className="text-sm font-bold">새 비밀번호</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
-                placeholder="영문,숫자,특수문자 조합 8~20자리"
-                className="text-center"
-              />
-              {passwordErrors.newPassword && (
-                <p className="text-sm text-red-500">{passwordErrors.newPassword}</p>
-              )}
-            </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-[#0B4619]" />
+                  <Label htmlFor="newPassword" className="text-sm font-bold">새 비밀번호</Label>
+                </div>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+                  placeholder="영문,숫자,특수문자 조합 8~20자리"
+                  className="text-center"
+                />
+                {passwordErrors.newPassword && (
+                  <p className="text-sm text-red-500">{passwordErrors.newPassword}</p>
+                )}
+              </div>
 
-            <div className="space-y-3">
-              <Label htmlFor="confirmPassword" className="text-sm font-bold">새 비밀번호 확인</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
-                placeholder="새 비밀번호를 다시 입력해 주세요"
-                className="text-center"
-              />
-              {passwordErrors.confirmPassword && (
-                <p className="text-sm text-red-500">{passwordErrors.confirmPassword}</p>
-              )}
-            </div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 text-[#0B4619]" />
+                  <Label htmlFor="confirmPassword" className="text-sm font-bold">새 비밀번호 확인</Label>
+                </div>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
+                  placeholder="새 비밀번호를 다시 입력해 주세요"
+                  className="text-center"
+                />
+                {passwordErrors.confirmPassword && (
+                  <p className="text-sm text-red-500">{passwordErrors.confirmPassword}</p>
+                )}
+              </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                취소
-              </Button>
-              <Button onClick={handlePasswordSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
-                변경
-              </Button>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  취소
+                </Button>
+                <Button onClick={handlePasswordSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
+                  변경
+                </Button>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
