@@ -1,11 +1,11 @@
 {
-  "id": "7750d5e6-e833-4c36-8d84-cb6d9a575bb8",
+  "id": "93264e56-050f-45d2-9391-07073b8253b5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.posts_table": {
-      "name": "posts_table",
+    "public.diagnoses": {
+      "name": "diagnoses",
       "schema": "",
       "columns": {
         "id": {
@@ -14,21 +14,111 @@
           "primaryKey": true,
           "notNull": true
         },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "content": {
-          "name": "content",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "user_id": {
           "name": "user_id",
           "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "main_symptoms": {
+          "name": "main_symptoms",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "symptom_duration": {
+          "name": "symptom_duration",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "additional_info": {
+          "name": "additional_info",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'없음'"
+        },
+        "height": {
+          "name": "height",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weight": {
+          "name": "weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bmi": {
+          "name": "bmi",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chronic_diseases": {
+          "name": "chronic_diseases",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'없음'"
+        },
+        "medications": {
+          "name": "medications",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'없음'"
+        },
+        "smoking": {
+          "name": "smoking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NON'"
+        },
+        "drinking": {
+          "name": "drinking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NON'"
+        },
+        "exercise": {
+          "name": "exercise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NONE'"
+        },
+        "sleep": {
+          "name": "sleep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "occupation": {
+          "name": "occupation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "work_style": {
+          "name": "work_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diet": {
+          "name": "diet",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meal_regularity": {
+          "name": "meal_regularity",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -36,29 +126,23 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "posts_table_user_id_users_table_id_fk": {
-          "name": "posts_table_user_id_users_table_id_fk",
-          "tableFrom": "posts_table",
-          "tableTo": "users_table",
+        "diagnoses_user_id_users_id_fk": {
+          "name": "diagnoses_user_id_users_id_fk",
+          "tableFrom": "diagnoses",
+          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -68,8 +152,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.users_table": {
-      "name": "users_table",
+    "public.diagnosis_results": {
+      "name": "diagnosis_results",
       "schema": "",
       "columns": {
         "id": {
@@ -78,16 +162,333 @@
           "primaryKey": true,
           "notNull": true
         },
-        "name": {
-          "name": "name",
+        "diagnosis_id": {
+          "name": "diagnosis_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recommended_department": {
+          "name": "recommended_department",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "age": {
-          "name": "age",
+        "diseases": {
+          "name": "diseases",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "diagnosis_results_diagnosis_id_diagnoses_id_fk": {
+          "name": "diagnosis_results_diagnosis_id_diagnoses_id_fk",
+          "tableFrom": "diagnosis_results",
+          "tableTo": "diagnoses",
+          "columnsFrom": [
+            "diagnosis_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.health_infos": {
+      "name": "health_infos",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
           "type": "integer",
           "primaryKey": false,
+          "notNull": true
+        },
+        "height": {
+          "name": "height",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "weight": {
+          "name": "weight",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bmi": {
+          "name": "bmi",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "chronic_diseases": {
+          "name": "chronic_diseases",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'없음'"
+        },
+        "medications": {
+          "name": "medications",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'없음'"
+        },
+        "smoking": {
+          "name": "smoking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NON'"
+        },
+        "drinking": {
+          "name": "drinking",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NON'"
+        },
+        "exercise": {
+          "name": "exercise",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'NONE'"
+        },
+        "sleep": {
+          "name": "sleep",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "occupation": {
+          "name": "occupation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "work_style": {
+          "name": "work_style",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diet": {
+          "name": "diet",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meal_regularity": {
+          "name": "meal_regularity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "health_infos_user_id_users_id_fk": {
+          "name": "health_infos_user_id_users_id_fk",
+          "tableFrom": "health_infos",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.hospital_recommendations": {
+      "name": "hospital_recommendations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diagnosis_id": {
+          "name": "diagnosis_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "hospitals": {
+          "name": "hospitals",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recommended_at": {
+          "name": "recommended_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "hospital_recommendations_user_id_users_id_fk": {
+          "name": "hospital_recommendations_user_id_users_id_fk",
+          "tableFrom": "hospital_recommendations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "hospital_recommendations_diagnosis_id_diagnoses_id_fk": {
+          "name": "hospital_recommendations_diagnosis_id_diagnoses_id_fk",
+          "tableFrom": "hospital_recommendations",
+          "tableTo": "diagnoses",
+          "columnsFrom": [
+            "diagnosis_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.supplement_recommendations": {
+      "name": "supplement_recommendations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "diagnosis_id": {
+          "name": "diagnosis_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "supplements": {
+          "name": "supplements",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "recommended_at": {
+          "name": "recommended_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "supplement_recommendations_user_id_users_id_fk": {
+          "name": "supplement_recommendations_user_id_users_id_fk",
+          "tableFrom": "supplement_recommendations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "supplement_recommendations_diagnosis_id_diagnoses_id_fk": {
+          "name": "supplement_recommendations_diagnosis_id_diagnoses_id_fk",
+          "tableFrom": "supplement_recommendations",
+          "tableTo": "diagnoses",
+          "columnsFrom": [
+            "diagnosis_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
           "notNull": true
         },
         "email": {
@@ -95,14 +496,65 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "marketing_agree": {
+          "name": "marketing_agree",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "users_table_email_unique": {
-          "name": "users_table_email_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": [
             "email"
