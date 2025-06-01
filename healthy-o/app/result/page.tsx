@@ -7,19 +7,12 @@ import { TabNavigation } from "@/components/layout/TabNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ChevronDown, Stethoscope, Lightbulb } from "lucide-react";
-
-interface IHealthResult {
-  name: string;
-  description: string;
-  mainSymptoms: string[];
-  keyAdvice: string[];
-  riskLevel: '낮음' | '중간' | '높음';
-}
+import { IHealthResultUI } from "@/types/ui";
 
 export default function ResultPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState<IHealthResult[]>([
+  const [results, setResults] = useState<IHealthResultUI[]>([
     {
       name: "고혈압",
       description: "혈압이 높은 상태를 의미하며, 의사의 진단을 받는 것을 추천합니다.",

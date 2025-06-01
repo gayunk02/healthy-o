@@ -16,58 +16,17 @@ import {
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { TabNavigation } from "@/components/layout/TabNavigation";
-
-interface IHospital {
-  name: string;
-  address: string;
-  phone: string;
-  category: string;  // 병원 카테고리 (예: 내과, 외과, 종합병원 등)
-  position: {
-    lat: number;
-    lng: number;
-  };
-  distance?: number;
-  placeUrl?: string;  // 카카오맵 장소 URL
-  operatingHours?: string;  // 영업시간 (있는 경우에만)
-}
+import { IHospitalUI } from "@/types/ui";
 
 export default function HospitalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedCategory = searchParams.get('category');  // 선택된 진료과목 카테고리
-  const [selectedHospital, setSelectedHospital] = useState<IHospital | null>(null);
+  const [selectedHospital, setSelectedHospital] = useState<IHospitalUI | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapLevel, setMapLevel] = useState<number>(5);
   const [isLoading, setIsLoading] = useState(true);
-  const [hospitals, setHospitals] = useState<IHospital[]>([
-    {
-      name: "서울대학교병원",
-      address: "서울특별시 종로구 대학로 101",
-      phone: "02-2072-2114",
-      category: "종합병원",
-      position: { lat: 37.579617, lng: 126.998878 },
-      placeUrl: "https://place.map.kakao.com/8907101",
-      operatingHours: "평일 09:00-17:30"
-    },
-    {
-      name: "연세대학교 세브란스병원",
-      address: "서울특별시 서대문구 연세로 50-1",
-      phone: "02-2228-0114",
-      category: "종합병원",
-      position: { lat: 37.562089, lng: 126.939587 },
-      placeUrl: "https://place.map.kakao.com/8165748",
-      operatingHours: "평일 09:00-17:30"
-    },
-    {
-      name: "가톨릭대학교 서울성모병원",
-      address: "서울특별시 서초구 반포대로 222",
-      phone: "02-1588-1511",
-      category: "종합병원",
-      position: { lat: 37.501163, lng: 127.005515 },
-      placeUrl: "https://place.map.kakao.com/8165748",
-      operatingHours: "평일 09:00-17:30"
-    }
-  ]);
+  const [hospitals, setHospitals] = useState<IHospitalUI[]>([]);
 
   // 임시 데이터: 실제로는 result 페이지에서 받아올 값
   const recommendedDepartment = "소화기내과";

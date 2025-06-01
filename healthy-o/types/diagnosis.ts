@@ -22,7 +22,7 @@ export interface IDiagnosis {
   createdAt: Date;
 }
 
-interface IDiseaseResult {
+export interface IDiseaseResult {
   diseaseName: string;        // 질병명
   description: string;        // 질병 설명
   riskLevel: 'low' | 'medium' | 'high';  // 위험도

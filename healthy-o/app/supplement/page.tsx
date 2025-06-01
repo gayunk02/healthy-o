@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabNavigation } from "@/components/layout/TabNavigation";
 import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope } from "lucide-react";
+import { ISupplementUI } from "@/types/ui";
+import { useState } from "react";
 
 interface ISupplement {
   name: string;
@@ -15,6 +17,7 @@ interface ISupplement {
 
 export default function SupplementPage() {
   const router = useRouter();
+  const [supplements, setSupplements] = useState<ISupplementUI[]>([]);
 
   const mockSupplements: ISupplement[] = [
     {

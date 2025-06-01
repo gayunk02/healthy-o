@@ -1,4 +1,5 @@
-interface IHospital {
+// 병원 정보 인터페이스
+export interface IHospital {
   hospitalName: string;
   placeId: string;
   placeUrl: string;
@@ -10,25 +11,28 @@ interface IHospital {
   department: string;
 }
 
+// 병원 추천 정보 인터페이스
 export interface IHospitalRecommendation {
   id: number;
-  userId: string;
+  userId: number;
   diagnosisId: number;
   hospitals: IHospital[];
   recommendedAt: Date;
 }
 
-interface ISupplement {
-  supplementName: string;    // 영양제 이름
-  description: string;       // 설명
-  benefits: string[];        // 주요 효능 3개
-  matchingSymptoms: string[]; // 관련 증상 3개
+// 영양제 정보 인터페이스
+export interface ISupplement {
+  supplementName: string;
+  description: string;
+  benefits: string[];
+  matchingSymptoms: string[];
 }
 
+// 영양제 추천 정보 인터페이스
 export interface ISupplementRecommendation {
   id: number;
-  userId: string;
+  userId: number;
   diagnosisId: number;
-  supplements: ISupplement[];  // 최대 3개의 영양제 정보
+  supplements: ISupplement[];
   recommendedAt: Date;
 } 

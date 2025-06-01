@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { IHealthRecord, IHospitalRecord, IUserProfileData } from "@/types/ui";
 
 import { FilterSection } from "@/components/mypage/FilterSection";
 import { HealthRecordSection } from "@/components/mypage/HealthRecordSection";

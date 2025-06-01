@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import { cn } from "@/lib/utils";
 import PageTransition from "@/components/layout/PageTransition";
 import { Toaster } from "@/components/ui/toaster";
+import { IRootLayoutProps } from "@/types/ui";
 
 const pretendard = localFont({
   src: [
@@ -43,11 +44,7 @@ export const metadata: Metadata = {
   },
 };
 
-interface RootLayoutProps {
-  children: React.ReactNode
-}
-
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({ children }: IRootLayoutProps) {
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
