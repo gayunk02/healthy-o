@@ -2,6 +2,7 @@ import { IHealthResult as IDatabaseHealthResult } from './health';
 import { IHospital as IDatabaseHospital, ISupplement as IDatabaseSupplement } from './recommendation';
 import { IDiseaseResult } from './diagnosis';
 import { IDateRange } from './index';
+import { Gender, SmokingStatus, DrinkingStatus, ExerciseStatus, WorkStyle, DietType, MealRegularity } from './health';
 
 // UI 전용 필드를 위한 타입
 export type UIHospitalExtension = {
@@ -27,37 +28,26 @@ export interface IHealthRecord {
   date: string;
   type: string;
   basicInfo: {
+    name: string;
+    age: number;
+    gender: Gender;
     height: string;
     weight: string;
-    bloodPressure: string;
-    bloodSugar: string;
     bmi: string;
   };
-  symptoms: {
-    main: string;
-    duration: string;
-    painLevel: string;
-    frequency: string;
-    triggers: string;
-    accompaniedSymptoms: string;
-  };
   lifestyle: {
-    sleepQuality: string;
-    stressLevel: string;
-    exercise: string;
-    diet: string;
-    smoking: string;
-    drinking: string;
+    sleep: string;
+    exercise: ExerciseStatus;
+    diet: DietType;
+    smoking: SmokingStatus;
+    drinking: DrinkingStatus;
+    occupation: string;
+    workStyle: WorkStyle;
+    mealRegularity: MealRegularity;
   };
-  analysis: {
-    possibleConditions: Array<{
-      name: string;
-      probability: string;
-      description: string;
-      recommendedActions: string[];
-    }>;
-    riskLevel: string;
-    recommendedLifestyleChanges: string[];
+  medicalInfo: {
+    chronicDiseases?: string;
+    medications?: string;
   };
 }
 
@@ -66,17 +56,7 @@ export interface IHospitalRecord {
   id: number;
   date: string;
   recommendedDepartment: string;
-  hospitals: Array<{
-    name: string;
-    specialty: string;
-    distance: string;
-    rating: number;
-    availableTime: string;
-    reservation: string;
-    address: string;
-    contact: string;
-  }>;
-  reason: string;
+  hospitals: Array<IDatabaseHospital>;
 }
 
 // UI에서 사용하는 건강 결과 인터페이스
@@ -89,28 +69,17 @@ export interface IHealthResultUI {
 }
 
 // UI에서 사용하는 병원 정보 인터페이스
-export interface IHospitalUI {
-  name: string;
-  address: string;
-  phone: string;
-  category: string;
-  position: {
-    lat: number;
-    lng: number;
-  };
-  department: string;
-  placeId: string;
-  placeUrl: string;
-  distance?: number;
+export interface IHospitalUI extends IDatabaseHospital {
+  hospitalName: string;
+  latitude: number;
+  longitude: number;
   operatingHours?: string;
+  distance?: number;
+  specialties?: string[];
 }
 
 // UI에서 사용하는 영양제 정보 인터페이스
-export interface ISupplementUI {
-  name: string;
-  description: string;
-  benefits: string[];
-  matchingSymptoms: string[];
+export interface ISupplementUI extends IDatabaseSupplement {
   dosage?: string;
   timing?: string;
   precautions?: string[];
@@ -122,28 +91,25 @@ export interface IUserProfileData {
   name: string;
   email: string;
   birthDate: string;
-  gender: 'M' | 'F';
+  gender: Gender;
   height: string;
   weight: string;
-  medicalHistory: string;
-  medications: string;
-  smoking: string;
-  drinking: string;
+  chronicDiseases?: string;
+  medications?: string;
+  smoking: SmokingStatus;
+  drinking: DrinkingStatus;
   lifestyle: {
-    exercise: string;
+    exercise: ExerciseStatus;
     sleep: string;
     occupation: string;
-    workStyle: string;
-    diet: string;
-    mealRegularity: string;
+    workStyle: WorkStyle;
+    diet: DietType;
+    mealRegularity: MealRegularity;
   };
 }
 
 // 날짜 범위 선택을 위한 인터페이스
-export interface IDateRangeUI {
-  from: Date | undefined;
-  to: Date | undefined;
-}
+export interface IDateRangeUI extends IDateRange {}
 
 // 데이터베이스 타입과 UI 타입 간의 변환 함수들
 export const convertToUIDisease = (dbResult: IDiseaseResult): IDiseaseResult & { riskLevelKor: string } => ({
@@ -160,24 +126,12 @@ export const convertToUIHealthResult = (dbResult: IDatabaseHealthResult): IHealt
 });
 
 export const convertToUIHospital = (dbHospital: IDatabaseHospital): IHospitalUI => ({
-  name: dbHospital.hospitalName,
-  position: {
-    lat: dbHospital.latitude,
-    lng: dbHospital.longitude
-  },
-  placeId: dbHospital.placeId,
-  placeUrl: dbHospital.placeUrl,
-  address: dbHospital.address,
-  phone: dbHospital.phone,
-  category: dbHospital.category,
-  department: dbHospital.department
+  ...dbHospital,
+  specialties: [dbHospital.department]
 });
 
 export const convertToUISupplement = (dbSupplement: IDatabaseSupplement): ISupplementUI => ({
-  name: dbSupplement.supplementName,
-  description: dbSupplement.description,
-  benefits: dbSupplement.benefits,
-  matchingSymptoms: dbSupplement.matchingSymptoms
+  ...dbSupplement
 });
 
 // 헬퍼 함수

@@ -1,55 +1,26 @@
 'use client';
 
-import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { usePathname } from "next/navigation";
 import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/auth';
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 export default function Header() {
   const pathname = usePathname();
-  const { toast } = useToast();
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, user, setLoggedOut } = useAuthStore();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    // 쿠키에서 토큰 확인
-    const checkLoginStatus = async () => {
-      try {
-        const response = await fetch('/api/auth/check', {
-          method: 'GET',
-          credentials: 'include', // 쿠키 포함
-        });
-        setIsLoggedIn(response.ok);
-      } catch (error) {
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkLoginStatus();
-  }, [pathname]); // pathname이 변경될 때마다 로그인 상태 체크
-
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        setIsLoggedIn(false);
-        toast({
-          title: "👋 로그아웃",
-          description: "안전하게 로그아웃되었습니다.",
-          duration: 3000,
-        });
-        router.push('/');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleLogout = () => {
+    setLoggedOut();
+    toast({
+      title: "👋 로그아웃",
+      description: "안전하게 로그아웃되었습니다.",
+      duration: 3000,
+    });
+    router.push('/');
   };
 
   return (
@@ -71,8 +42,7 @@ export default function Header() {
             />
           </Link>
 
-          {/* 인증 버튼 섹션 */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center space-x-4">
             {isLoggedIn ? (
               <>
                 <Button

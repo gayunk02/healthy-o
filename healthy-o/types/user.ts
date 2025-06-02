@@ -1,10 +1,12 @@
+import { Gender } from './health';
+
 export interface IUser {
-  id: string;
+  id: number;
   email: string;
   password: string;
   name: string;
   phone: string;
-  gender: 'M' | 'F';
+  gender: Gender;
   birthDate: Date;
   createdAt: Date;
   updatedAt: Date;

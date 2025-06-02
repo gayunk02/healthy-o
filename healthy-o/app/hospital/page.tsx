@@ -32,6 +32,36 @@ export default function HospitalPage() {
   const recommendedDepartment = "소화기내과";
   const recommendedSymptom = "복통";
 
+  // 목업 데이터 불러오기
+  useEffect(() => {
+    const fetchMockData = async () => {
+      try {
+        const response = await fetch('/mock_hospitals.json');
+        const data = await response.json();
+        // 목업 데이터를 IHospitalUI 형식으로 변환
+        const formattedHospitals: IHospitalUI[] = data.hospitals.map((hospital: any) => ({
+          id: hospital.id,
+          hospitalName: hospital.name,
+          address: hospital.address,
+          phone: hospital.phone,
+          category: hospital.specialties[0],
+          latitude: hospital.position.lat,
+          longitude: hospital.position.lng,
+          operatingHours: "09:00 - 18:00",
+          distance: 0,
+          specialties: hospital.specialties
+        }));
+        setHospitals(formattedHospitals);
+        setIsLoading(false);
+      } catch (error) {
+        console.error('목업 데이터 로딩 실패:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchMockData();
+  }, []);
+
   // 현재 위치 가져오기
   useEffect(() => {
     if (navigator.geolocation) {
@@ -39,13 +69,16 @@ export default function HospitalPage() {
         (position) => {
           const { latitude, longitude } = position.coords;
           setUserLocation({ lat: latitude, lng: longitude });
-          setIsLoading(false);
         },
         (error) => {
           console.error("Error getting location:", error);
-          setIsLoading(false);
+          // 위치 정보를 가져올 수 없는 경우 서울 시청을 기본 위치로 설정
+          setUserLocation({ lat: 37.5665, lng: 126.9780 });
         }
       );
+    } else {
+      // 지오로케이션을 지원하지 않는 경우 서울 시청을 기본 위치로 설정
+      setUserLocation({ lat: 37.5665, lng: 126.9780 });
     }
   }, []);
 
@@ -66,8 +99,8 @@ export default function HospitalPage() {
         distance: calculateDistance(
           userLocation.lat,
           userLocation.lng,
-          hospital.position.lat,
-          hospital.position.lng
+          hospital.latitude,
+          hospital.longitude
         )
       }));
       
@@ -127,7 +160,9 @@ export default function HospitalPage() {
                   ) : selectedHospital || userLocation ? (
                     <>
                       <Map
-                        center={selectedHospital ? selectedHospital.position : (userLocation || { lat: 37.5665, lng: 126.9780 })}
+                        center={selectedHospital 
+                          ? { lat: selectedHospital.latitude, lng: selectedHospital.longitude } 
+                          : (userLocation || { lat: 37.5665, lng: 126.9780 })}
                         style={{ width: "100%", height: "100%" }}
                         level={mapLevel}
                       >
@@ -147,18 +182,18 @@ export default function HospitalPage() {
                         {hospitals.map((hospital, idx) => (
                           <div key={idx}>
                             <MapMarker
-                              position={hospital.position}
+                              position={{ lat: hospital.latitude, lng: hospital.longitude }}
                               onClick={() => {
                                 setSelectedHospital(hospital);
                                 setMapLevel(2);
                               }}
                             />
                             <CustomOverlayMap
-                              position={hospital.position}
+                              position={{ lat: hospital.latitude, lng: hospital.longitude }}
                               yAnchor={2.2}
                             >
                               <div className="px-2 py-1 bg-white rounded shadow-md text-xs">
-                                {hospital.name}
+                                {hospital.hospitalName}
                               </div>
                             </CustomOverlayMap>
                           </div>
@@ -200,7 +235,7 @@ export default function HospitalPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
                             <Building2 className="w-4 h-4 text-[#0B4619]/90" />
-                            {hospital.name}
+                            {hospital.hospitalName}
                           </h3>
                           <Badge 
                             variant="outline" 
@@ -232,21 +267,6 @@ export default function HospitalPage() {
                           </div>
                         )}
                       </div>
-
-                      {hospital.placeUrl && (
-                        <div className="pt-2">
-                          <a 
-                            href={hospital.placeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-[#0B4619] hover:underline inline-flex items-center gap-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            카카오맵에서 자세히 보기
-                            <span className="text-xs">→</span>
-                          </a>
-                        </div>
-                      )}
                     </div>
                   </div>
                 ))}

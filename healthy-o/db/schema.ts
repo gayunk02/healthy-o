@@ -3,10 +3,10 @@ import {
   text,
   timestamp,
   boolean,
-  decimal,
   json,
   serial,
-  integer
+  integer,
+  numeric,
 } from 'drizzle-orm/pg-core';
 import { sql, relations } from 'drizzle-orm';
 
@@ -18,8 +18,8 @@ export const users = pgTable('users', {
   phone: text('phone').notNull(),
   gender: text('gender').notNull(), // 'MALE', 'FEMALE'
   birthDate: timestamp('birth_date').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
   marketingAgree: boolean('marketing_agree').default(false),
 });
 
@@ -36,20 +36,24 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 export const healthInfos = pgTable('health_infos', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
-  height: decimal('height').notNull(),
-  weight: decimal('weight').notNull(),
-  bmi: decimal('bmi').notNull(),
+  name: text('name').notNull(),
+  age: integer('age').notNull(),
+  gender: text('gender').notNull(),
+  height: numeric('height').notNull(),
+  weight: numeric('weight').notNull(),
+  bmi: numeric('bmi').notNull(),
   chronicDiseases: text('chronic_diseases').default('없음'),
   medications: text('medications').default('없음'),
-  smoking: text('smoking').notNull().default('NON'),           // 'NON', 'ACTIVE', 'QUIT'
-  drinking: text('drinking').notNull().default('NON'),         // 'NON', 'LIGHT', 'MODERATE', 'HEAVY'
-  exercise: text('exercise').notNull().default('NONE'),        // 'NONE', 'LIGHT', 'MODERATE', 'HEAVY'
-  sleep: text('sleep').notNull(),                             // 'LESS_5', '5_TO_6', '6_TO_7', '7_TO_8', 'MORE_8'
-  occupation: text('occupation').notNull(),
-  workStyle: text('work_style').notNull(),                    // 'SITTING', 'STANDING', 'ACTIVE', 'MIXED'
-  diet: text('diet').notNull(),                               // 'BALANCED', 'MEAT', 'FISH', 'VEGGIE', 'INSTANT'
-  mealRegularity: text('meal_regularity').notNull(),          // 'REGULAR', 'MOSTLY', 'IRREGULAR', 'VERY_IRREGULAR'
-  updatedAt: timestamp('updated_at').defaultNow(),
+  smoking: text('smoking').default('NON').notNull(),
+  drinking: text('drinking').default('NON').notNull(),
+  exercise: text('exercise').default('NONE').notNull(),
+  sleep: text('sleep').notNull(),
+  occupation: text('occupation'),
+  workStyle: text('work_style').notNull(),
+  diet: text('diet').notNull(),
+  mealRegularity: text('meal_regularity').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const healthInfosRelations = relations(healthInfos, ({ one }) => ({
@@ -61,24 +65,24 @@ export const healthInfosRelations = relations(healthInfos, ({ one }) => ({
 
 export const diagnoses = pgTable('diagnoses', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  mainSymptoms: text('main_symptoms').notNull(),
-  symptomDuration: text('symptom_duration').notNull(),
-  additionalInfo: text('additional_info').default('없음'),
-  height: decimal('height').notNull(),
-  weight: decimal('weight').notNull(),
-  bmi: decimal('bmi').notNull(),
+  userId: integer('user_id').references(() => users.id),
+  name: text('name').notNull(),
+  age: integer('age').notNull(),
+  gender: text('gender').notNull(),
+  height: numeric('height').notNull(),
+  weight: numeric('weight').notNull(),
+  bmi: numeric('bmi').notNull(),
   chronicDiseases: text('chronic_diseases').default('없음'),
   medications: text('medications').default('없음'),
-  smoking: text('smoking').notNull().default('NON'),           // 'NON', 'ACTIVE', 'QUIT'
-  drinking: text('drinking').notNull().default('NON'),         // 'NON', 'LIGHT', 'MODERATE', 'HEAVY'
-  exercise: text('exercise').notNull().default('NONE'),        // 'NONE', 'LIGHT', 'MODERATE', 'HEAVY'
-  sleep: text('sleep').notNull(),                             // 'LESS_5', '5_TO_6', '6_TO_7', '7_TO_8', 'MORE_8'
-  occupation: text('occupation').notNull(),
-  workStyle: text('work_style').notNull(),                    // 'SITTING', 'STANDING', 'ACTIVE', 'MIXED'
-  diet: text('diet').notNull(),                               // 'BALANCED', 'MEAT', 'FISH', 'VEGGIE', 'INSTANT'
-  mealRegularity: text('meal_regularity').notNull(),          // 'REGULAR', 'MOSTLY', 'IRREGULAR', 'VERY_IRREGULAR'
-  createdAt: timestamp('created_at').defaultNow(),
+  smoking: text('smoking').default('NON').notNull(),
+  drinking: text('drinking').default('NON').notNull(),
+  exercise: text('exercise').default('NONE').notNull(),
+  sleep: text('sleep').notNull(),
+  occupation: text('occupation'),
+  workStyle: text('work_style').notNull(),
+  diet: text('diet').notNull(),
+  mealRegularity: text('meal_regularity').notNull(),
+  submittedAt: timestamp('submitted_at').defaultNow().notNull(),
 });
 
 export const diagnosesRelations = relations(diagnoses, ({ one, many }) => ({

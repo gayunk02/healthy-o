@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
+import { successResponse, unauthorizedError } from '@/utils/api-response';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const token = cookies().get("token")?.value;
+    const token = request.cookies.get("token")?.value;
 
     if (!token) {
-      return new NextResponse(null, { status: 401 });
+      return unauthorizedError();
     }
 
     // 토큰 검증
@@ -17,11 +18,11 @@ export async function GET() {
     );
 
     if (!verified) {
-      return new NextResponse(null, { status: 401 });
+      return unauthorizedError();
     }
 
-    return new NextResponse(null, { status: 200 });
+    return successResponse(undefined, '유효한 인증 상태입니다.');
   } catch (error) {
-    return new NextResponse(null, { status: 401 });
+    return unauthorizedError();
   }
 } 

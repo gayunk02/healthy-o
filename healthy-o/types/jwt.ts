@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 // 타입 정의
 export interface IJwtPayload {
-  userId: string;
+  userId: number;
   email: string;
   iat?: number;
   exp?: number;

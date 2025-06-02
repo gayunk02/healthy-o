@@ -1,64 +1,111 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { healthInfo } from '@/db/schema';
+import { healthInfos } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth-options';
-import type { Session } from 'next-auth';
+import { verifyAuth } from '@/lib/auth';
+import { successResponse, errorResponse, unauthorizedError, notFoundError } from '@/utils/api-response';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions) as Session | null;
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    const { userId } = await verifyAuth(req);
+    if (!userId) {
+      return unauthorizedError();
     }
 
-    const data = await req.json();
-    const userId = parseInt(session.user.id, 10);
+    const {
+      name,
+      age,
+      gender,
+      height,
+      weight,
+      bmi,
+      chronicDiseases,
+      medications,
+      smoking,
+      drinking,
+      exercise,
+      sleep,
+      occupation,
+      workStyle,
+      diet,
+      mealRegularity,
+    } = await req.json();
+
+    const userIdInt = parseInt(userId);
     
     // 기존 데이터가 있다면 업데이트, 없다면 새로 생성
-    const existingInfo = await db.select().from(healthInfo).where(eq(healthInfo.userId, userId));
+    const existingInfo = await db.select().from(healthInfos).where(eq(healthInfos.userId, userIdInt));
     
     if (existingInfo.length > 0) {
-      await db.update(healthInfo)
+      await db.update(healthInfos)
         .set({
-          data: data,
+          name,
+          age,
+          gender,
+          height,
+          weight,
+          bmi,
+          chronicDiseases,
+          medications,
+          smoking,
+          drinking,
+          exercise,
+          sleep,
+          occupation,
+          workStyle,
+          diet,
+          mealRegularity,
           updatedAt: new Date()
         })
-        .where(eq(healthInfo.userId, userId));
+        .where(eq(healthInfos.userId, userIdInt));
     } else {
-      await db.insert(healthInfo).values({
-        userId: userId,
-        data: data,
+      await db.insert(healthInfos).values({
+        userId: userIdInt,
+        name,
+        age,
+        gender,
+        height,
+        weight,
+        bmi,
+        chronicDiseases,
+        medications,
+        smoking,
+        drinking,
+        exercise,
+        sleep,
+        occupation,
+        workStyle,
+        diet,
+        mealRegularity,
         createdAt: new Date(),
         updatedAt: new Date()
       });
     }
 
-    return NextResponse.json({ message: '건강 정보가 저장되었습니다.' });
+    return successResponse(undefined, '건강 정보가 저장되었습니다.');
   } catch (error) {
     console.error('Error saving health info:', error);
-    return NextResponse.json({ error: '건강 정보 저장 중 오류가 발생했습니다.' }, { status: 500 });
+    return errorResponse('건강 정보 저장 중 오류가 발생했습니다.', undefined, 500);
   }
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions) as Session | null;
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    const { userId } = await verifyAuth(req);
+    if (!userId) {
+      return unauthorizedError();
     }
 
-    const userId = parseInt(session.user.id, 10);
-    const data = await db.select().from(healthInfo).where(eq(healthInfo.userId, userId));
+    const userIdInt = parseInt(userId);
+    const healthInfo = await db.select().from(healthInfos).where(eq(healthInfos.userId, userIdInt));
     
-    if (data.length === 0) {
-      return NextResponse.json({ error: '저장된 건강 정보가 없습니다.' }, { status: 404 });
+    if (healthInfo.length === 0) {
+      return notFoundError('저장된 건강 정보가 없습니다.');
     }
 
-    return NextResponse.json(data[0].data);
+    return successResponse(healthInfo[0], '건강 정보를 불러왔습니다.');
   } catch (error) {
     console.error('Error loading health info:', error);
-    return NextResponse.json({ error: '건강 정보 불러오기 중 오류가 발생했습니다.' }, { status: 500 });
+    return errorResponse('건강 정보 불러오기 중 오류가 발생했습니다.', undefined, 500);
   }
 } 

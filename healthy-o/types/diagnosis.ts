@@ -1,25 +1,25 @@
+import { DrinkingStatus, ExerciseStatus, Gender, SmokingStatus, WorkStyle, DietType, MealRegularity } from './health';
+
 export interface IDiagnosis {
   id: number;
-  userId: string;
-  // 진단 요청 정보
-  mainSymptoms: string;
-  symptomDuration: string;
-  additionalInfo: string;
-  // 진단 시점의 건강 정보
+  userId: number;
+  name: string;
+  age: number;
+  gender: Gender;
   height: number;
   weight: number;
   bmi: number;
-  chronicDiseases: string;
-  medications: string;
-  smoking: string;
-  drinking: string;
-  exercise: string;
+  chronicDiseases?: string;
+  medications?: string;
+  smoking: SmokingStatus;
+  drinking: DrinkingStatus;
+  exercise: ExerciseStatus;
   sleep: string;
   occupation: string;
-  workStyle: string;
-  diet: string;
-  mealRegularity: string;
-  createdAt: Date;
+  workStyle: WorkStyle;
+  diet: DietType;
+  mealRegularity: MealRegularity;
+  submittedAt: Date;
 }
 
 export interface IDiseaseResult {

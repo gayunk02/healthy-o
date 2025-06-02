@@ -1,52 +1,77 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getTokenFromCookies, shouldRefreshToken, refreshToken, setTokenCookie } from '@/lib/auth';
 
 // 로그인이 필요한 페이지 목록
-const authRequiredPages = ['/mypage'];
-// 비로그인 상태에서만 접근 가능한 페이지 목록
-const nonAuthPages = ['/login', '/signup'];
+const protectedPages = ['/mypage'];
 
 export async function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
   const pathname = request.nextUrl.pathname;
 
-  try {
-    // 토큰이 있는 경우 (로그인 상태)
-    if (token) {
-      // 토큰 검증
-      const verified = await jwtVerify(
-        token,
-        new TextEncoder().encode(process.env.JWT_SECRET)
-      );
-
-      // 로그인/회원가입 페이지 접근 시도시 메인으로 리다이렉트
-      if (nonAuthPages.includes(pathname)) {
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-
-      return NextResponse.next();
-    } 
-    // 토큰이 없는 경우 (비로그인 상태)
-    else {
-      // 인증이 필요한 페이지 접근 시도시 로그인으로 리다이렉트
-      if (authRequiredPages.includes(pathname)) {
-        return NextResponse.redirect(new URL('/login', request.url));
-      }
-
+  // API 요청 처리
+  if (pathname.startsWith('/api/')) {
+    // 인증이 필요하지 않은 API 경로
+    const publicApiPaths = [
+      '/api/auth/login',
+      '/api/auth/signup',
+      '/api/auth/check',
+    ];
+    if (publicApiPaths.includes(pathname)) {
       return NextResponse.next();
     }
-  } catch (error) {
-    // 토큰이 유효하지 않은 경우
-    if (authRequiredPages.includes(pathname)) {
-      return NextResponse.redirect(new URL('/login', request.url));
+
+    const apiToken = getTokenFromCookies(request);
+    if (!apiToken) {
+      return NextResponse.next();
     }
 
+    // 토큰 갱신이 필요한지 확인
+    const needsRefresh = await shouldRefreshToken(apiToken);
+    if (!needsRefresh) {
+      return NextResponse.next();
+    }
+
+    // 토큰 갱신
+    const newToken = await refreshToken(apiToken);
+    if (!newToken) {
+      return NextResponse.next();
+    }
+
+    // 새 토큰으로 응답 헤더 설정
+    const response = NextResponse.next();
+    setTokenCookie(response, newToken);
+    return response;
+  }
+
+  // 페이지 요청 처리
+  const isProtectedPage = protectedPages.some(page => pathname.startsWith(page));
+  if (!isProtectedPage) {
     return NextResponse.next();
+  }
+
+  const pageToken = getTokenFromCookies(request);
+  
+  // 토큰이 없는 경우 로그인 페이지로 리다이렉트
+  if (!pageToken) {
+    const url = new URL('/login', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  try {
+    // 토큰 검증
+    await jwtVerify(pageToken, new TextEncoder().encode(process.env.JWT_SECRET));
+    return NextResponse.next();
+  } catch (error) {
+    // 토큰이 유효하지 않은 경우 로그인 페이지로 리다이렉트
+    const url = new URL('/login', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
   }
 }
 
 // 미들웨어를 적용할 경로 설정
 export const config = {
-  matcher: ['/login', '/signup', '/mypage']
+  matcher: ['/login', '/signup', '/mypage', '/question/:path*', '/api/:path*']
 }; 

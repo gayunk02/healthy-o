@@ -48,6 +48,54 @@ export default function QuestionPage() {
   const [highlightedFields, setHighlightedFields] = useState<string[]>([]);
   const [hasPreviousData, setHasPreviousData] = useState(false);
 
+  // 폼 데이터 상태
+  const [formData, setFormData] = useState({
+    name: '',
+    age: '',
+    gender: 'MALE',
+    height: '',
+    weight: '',
+    bmi: '',
+    chronicDiseases: '',
+    medications: '',
+    smoking: 'NON',
+    drinking: 'NON',
+    exercise: 'NONE',
+    sleep: 'LESS_5',
+    occupation: '',
+    workStyle: 'SITTING',
+    diet: 'BALANCED',
+    mealRegularity: 'REGULAR',
+  });
+
+  // 에러 메시지를 한글로 변환하는 함수
+  const getKoreanErrorMessage = (error: any): string => {
+    if (typeof error === 'string') {
+      // JSON 파싱 에러
+      if (error.includes('Unexpected token') || error.includes('SyntaxError')) {
+        return '서버에서 잘못된 응답을 받았습니다. 잠시 후 다시 시도해주세요.';
+      }
+      // 네트워크 에러
+      if (error.includes('Failed to fetch') || error.includes('NetworkError')) {
+        return '네트워크 연결을 확인해주세요.';
+      }
+      // 기타 에러
+      return error;
+    }
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Unexpected token') || error.message.includes('SyntaxError')) {
+        return '서버에서 잘못된 응답을 받았습니다. 잠시 후 다시 시도해주세요.';
+      }
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        return '네트워크 연결을 확인해주세요.';
+      }
+      return error.message;
+    }
+    
+    return '알 수 없는 오류가 발생했습니다.';
+  };
+
   // BMI 자동 계산
   useEffect(() => {
     if (height && weight) {
@@ -70,9 +118,44 @@ export default function QuestionPage() {
     });
   }, []);
 
+  // 로그인 상태 체크 및 실시간 업데이트
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    const checkLoginStatus = () => {
+      // 클라이언트 사이드에서만 localStorage 접근
+      if (typeof window !== 'undefined') {
+        // 모든 localStorage 내용 확인
+        console.log('[Question Page] All localStorage:', Object.keys(localStorage).map(key => ({
+          key,
+          value: localStorage.getItem(key)
+        })));
+        
+        const token = localStorage.getItem('token');
+        const isValid = !!token && token.trim() !== '';
+        
+        console.log('[Question Page] Token check:', { 
+          token: token ? `exists (${token.length} chars)` : 'null', 
+          tokenValue: token,
+          isValid,
+          timestamp: new Date().toLocaleTimeString()
+        });
+        
+        setIsLoggedIn(isValid);
+      }
+    };
+
+    // 초기 상태 체크
+    checkLoginStatus();
+
+    // storage 이벤트 리스너 (다른 탭에서 로그인/로그아웃 시)
+    window.addEventListener('storage', checkLoginStatus);
+    
+    // 포커스 이벤트 리스너 (현재 탭에서 변경사항 체크)
+    window.addEventListener('focus', checkLoginStatus);
+
+    return () => {
+      window.removeEventListener('storage', checkLoginStatus);
+      window.removeEventListener('focus', checkLoginStatus);
+    };
   }, []);
 
   // 페이지 로드 시 이전 데이터 확인
@@ -115,6 +198,13 @@ export default function QuestionPage() {
       setHighlightedFields(prev => prev.filter(id => id !== fieldId));
     }
     
+    // formData 업데이트
+    setFormData(prev => ({
+      ...prev,
+      [fieldId]: value
+    }));
+
+    // 개별 상태 업데이트
     switch (fieldId) {
       case 'name':
         setName(value);
@@ -136,12 +226,6 @@ export default function QuestionPage() {
         if (value === '' || /^\d*\.?\d*$/.test(value)) {
           setWeight(value);
         }
-        break;
-      case 'mainSymptoms':
-        setMainSymptoms(value);
-        break;
-      case 'symptomDuration':
-        setSymptomDuration(value);
         break;
       case 'chronicDiseases':
         setChronicDiseases(value);
@@ -172,9 +256,6 @@ export default function QuestionPage() {
         break;
       case 'mealRegularity':
         setMealRegularity(value);
-        break;
-      case 'additionalInfo':
-        setAdditionalInfo(value);
         break;
     }
   };
@@ -239,30 +320,78 @@ export default function QuestionPage() {
         additionalInfo
       };
 
-      const response = await fetch('/api/question', {
+      const submitData = {
+        name, 
+        age: Number(age), 
+        gender: gender === '남성' ? 'MALE' : 'FEMALE',
+        height: Number(height),
+        weight: Number(weight),
+        bmi: Number(bmi),
+        chronicDiseases: chronicDiseases || '',
+        medications: medications || '',
+        smoking: smoking === '비흡연' ? 'NON' : smoking === '흡연' ? 'ACTIVE' : 'QUIT',
+        drinking: drinking === '비음주' ? 'NON' : 
+                 drinking === '주 1-2회' ? 'LIGHT' : 
+                 drinking === '주 3-4회' ? 'MODERATE' : 'HEAVY',
+        exercise: exercise === '거의 안 함' ? 'NONE' : 
+                 exercise === '가벼운 운동 (주 1-2회)' ? 'LIGHT' : 
+                 exercise === '적당한 운동 (주 3-4회)' ? 'MODERATE' : 'HEAVY',
+        sleep: sleep === '5시간 미만' ? 'LESS_5' : 
+               sleep === '5-6시간' ? '5_TO_6' : 
+               sleep === '6-7시간' ? '6_TO_7' : 
+               sleep === '7-8시간' ? '7_TO_8' : 'MORE_8',
+        occupation: occupation || '',
+        workStyle: workStyle === '주로 앉아서 근무' ? 'SITTING' : 
+                  workStyle === '주로 서서 근무' ? 'STANDING' : 
+                  workStyle === '활동이 많은 근무' ? 'ACTIVE' : 'MIXED',
+        diet: diet === '균형 잡힌 식단' ? 'BALANCED' : 
+              diet === '육류 위주' ? 'MEAT' : 
+              diet === '생선 위주' ? 'FISH' : 
+              diet === '채식 위주' ? 'VEGGIE' : 'INSTANT',
+        mealRegularity: mealRegularity === '규칙적' ? 'REGULAR' : 
+                       mealRegularity === '대체로 규칙적' ? 'MOSTLY' : 
+                       mealRegularity === '불규칙적' ? 'IRREGULAR' : 'VERY_IRREGULAR'
+      };
+
+      console.log('[Question Page] Submitting data to server:', submitData);
+
+      const response = await fetch('/api/question/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          name, 
-          age, 
-          gender, 
-          status: JSON.stringify(healthStatus)
-        })
+        body: JSON.stringify(submitData)
       });
 
-      if (!response.ok) {
-        throw new Error("서버 요청 실패");
+      console.log('[Question Page] Server response status:', response.status);
+      console.log('[Question Page] Server response headers:', [...response.headers.entries()]);
+
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('[Question Page] Raw response:', responseText);
+        
+        result = JSON.parse(responseText);
+        console.log('[Question Page] Parsed response:', result);
+      } catch (jsonError) {
+        console.error('[Question Page] JSON parsing failed:', jsonError);
+        console.error('[Question Page] Response was not valid JSON');
+        throw new Error('서버에서 잘못된 응답을 받았습니다.');
       }
 
-      // 응답 성공 시 바로 result 페이지로 이동
+      if (!response.ok) {
+        console.error('[Question Page] Server returned error:', result);
+        throw new Error(result?.error || result?.message || "서버 요청 실패");
+      }
+
+      console.log('[Question Page] Submit successful, redirecting to result page');
+      // 응답 성공 시 result 페이지로 이동
       router.push('/result');
     } catch (error) {
       console.error("Error submitting form:", error);
       toast({
         title: "제출 중 오류가 발생했습니다.",
-        description: "다시 시도해주세요.",
+        description: getKoreanErrorMessage(error),
         variant: "destructive",
         duration: 0,
       });
@@ -273,50 +402,61 @@ export default function QuestionPage() {
 
   // 건강 정보 저장 함수
   const saveHealthInfo = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    console.log('[Question Page] saveHealthInfo called:', { 
+      isLoggedIn, 
+      timestamp: new Date().toLocaleTimeString() 
+    });
+    
+    if (!isLoggedIn) {
+      console.log('[Question Page] Save blocked - user not logged in');
       toast({
-        title: "로그인이 필요한 서비스입니다.",
-        description: (
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => router.push('/login')}
-              className="text-[#0B4619] underline font-medium mt-1 text-sm"
-            >
-              로그인하기
-            </button>
-          </div>
-        ),
-        duration: 0,
+        title: "로그인이 필요합니다.",
+        description: "로그인한 사용자만 정보를 저장할 수 있습니다.",
+        variant: "destructive",
+        duration: 3000,
       });
       return;
     }
 
+    console.log('[Question Page] Starting save process...');
     try {
       setIsSaving(true);
       const healthData = {
         name,
-        age,
-        gender,
-        height,
-        weight,
-        bmi,
-        mainSymptoms,
-        symptomDuration,
-        chronicDiseases,
-        medications,
-        smoking,
-        drinking,
-        exercise,
-        sleep,
-        occupation,
-        workStyle,
-        diet,
-        mealRegularity,
-        additionalInfo
+        age: Number(age),
+        gender: gender === '남성' ? 'MALE' : 'FEMALE',
+        height: Number(height),
+        weight: Number(weight),
+        bmi: Number(bmi),
+        chronicDiseases: chronicDiseases || '',
+        medications: medications || '',
+        smoking: smoking === '비흡연' ? 'NON' : smoking === '흡연' ? 'ACTIVE' : 'QUIT',
+        drinking: drinking === '비음주' ? 'NON' : 
+                 drinking === '주 1-2회' ? 'LIGHT' : 
+                 drinking === '주 3-4회' ? 'MODERATE' : 'HEAVY',
+        exercise: exercise === '거의 안 함' ? 'NONE' : 
+                 exercise === '가벼운 운동 (주 1-2회)' ? 'LIGHT' : 
+                 exercise === '적당한 운동 (주 3-4회)' ? 'MODERATE' : 'HEAVY',
+        sleep: sleep === '5시간 미만' ? 'LESS_5' : 
+               sleep === '5-6시간' ? '5_TO_6' : 
+               sleep === '6-7시간' ? '6_TO_7' : 
+               sleep === '7-8시간' ? '7_TO_8' : 'MORE_8',
+        occupation: occupation || '',
+        workStyle: workStyle === '주로 앉아서 근무' ? 'SITTING' : 
+                  workStyle === '주로 서서 근무' ? 'STANDING' : 
+                  workStyle === '활동이 많은 근무' ? 'ACTIVE' : 'MIXED',
+        diet: diet === '균형 잡힌 식단' ? 'BALANCED' : 
+              diet === '육류 위주' ? 'MEAT' : 
+              diet === '생선 위주' ? 'FISH' : 
+              diet === '채식 위주' ? 'VEGGIE' : 'INSTANT',
+        mealRegularity: mealRegularity === '규칙적' ? 'REGULAR' : 
+                       mealRegularity === '대체로 규칙적' ? 'MOSTLY' : 
+                       mealRegularity === '불규칙적' ? 'IRREGULAR' : 'VERY_IRREGULAR'
       };
 
-      const response = await fetch('/api/health-info', {
+      console.log('[Question Page] Saving health data:', healthData);
+
+      const response = await fetch('/api/question/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -324,32 +464,49 @@ export default function QuestionPage() {
         body: JSON.stringify(healthData)
       });
 
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        throw new Error('서버에서 잘못된 응답을 받았습니다.');
+      }
+
       if (!response.ok) {
-        throw new Error('저장 실패');
+        throw new Error(result?.error || result?.message || '저장 실패');
       }
 
       toast({
         title: "건강 정보가 저장되었습니다.",
         duration: 3000,
       });
+      console.log('[Question Page] Save successful');
     } catch (error) {
-      console.error('Error saving health info:', error);
+      console.error('[Question Page] Save failed:', error);
       toast({
         title: "건강 정보 저장에 실패했습니다.",
+        description: getKoreanErrorMessage(error),
         variant: "destructive",
         duration: 3000,
       });
     } finally {
       setIsSaving(false);
+      console.log('[Question Page] Save process completed');
     }
   };
 
   // 건강 정보 불러오기 함수
   const loadHealthInfo = async () => {
-    const toastStyle = { className: cn('font-pretendard') };
-
     try {
-      const response = await fetch('/api/health-info');
+      console.log('[Question Page] Starting to load health info');
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/question/latest', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('[Question Page] Response status:', response.status);
       
       if (response.status === 401) {
         toast({
@@ -360,15 +517,11 @@ export default function QuestionPage() {
                 onClick={() => router.push('/login')}
                 className="text-[#0B4619] underline font-medium mt-1 text-sm"
               >
-                <Download className="w-4 h-4" />
                 로그인하기
               </button>
             </div>
           ),
-          className: cn(
-            "top-0 right-0 flex fixed md:max-w-[420px] md:top-4 md:right-4",
-            "bg-red-50 border-red-500 text-red-500"
-          ),
+          duration: 0,
         });
         return;
       }
@@ -376,7 +529,7 @@ export default function QuestionPage() {
       if (response.status === 404) {
         toast({
           title: "저장된 건강 정보가 없습니다.",
-          className: toastStyle.className,
+          duration: 3000,
         });
         return;
       }
@@ -385,41 +538,173 @@ export default function QuestionPage() {
         throw new Error('불러오기 실패');
       }
 
-      const data = await response.json();
+      let result;
+      try {
+        const responseText = await response.text();
+        console.log('[Question Page] Raw response:', responseText);
+        result = JSON.parse(responseText);
+        console.log('[Question Page] Parsed result:', result);
+      } catch (jsonError) {
+        console.error('[Question Page] JSON parsing error:', jsonError);
+        throw new Error('서버에서 잘못된 응답을 받았습니다.');
+      }
+
+      const data = result.data;
+      console.log('[Question Page] Data to be set:', data);
       
-      // 각 상태 업데이트
-      setName(data.name || '');
-      setAge(data.age || '');
-      setGender(data.gender || '');
-      setHeight(data.height || '');
-      setWeight(data.weight || '');
-      setMainSymptoms(data.mainSymptoms || '');
-      setSymptomDuration(data.symptomDuration || '');
-      setChronicDiseases(data.chronicDiseases || '');
-      setMedications(data.medications || '');
-      setSmoking(data.smoking || '');
-      setDrinking(data.drinking || '');
-      setExercise(data.exercise || '');
-      setSleep(data.sleep || '');
-      setOccupation(data.occupation || '');
-      setWorkStyle(data.workStyle || '');
-      setDiet(data.diet || '');
-      setMealRegularity(data.mealRegularity || '');
-      setAdditionalInfo(data.additionalInfo || '');
+      // formData 상태 업데이트
+      setFormData({
+        name: data.name || '',
+        age: data.age?.toString() || '',
+        gender: data.gender === 'MALE' ? '남성' : '여성',
+        height: data.height?.toString() || '',
+        weight: data.weight?.toString() || '',
+        bmi: data.bmi?.toString() || '',
+        chronicDiseases: data.chronicDiseases || '',
+        medications: data.medications || '',
+        smoking: data.smoking === 'NON' ? '비흡연' :
+                data.smoking === 'ACTIVE' ? '흡연' : '금연',
+        drinking: data.drinking === 'NON' ? '비음주' :
+                 data.drinking === 'LIGHT' ? '주 1-2회' :
+                 data.drinking === 'MODERATE' ? '주 3-4회' : '주 5회 이상',
+        exercise: data.exercise === 'NONE' ? '거의 안 함' :
+                 data.exercise === 'LIGHT' ? '가벼운 운동 (주 1-2회)' :
+                 data.exercise === 'MODERATE' ? '적당한 운동 (주 3-4회)' : '활발한 운동 (주 5회 이상)',
+        sleep: data.sleep === 'LESS_5' ? '5시간 미만' :
+               data.sleep === '5_TO_6' ? '5-6시간' :
+               data.sleep === '6_TO_7' ? '6-7시간' :
+               data.sleep === '7_TO_8' ? '7-8시간' : '8시간 초과',
+        occupation: data.occupation || '',
+        workStyle: data.workStyle === 'SITTING' ? '주로 앉아서 근무' :
+                  data.workStyle === 'STANDING' ? '주로 서서 근무' :
+                  data.workStyle === 'ACTIVE' ? '활동이 많은 근무' : '복합적',
+        diet: data.diet === 'BALANCED' ? '균형 잡힌 식단' :
+              data.diet === 'MEAT' ? '육류 위주' :
+              data.diet === 'FISH' ? '생선 위주' :
+              data.diet === 'VEGGIE' ? '채식 위주' : '인스턴트 위주',
+        mealRegularity: data.mealRegularity === 'REGULAR' ? '규칙적' :
+                       data.mealRegularity === 'MOSTLY' ? '대체로 규칙적' :
+                       data.mealRegularity === 'IRREGULAR' ? '불규칙적' : '매우 불규칙적'
+      });
 
       toast({
         title: "건강 정보를 불러왔습니다.",
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error loading health info:', error);
+      console.error('[Question Page] Error loading health info:', error);
       toast({
         title: "건강 정보 불러오기에 실패했습니다.",
+        description: getKoreanErrorMessage(error),
         variant: "destructive",
         duration: 3000,
       });
     }
   };
+
+  // 이전 정보 불러오기 함수
+  const loadLatestInfo = async () => {
+    try {
+      const response = await fetch('/api/question/latest');
+      
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        // JSON 파싱 에러는 조용히 처리
+        return;
+      }
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // 비로그인 사용자는 조용히 실패 처리
+          return;
+        }
+        if (response.status === 404) {
+          // 사용자 정보가 없는 경우도 조용히 처리
+          return;
+        }
+        // 기타 에러는 한글 메시지로 표시
+        toast({
+          title: "이전 정보 확인 실패",
+          description: getKoreanErrorMessage(result?.message || "알 수 없는 오류"),
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      // 실제로 건강 정보가 있는지 확인 (height, weight가 있으면 건강 정보가 있다고 판단)
+      const hasHealthInfo = result.data?.height && result.data?.weight;
+      
+      if (!hasHealthInfo) {
+        // 건강 정보가 없으면 조용히 리턴
+        return;
+      }
+
+      // 이전 정보 설정
+      setFormData(result.data);
+      setHasPreviousData(true);
+      
+      // 이전 정보가 있을 때만 토스트 알림 표시
+      if (!toastShown.current) {
+        toast({
+          title: "이전 정보 확인",
+          description: (
+            <div className="flex flex-col gap-2">
+              <p>이전에 입력한 정보가 있습니다.</p>
+              <button
+                onClick={() => {
+                  setFormData(result.data);
+                  toast({
+                    title: "알림",
+                    description: "이전 정보를 불러왔습니다.",
+                  });
+                }}
+                className="text-[#0B4619] hover:text-[#083613] flex items-center gap-1 transition-colors text-sm font-medium"
+              >
+                <Download className="w-4 h-4" />
+                불러오기
+              </button>
+            </div>
+          ),
+          duration: 0,  // 수동으로 닫을 때까지 유지
+        });
+        toastShown.current = true;
+      }
+    } catch (error) {
+      console.error('Error loading latest info:', error);
+      // 네트워크 오류가 아닌 이상 토스트를 보여주지 않음
+    }
+  };
+
+  // 컴포넌트 마운트 시 이전 정보 확인
+  useEffect(() => {
+    // 로그인한 사용자만 이전 정보 확인
+    if (isLoggedIn) {
+      loadLatestInfo();
+    }
+  }, [isLoggedIn]);
+
+  // formData가 변경될 때마다 각각의 상태를 업데이트
+  useEffect(() => {
+    setName(formData.name);
+    setAge(formData.age);
+    setGender(formData.gender);
+    setHeight(formData.height);
+    setWeight(formData.weight);
+    setBmi(formData.bmi);
+    setChronicDiseases(formData.chronicDiseases);
+    setMedications(formData.medications);
+    setSmoking(formData.smoking);
+    setDrinking(formData.drinking);
+    setExercise(formData.exercise);
+    setSleep(formData.sleep);
+    setOccupation(formData.occupation);
+    setWorkStyle(formData.workStyle);
+    setDiet(formData.diet);
+    setMealRegularity(formData.mealRegularity);
+  }, [formData]);
 
   const getInputStyle = (fieldId: string) => {
     return cn(
@@ -446,17 +731,6 @@ export default function QuestionPage() {
             <CardDescription className="text-center text-base">
               정확한 진단을 위해 상세한 정보를 입력해 주세요
             </CardDescription>
-            {hasPreviousData && (
-              <div className="flex items-center gap-2 text-sm text-gray-500 px-6">
-                <button
-                  onClick={loadHealthInfo}
-                  className="text-[#0B4619] hover:text-[#083613] flex items-center gap-1 transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  이전 정보 불러오기
-                </button>
-              </div>
-            )}
           </div>
         </CardHeader>
 
@@ -500,7 +774,10 @@ export default function QuestionPage() {
                 <Label htmlFor="gender" className="text-sm font-bold">
                   성별 <span className="text-red-500 font-bold">*</span>
                 </Label>
-                <Select value={gender} onValueChange={(value) => handleFieldChange('gender', value)}>
+                <Select 
+                  value={formData.gender} 
+                  onValueChange={(value) => handleFieldChange('gender', value)}
+                >
                   <SelectTrigger id="gender" className={cn(getInputStyle('gender'), "justify-center")}>
                     <SelectValue placeholder="성별을 선택해 주세요" className="text-center" />
                   </SelectTrigger>
@@ -605,7 +882,10 @@ export default function QuestionPage() {
                   <Label htmlFor="smoking" className="text-sm font-bold">
                     흡연 여부
                   </Label>
-                  <Select value={smoking} onValueChange={setSmoking}>
+                  <Select 
+                    value={formData.smoking} 
+                    onValueChange={(value) => handleFieldChange('smoking', value)}
+                  >
                     <SelectTrigger className="text-center justify-center">
                       <SelectValue placeholder="흡연 여부를 선택해 주세요" className="text-center" />
                     </SelectTrigger>
@@ -621,7 +901,10 @@ export default function QuestionPage() {
                   <Label htmlFor="drinking" className="text-sm font-bold">
                     음주 여부
                   </Label>
-                  <Select value={drinking} onValueChange={setDrinking}>
+                  <Select 
+                    value={formData.drinking} 
+                    onValueChange={(value) => handleFieldChange('drinking', value)}
+                  >
                     <SelectTrigger className="text-center justify-center">
                       <SelectValue placeholder="음주 여부를 선택해 주세요" className="text-center" />
                     </SelectTrigger>
@@ -692,15 +975,18 @@ export default function QuestionPage() {
                     <Label htmlFor="exercise" className="text-sm font-bold">
                       운동 빈도
                     </Label>
-                    <Select value={exercise} onValueChange={setExercise}>
+                    <Select 
+                      value={formData.exercise} 
+                      onValueChange={(value) => handleFieldChange('exercise', value)}
+                    >
                       <SelectTrigger className="text-center justify-center">
                         <SelectValue placeholder="운동 빈도를 선택해 주세요" className="text-center" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none" className="text-center">거의 안 함</SelectItem>
-                        <SelectItem value="light" className="text-center">가벼운 운동 (주 1-2회)</SelectItem>
-                        <SelectItem value="moderate" className="text-center">적당한 운동 (주 3-4회)</SelectItem>
-                        <SelectItem value="heavy" className="text-center">활발한 운동 (주 5회 이상)</SelectItem>
+                        <SelectItem value="거의 안 함" className="text-center">거의 안 함</SelectItem>
+                        <SelectItem value="가벼운 운동 (주 1-2회)" className="text-center">가벼운 운동 (주 1-2회)</SelectItem>
+                        <SelectItem value="적당한 운동 (주 3-4회)" className="text-center">적당한 운동 (주 3-4회)</SelectItem>
+                        <SelectItem value="활발한 운동 (주 5회 이상)" className="text-center">활발한 운동 (주 5회 이상)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -709,16 +995,19 @@ export default function QuestionPage() {
                     <Label htmlFor="sleep" className="text-sm font-bold">
                       평균 수면 시간
                     </Label>
-                    <Select value={sleep} onValueChange={setSleep}>
+                    <Select 
+                      value={formData.sleep} 
+                      onValueChange={(value) => handleFieldChange('sleep', value)}
+                    >
                       <SelectTrigger className="text-center justify-center">
                         <SelectValue placeholder="평균 수면 시간을 선택해 주세요" className="text-center" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="less5" className="text-center">5시간 미만</SelectItem>
-                        <SelectItem value="5to6" className="text-center">5-6시간</SelectItem>
-                        <SelectItem value="6to7" className="text-center">6-7시간</SelectItem>
-                        <SelectItem value="7to8" className="text-center">7-8시간</SelectItem>
-                        <SelectItem value="more8" className="text-center">8시간 초과</SelectItem>
+                        <SelectItem value="5시간 미만" className="text-center">5시간 미만</SelectItem>
+                        <SelectItem value="5-6시간" className="text-center">5-6시간</SelectItem>
+                        <SelectItem value="6-7시간" className="text-center">6-7시간</SelectItem>
+                        <SelectItem value="7-8시간" className="text-center">7-8시간</SelectItem>
+                        <SelectItem value="8시간 초과" className="text-center">8시간 초과</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -740,15 +1029,18 @@ export default function QuestionPage() {
                     <Label htmlFor="workStyle" className="text-sm font-bold">
                       근무 형태
                     </Label>
-                    <Select value={workStyle} onValueChange={setWorkStyle}>
+                    <Select 
+                      value={formData.workStyle} 
+                      onValueChange={(value) => handleFieldChange('workStyle', value)}
+                    >
                       <SelectTrigger className="text-center justify-center">
                         <SelectValue placeholder="근무 형태를 선택해 주세요" className="text-center" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sitting" className="text-center">주로 앉아서 근무</SelectItem>
-                        <SelectItem value="standing" className="text-center">주로 서서 근무</SelectItem>
-                        <SelectItem value="moving" className="text-center">활동이 많은 근무</SelectItem>
-                        <SelectItem value="mixed" className="text-center">복합적</SelectItem>
+                        <SelectItem value="주로 앉아서 근무" className="text-center">주로 앉아서 근무</SelectItem>
+                        <SelectItem value="주로 서서 근무" className="text-center">주로 서서 근무</SelectItem>
+                        <SelectItem value="활동이 많은 근무" className="text-center">활동이 많은 근무</SelectItem>
+                        <SelectItem value="복합적" className="text-center">복합적</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -757,16 +1049,19 @@ export default function QuestionPage() {
                     <Label htmlFor="diet" className="text-sm font-bold">
                       식사 형태
                     </Label>
-                    <Select value={diet} onValueChange={setDiet}>
+                    <Select 
+                      value={formData.diet} 
+                      onValueChange={(value) => handleFieldChange('diet', value)}
+                    >
                       <SelectTrigger className="text-center justify-center">
                         <SelectValue placeholder="주로 어떤 음식을 드시나요?" className="text-center" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="balanced" className="text-center">균형 잡힌 식단</SelectItem>
-                        <SelectItem value="meat" className="text-center">육류 위주</SelectItem>
-                        <SelectItem value="fish" className="text-center">생선 위주</SelectItem>
-                        <SelectItem value="vegetable" className="text-center">채식 위주</SelectItem>
-                        <SelectItem value="instant" className="text-center">인스턴트 위주</SelectItem>
+                        <SelectItem value="균형 잡힌 식단" className="text-center">균형 잡힌 식단</SelectItem>
+                        <SelectItem value="육류 위주" className="text-center">육류 위주</SelectItem>
+                        <SelectItem value="생선 위주" className="text-center">생선 위주</SelectItem>
+                        <SelectItem value="채식 위주" className="text-center">채식 위주</SelectItem>
+                        <SelectItem value="인스턴트 위주" className="text-center">인스턴트 위주</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -775,15 +1070,18 @@ export default function QuestionPage() {
                     <Label htmlFor="mealRegularity" className="text-sm font-bold">
                       식사 규칙성
                     </Label>
-                    <Select value={mealRegularity} onValueChange={setMealRegularity}>
+                    <Select 
+                      value={formData.mealRegularity} 
+                      onValueChange={(value) => handleFieldChange('mealRegularity', value)}
+                    >
                       <SelectTrigger className="text-center justify-center">
                         <SelectValue placeholder="식사는 규칙적으로 하시나요?" className="text-center" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="regular" className="text-center">규칙적</SelectItem>
-                        <SelectItem value="mostly" className="text-center">대체로 규칙적</SelectItem>
-                        <SelectItem value="irregular" className="text-center">불규칙적</SelectItem>
-                        <SelectItem value="very-irregular" className="text-center">매우 불규칙적</SelectItem>
+                        <SelectItem value="규칙적" className="text-center">규칙적</SelectItem>
+                        <SelectItem value="대체로 규칙적" className="text-center">대체로 규칙적</SelectItem>
+                        <SelectItem value="불규칙적" className="text-center">불규칙적</SelectItem>
+                        <SelectItem value="매우 불규칙적" className="text-center">매우 불규칙적</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -800,13 +1098,20 @@ export default function QuestionPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={saveHealthInfo}
+                      onClick={() => {
+                        console.log('[Question Page] Save button clicked:', { 
+                          isLoggedIn, 
+                          isSaving, 
+                          timestamp: new Date().toLocaleTimeString() 
+                        });
+                        saveHealthInfo();
+                      }}
                       disabled={!isLoggedIn || isSaving}
                       className={cn(
                         "flex items-center gap-2 h-9 px-4",
                         isLoggedIn 
                           ? "bg-[#0B4619] hover:bg-[#083613] text-white border-[#0B4619]" 
-                          : "opacity-50 cursor-not-allowed"
+                          : "opacity-50 cursor-not-allowed bg-gray-300 text-gray-500 border-gray-300"
                       )}
                     >
                       {isSaving ? (
@@ -823,19 +1128,18 @@ export default function QuestionPage() {
                     </Button>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent 
-                  side="top"
-                  align="start"
-                  className="bg-[#333] text-white border-none px-3 py-1.5" 
-                  sideOffset={5}
-                >
-                  <p className="text-sm font-pretendard">
-                    {!isLoggedIn 
-                      ? "로그인한 사용자만 이용 가능합니다" 
-                      : "입력한 정보를 나중에 다시 불러올 수 있습니다"
-                    }
-                  </p>
-                </TooltipContent>
+                {!isLoggedIn && (
+                  <TooltipContent 
+                    side="top"
+                    align="start"
+                    className="bg-[#333] text-white border-none px-3 py-1.5" 
+                    sideOffset={5}
+                  >
+                    <p className="text-sm font-pretendard">
+                      로그인한 사용자만 이용 가능합니다
+                    </p>
+                  </TooltipContent>
+                )}
               </Tooltip>
             </TooltipProvider>
           </div>

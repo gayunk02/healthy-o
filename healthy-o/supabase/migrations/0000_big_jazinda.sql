@@ -1,9 +1,9 @@
 CREATE TABLE "diagnoses" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"user_id" integer NOT NULL,
-	"main_symptoms" text NOT NULL,
-	"symptom_duration" text NOT NULL,
-	"additional_info" text DEFAULT '없음',
+	"user_id" integer,
+	"name" text NOT NULL,
+	"age" integer NOT NULL,
+	"gender" text NOT NULL,
 	"height" numeric NOT NULL,
 	"weight" numeric NOT NULL,
 	"bmi" numeric NOT NULL,
@@ -13,11 +13,11 @@ CREATE TABLE "diagnoses" (
 	"drinking" text DEFAULT 'NON' NOT NULL,
 	"exercise" text DEFAULT 'NONE' NOT NULL,
 	"sleep" text NOT NULL,
-	"occupation" text NOT NULL,
+	"occupation" text,
 	"work_style" text NOT NULL,
 	"diet" text NOT NULL,
 	"meal_regularity" text NOT NULL,
-	"created_at" timestamp DEFAULT now()
+	"submitted_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "diagnosis_results" (
@@ -31,6 +31,9 @@ CREATE TABLE "diagnosis_results" (
 CREATE TABLE "health_infos" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"user_id" integer NOT NULL,
+	"name" text NOT NULL,
+	"age" integer NOT NULL,
+	"gender" text NOT NULL,
 	"height" numeric NOT NULL,
 	"weight" numeric NOT NULL,
 	"bmi" numeric NOT NULL,
@@ -40,11 +43,12 @@ CREATE TABLE "health_infos" (
 	"drinking" text DEFAULT 'NON' NOT NULL,
 	"exercise" text DEFAULT 'NONE' NOT NULL,
 	"sleep" text NOT NULL,
-	"occupation" text NOT NULL,
+	"occupation" text,
 	"work_style" text NOT NULL,
 	"diet" text NOT NULL,
 	"meal_regularity" text NOT NULL,
-	"updated_at" timestamp DEFAULT now()
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "hospital_recommendations" (
@@ -71,8 +75,8 @@ CREATE TABLE "users" (
 	"phone" text NOT NULL,
 	"gender" text NOT NULL,
 	"birth_date" timestamp NOT NULL,
-	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"marketing_agree" boolean DEFAULT false,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );

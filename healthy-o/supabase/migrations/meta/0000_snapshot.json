@@ -1,5 +1,5 @@
 {
-  "id": "93264e56-050f-45d2-9391-07073b8253b5",
+  "id": "6ab4f880-a4d9-4d2a-b01c-8abf0b4633b6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -18,26 +18,25 @@
           "name": "user_id",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "main_symptoms": {
-          "name": "main_symptoms",
+        "name": {
+          "name": "name",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "symptom_duration": {
-          "name": "symptom_duration",
-          "type": "text",
+        "age": {
+          "name": "age",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
-        "additional_info": {
-          "name": "additional_info",
+        "gender": {
+          "name": "gender",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'없음'"
+          "notNull": true
         },
         "height": {
           "name": "height",
@@ -102,7 +101,7 @@
           "name": "occupation",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "work_style": {
           "name": "work_style",
@@ -122,11 +121,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "created_at": {
-          "name": "created_at",
+        "submitted_at": {
+          "name": "submitted_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -226,6 +225,24 @@
           "primaryKey": false,
           "notNull": true
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "age": {
+          "name": "age",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "height": {
           "name": "height",
           "type": "numeric",
@@ -289,7 +306,7 @@
           "name": "occupation",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "work_style": {
           "name": "work_style",
@@ -309,11 +326,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -531,14 +555,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "marketing_agree": {

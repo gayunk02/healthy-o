@@ -30,7 +30,8 @@ export default function DisclaimerPage() {
       return;
     }
     
-    localStorage.setItem("consent", "true");
+    // 쿠키에 동의 정보 저장 (7일 유효)
+    document.cookie = `consent=true;path=/;max-age=${60 * 60 * 24 * 7}`;
     router.push("/question");
   };
 
