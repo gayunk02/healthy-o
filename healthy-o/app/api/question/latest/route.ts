@@ -24,9 +24,9 @@ export async function GET(req: NextRequest) {
     // 사용자 정보와 가장 최근 건강 정보 조회
     const result = await db.select({
       // 사용자 정보
-      name: users.name,
-      gender: users.gender,
-      birthDate: users.birthDate,
+      name: healthInfos.name,
+      age: healthInfos.age,
+      gender: healthInfos.gender,
       // 건강 정보
       height: healthInfos.height,
       weight: healthInfos.weight,
@@ -53,21 +53,9 @@ export async function GET(req: NextRequest) {
       return notFoundError("사용자 정보를 찾을 수 없습니다.");
     }
 
-    // 생년월일로 나이 계산
-    const birthDate = new Date(result[0].birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
     // 응답 데이터 구성
     const responseData = {
       ...result[0],
-      age,
-      birthDate: undefined, // 생년월일은 제외하고 나이만 전달
       // numeric 타입을 number로 변환
       height: result[0].height ? parseFloat(result[0].height) : null,
       weight: result[0].weight ? parseFloat(result[0].weight) : null,
