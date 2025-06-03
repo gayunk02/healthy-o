@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -17,239 +17,266 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Calendar, Lock, Key, KeyRound } from "lucide-react";
+import { User, Mail, Calendar, Lock, Key, KeyRound, Phone } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
-interface IEditProfileModalProps {
+interface EditProfileModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userData: {
-    name: string;
-    email: string;
-    birthDate: string;
-    gender: string;
+    name?: string;
+    email?: string;
+    phone?: string;
+    birthDate?: string;
+    gender?: string;
+    marketingAgree?: boolean;
   };
+  onSubmit: (data: any) => Promise<void>;
 }
 
-interface IFormData {
+interface FormData {
   name: string;
   email: string;
+  phone: string;
   birthDate: string;
   gender: string;
+  marketingAgree: boolean;
 }
 
-interface IFormErrors {
-  name?: string;
-  email?: string;
-}
-
-interface IPasswordErrors {
-  currentPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-}
-
-interface IPasswordForm {
+interface PasswordData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
 
-export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileModalProps) {
+export function EditProfileModal({ open, onOpenChange, userData, onSubmit }: EditProfileModalProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("info");
-  const [form, setForm] = useState({
-    name: userData.name,
-    email: userData.email,
-    birthDate: userData.birthDate,
-    gender: userData.gender,
-  });
-  const [passwordForm, setPasswordForm] = useState<IPasswordForm>({
+  
+  const initialFormData = {
+    name: "",
+    email: "",
+    phone: "",
+    birthDate: "",
+    gender: "M",
+    marketingAgree: false,
+  };
+
+  const initialPasswordData = {
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-  });
-  const [errors, setErrors] = useState<IFormErrors>({});
-  const [passwordErrors, setPasswordErrors] = useState<IPasswordErrors>({});
+  };
+  
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [passwordData, setPasswordData] = useState<PasswordData>(initialPasswordData);
+
+  // 모달이 열릴 때만 userData로 초기화
+  useEffect(() => {
+    if (open && userData) {
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        birthDate: userData.birthDate || "",
+        gender: userData.gender || "M",
+        marketingAgree: userData.marketingAgree || false,
+      });
+      // 비밀번호 데이터 초기화
+      setPasswordData(initialPasswordData);
+      // 탭 초기화
+      setActiveTab("info");
+    }
+  }, [open, userData]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      // 모달이 닫힐 때 초기화
+      setFormData(initialFormData);
+      setPasswordData(initialPasswordData);
+      setActiveTab("info");
+    }
+    onOpenChange(newOpen);
+  };
+
+  // 생일 상태 초기화
+  const initializeBirthDate = () => {
+    if (userData.birthDate) {
+      const [year, month, day] = userData.birthDate.split("-");
+      return { year, month, day };
+    }
+    return { year: "", month: "", day: "" };
+  };
+
+  const [birthDate, setBirthDate] = useState(initializeBirthDate());
+
+  // userData가 변경될 때마다 birthDate 상태 업데이트
+  useEffect(() => {
+    setBirthDate(initializeBirthDate());
+  }, [userData.birthDate]);
+
+  const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
+    const newBirthDate = { ...birthDate };
+
+    if (type === 'year') {
+      newBirthDate.year = value;
+      newBirthDate.day = ''; // 일자 초기화
+    } else if (type === 'month') {
+      newBirthDate.month = value;
+      newBirthDate.day = ''; // 일자 초기화
+    } else {
+      newBirthDate.day = value;
+    }
+
+    setBirthDate(newBirthDate);
+
+    // 모든 값이 선택되었을 때만 formData 업데이트
+    if (newBirthDate.year && newBirthDate.month && newBirthDate.day) {
+      const formattedDate = `${newBirthDate.year}-${newBirthDate.month}-${newBirthDate.day}`;
+      setFormData(prev => ({
+        ...prev,
+        birthDate: formattedDate
+      }));
+    }
+  };
 
   // 연도 범위 계산 (14세 ~ 120세)
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 107 }, (_, i) => currentYear - 14 - i);
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
-  const [birthYear, setBirthYear] = useState(userData.birthDate.split("-")[0]);
-  const [birthMonth, setBirthMonth] = useState(userData.birthDate.split("-")[1]);
-  const [birthDay, setBirthDay] = useState(userData.birthDate.split("-")[2]);
 
+  // 해당 월의 일 수 계산
   const getDaysInMonth = (year: string, month: string) => {
     if (!year || !month) return [];
     const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => i + 1);
   };
 
-  const handleInputChange = (key: keyof IFormData, value: string) => {
-    setForm((prev) => {
-      const newForm = { ...prev, [key]: value };
-      const newErrors = { ...errors } as IFormErrors;
-
-      if (value === "") {
-        if (key === "name" || key === "email") {
-          newErrors[key] = "";
-        }
-      } else {
-        if (key === "email") {
-          const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
-          newErrors.email = emailRegex.test(value) ? "" : "올바른 이메일 형식이 아닙니다.";
-        }
-
-        if (key === "name") {
-          newErrors.name = value.trim().length >= 2 ? "" : "이름은 2글자 이상 입력해 주세요.";
-        }
-      }
-
-      setErrors(newErrors);
-      return newForm;
-    });
-  };
-
-  const handlePasswordChange = (key: string, value: string) => {
-    setPasswordForm(prev => {
-      const newForm = { ...prev, [key]: value };
-      const newErrors: IPasswordErrors = { ...passwordErrors };
-
-      if (value === "") {
-        newErrors[key as keyof IPasswordErrors] = "";
-      } else {
-        if (key === "newPassword") {
-          const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
-          newErrors.newPassword = passwordRegex.test(value)
-            ? ""
-            : "비밀번호는 8~20자의 영문, 숫자, 특수문자를 포함해야 합니다.";
-          if (newForm.confirmPassword) {
-            newErrors.confirmPassword = value === newForm.confirmPassword ? "" : "비밀번호가 일치하지 않습니다.";
-          }
-        }
-
-        if (key === "confirmPassword") {
-          newErrors.confirmPassword = value === newForm.newPassword ? "" : "비밀번호가 일치하지 않습니다.";
-        }
-      }
-
-      setPasswordErrors(newErrors);
-      return newForm;
-    });
-  };
-
-  const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
-    if (type === 'year') {
-      setBirthYear(value);
-      setBirthDay("");
-    } else if (type === 'month') {
-      setBirthMonth(value);
-      setBirthDay("");
-    } else {
-      setBirthDay(value);
+  // 전화번호 포맷팅 함수 수정
+  const formatPhoneNumber = (phone: string | undefined): string[] => {
+    if (!phone) return ['', '', ''];
+    
+    // 하이픈 제거 후 숫자만 추출
+    const cleaned = phone.replace(/[^0-9]/g, '');
+    
+    // 숫자가 10자리 또는 11자리인 경우에만 처리
+    if (cleaned.length >= 10 && cleaned.length <= 11) {
+      return [
+        cleaned.substring(0, 3),
+        cleaned.substring(3, 7),
+        cleaned.substring(7)
+      ];
     }
-
-    if ((type === 'year' && birthMonth && birthDay) ||
-        (type === 'month' && birthYear && birthDay) ||
-        (type === 'day' && birthYear && birthMonth)) {
-      const year = type === 'year' ? value : birthYear;
-      const month = type === 'month' ? value : birthMonth;
-      const day = type === 'day' ? value : birthDay;
-      
-      const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      handleInputChange("birthDate", formattedDate);
-    }
+    
+    return ['', '', ''];
   };
 
-  const handleSubmit = async () => {
+  const handleInputChange = (key: keyof FormData, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handlePasswordChange = (key: keyof PasswordData, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const handleProfileSubmit = async () => {
     try {
-      const response = await fetch("/api/user/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      if (!response.ok) {
-        throw new Error("프로필 수정에 실패했습니다.");
-      }
-
+      await onSubmit(formData);
       toast({
         title: "프로필이 수정되었습니다.",
-        duration: 3000,
+        description: "변경사항이 성공적으로 저장되었습니다.",
       });
-
-      onOpenChange(false);
-      // TODO: 부모 컴포넌트의 데이터 갱신
+      handleOpenChange(false);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "프로필 수정 실패",
-        description: "프로필 수정 중 문제가 발생했습니다. 다시 시도해 주세요.",
-        duration: 3000,
+        title: "오류가 발생했습니다.",
+        description: "프로필 수정에 실패했습니다. 다시 시도해주세요.",
       });
     }
   };
 
   const handlePasswordSubmit = async () => {
-    if (!passwordForm.currentPassword) {
-      setPasswordErrors((prev: IPasswordErrors) => ({ ...prev, currentPassword: "현재 비밀번호를 입력해 주세요." }));
-      return;
-    }
-    if (!passwordForm.newPassword) {
-      setPasswordErrors((prev: IPasswordErrors) => ({ ...prev, newPassword: "새 비밀번호를 입력해 주세요." }));
-      return;
-    }
-    if (!passwordForm.confirmPassword) {
-      setPasswordErrors((prev: IPasswordErrors) => ({ ...prev, confirmPassword: "비밀번호 확인을 입력해 주세요." }));
-      return;
-    }
-    if (Object.values(passwordErrors).some(error => error)) {
-      return;
-    }
-
     try {
-      const response = await fetch("/api/user/password", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("비밀번호 변경에 실패했습니다.");
-      }
-
+      await onSubmit(passwordData);
       toast({
         title: "비밀번호가 변경되었습니다.",
-        duration: 3000,
+        description: "비밀번호가 성공적으로 변경되었습니다.",
       });
-
-      setPasswordForm({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-      setActiveTab("info");
+      handleOpenChange(false);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "비밀번호 변경 실패",
-        description: "비밀번호 변경 중 문제가 발생했습니다. 다시 시도해 주세요.",
-        duration: 3000,
+        title: "오류가 발생했습니다.",
+        description: "비밀번호 변경에 실패했습니다. 다시 시도해주세요.",
       });
     }
   };
 
+  // 전화번호 입력 필드 렌더링
+  const renderPhoneInputs = () => {
+    const phoneParts = formatPhoneNumber(formData.phone);
+    const placeholderParts = formatPhoneNumber(userData?.phone);
+
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <Input
+          value={phoneParts[0]}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '').slice(0, 3);
+            const newParts = [...phoneParts];
+            newParts[0] = value;
+            handleInputChange("phone", newParts.join('-'));
+          }}
+          placeholder={placeholderParts[0] || "010"}
+          className="text-center"
+          maxLength={3}
+        />
+        <Input
+          value={phoneParts[1]}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            const newParts = [...phoneParts];
+            newParts[1] = value;
+            handleInputChange("phone", newParts.join('-'));
+          }}
+          placeholder={placeholderParts[1] || "1234"}
+          className="text-center"
+          maxLength={4}
+        />
+        <Input
+          value={phoneParts[2]}
+          onChange={(e) => {
+            const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            const newParts = [...phoneParts];
+            newParts[2] = value;
+            handleInputChange("phone", newParts.join('-'));
+          }}
+          placeholder={placeholderParts[2] || "5678"}
+          className="text-center"
+          maxLength={4}
+        />
+      </div>
+    );
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[600px]">
         <DialogHeader className="mb-8">
           <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
             <User className="w-8 h-8" />
             기본 정보 수정
           </DialogTitle>
+          <DialogDescription className="text-center text-gray-500">
+            회원님의 기본 정보를 수정할 수 있습니다.
+          </DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 w-full mb-8">
@@ -266,12 +293,11 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 </div>
                 <Input
                   id="name"
-                  value={form.name}
+                  value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="이름을 입력해 주세요"
                   className="text-center"
                 />
-                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
               </div>
 
               <div className="space-y-3">
@@ -282,12 +308,10 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 <Input
                   id="email"
                   type="email"
-                  value={form.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="이메일을 입력해 주세요"
-                  className="text-center"
+                  value={formData.email}
+                  disabled
+                  className="text-center bg-gray-100 text-gray-500 cursor-not-allowed"
                 />
-                {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
               </div>
 
               <div className="space-y-3">
@@ -296,15 +320,15 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                   <Label className="text-sm font-bold">생년월일</Label>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <Select value={birthYear} onValueChange={(value) => handleBirthDateChange('year', value)}>
+                  <Select value={birthDate.year} onValueChange={(value) => handleBirthDateChange('year', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="연도" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent>
                       <SelectGroup>
-                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">연도</SelectLabel>
+                        <SelectLabel>연도</SelectLabel>
                         {years.map((year) => (
-                          <SelectItem key={year} value={year.toString()} className="text-center">
+                          <SelectItem key={year} value={year.toString()}>
                             {year}년
                           </SelectItem>
                         ))}
@@ -312,15 +336,15 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                     </SelectContent>
                   </Select>
 
-                  <Select value={birthMonth} onValueChange={(value) => handleBirthDateChange('month', value)}>
+                  <Select value={birthDate.month} onValueChange={(value) => handleBirthDateChange('month', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="월" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent>
                       <SelectGroup>
-                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">월</SelectLabel>
+                        <SelectLabel>월</SelectLabel>
                         {months.map((month) => (
-                          <SelectItem key={month} value={month.toString().padStart(2, '0')} className="text-center">
+                          <SelectItem key={month} value={month.toString().padStart(2, '0')}>
                             {month}월
                           </SelectItem>
                         ))}
@@ -329,18 +353,18 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                   </Select>
 
                   <Select 
-                    value={birthDay} 
+                    value={birthDate.day} 
                     onValueChange={(value) => handleBirthDateChange('day', value)}
-                    disabled={!birthYear || !birthMonth}
+                    disabled={!birthDate.year || !birthDate.month}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="일" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[300px]">
+                    <SelectContent>
                       <SelectGroup>
-                        <SelectLabel className="text-center w-full px-2 py-1.5 text-sm font-semibold">일</SelectLabel>
-                        {getDaysInMonth(birthYear, birthMonth).map((day) => (
-                          <SelectItem key={day} value={day.toString().padStart(2, '0')} className="text-center">
+                        <SelectLabel>일</SelectLabel>
+                        {getDaysInMonth(birthDate.year, birthDate.month).map((day) => (
+                          <SelectItem key={day} value={day.toString().padStart(2, '0')}>
                             {day}일
                           </SelectItem>
                         ))}
@@ -357,7 +381,7 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 </div>
                 <RadioGroup
                   className="flex justify-center gap-4"
-                  value={form.gender}
+                  value={formData.gender}
                   onValueChange={(value) => handleInputChange("gender", value)}
                 >
                   <div className="flex items-center space-x-2">
@@ -371,11 +395,30 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 </RadioGroup>
               </div>
 
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-[#0B4619]" />
+                  <Label className="text-sm font-bold">전화번호</Label>
+                </div>
+                {renderPhoneInputs()}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="marketingAgree"
+                  checked={formData.marketingAgree}
+                  onCheckedChange={(checked) => handleInputChange("marketingAgree", checked === true)}
+                />
+                <Label htmlFor="marketingAgree" className="text-sm font-medium">
+                  마케팅 정보 수신 동의
+                </Label>
+              </div>
+
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                <Button variant="outline" onClick={() => handleOpenChange(false)}>
                   취소
                 </Button>
-                <Button onClick={handleSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
+                <Button onClick={handleProfileSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">
                   저장
                 </Button>
               </div>
@@ -392,14 +435,11 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 <Input
                   id="currentPassword"
                   type="password"
-                  value={passwordForm.currentPassword}
+                  value={passwordData.currentPassword}
                   onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
                   placeholder="현재 비밀번호를 입력해 주세요"
                   className="text-center"
                 />
-                {passwordErrors.currentPassword && (
-                  <p className="text-sm text-red-500">{passwordErrors.currentPassword}</p>
-                )}
               </div>
 
               <div className="space-y-3">
@@ -410,14 +450,11 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 <Input
                   id="newPassword"
                   type="password"
-                  value={passwordForm.newPassword}
+                  value={passwordData.newPassword}
                   onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
                   placeholder="영문,숫자,특수문자 조합 8~20자리"
                   className="text-center"
                 />
-                {passwordErrors.newPassword && (
-                  <p className="text-sm text-red-500">{passwordErrors.newPassword}</p>
-                )}
               </div>
 
               <div className="space-y-3">
@@ -428,18 +465,15 @@ export function EditProfileModal({ open, onOpenChange, userData }: IEditProfileM
                 <Input
                   id="confirmPassword"
                   type="password"
-                  value={passwordForm.confirmPassword}
+                  value={passwordData.confirmPassword}
                   onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
                   placeholder="새 비밀번호를 다시 입력해 주세요"
                   className="text-center"
                 />
-                {passwordErrors.confirmPassword && (
-                  <p className="text-sm text-red-500">{passwordErrors.confirmPassword}</p>
-                )}
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                <Button variant="outline" onClick={() => handleOpenChange(false)}>
                   취소
                 </Button>
                 <Button onClick={handlePasswordSubmit} className="bg-[#0B4619] hover:bg-[#083613] text-white">

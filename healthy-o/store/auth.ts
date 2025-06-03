@@ -4,6 +4,10 @@ interface IUser {
   id: number;
   email: string;
   name: string;
+  tokenInfo?: {
+    name: string;
+    email: string;
+  };
 }
 
 interface AuthState {
@@ -20,14 +24,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
 
   setLoggedIn: (token, user) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
-    set({ isLoggedIn: true, token, user });
+    if (!user?.name) {
+      console.error('[Auth Store] Invalid user data:', user);
+      return;
+    }
+
+    try {
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      set({ isLoggedIn: true, token, user });
+    } catch (error) {
+      console.error('[Auth Store] Failed to save auth state:', error);
+    }
   },
 
   setLoggedOut: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    set({ isLoggedIn: false, token: null, user: null });
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      set({ isLoggedIn: false, token: null, user: null });
+    } catch (error) {
+      console.error('[Auth Store] Failed to clear auth state:', error);
+    }
   }
 })); 

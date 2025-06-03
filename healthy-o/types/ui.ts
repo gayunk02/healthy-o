@@ -87,30 +87,32 @@ export interface ISupplementUI {
 }
 
 export interface ILifestyle {
-  exercise: string;
-  sleep: string;
+  exercise: "NONE" | "LIGHT" | "MODERATE" | "HEAVY";
+  sleep: "LESS_5" | "5_TO_6" | "6_TO_7" | "7_TO_8" | "MORE_8";
   occupation: string;
-  workStyle: string;
-  diet: string;
-  mealRegularity: string;
+  workStyle: "SITTING" | "STANDING" | "ACTIVE" | "MIXED";
+  diet: "BALANCED" | "MEAT" | "FISH" | "VEGGIE" | "INSTANT";
+  mealRegularity: "REGULAR" | "MOSTLY" | "IRREGULAR" | "VERY_IRREGULAR";
 }
 
 // 마이페이지에서 사용하는 사용자 데이터 인터페이스
 export interface IUserProfileData {
-  id: number;
-  email: string;
-  name: string;
-  gender: 'M' | 'F';
-  birthDate: string;
-  height: string;
-  weight: string;
-  medicalHistory: string;
-  medications: string;
-  smoking: string;
-  drinking: string;
-  lifestyle: ILifestyle;
-  createdAt: string;
-  updatedAt: string;
+  id?: number;
+  name?: string;
+  email?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: "M" | "F";
+  marketingAgree?: boolean;
+  height?: string;
+  weight?: string;
+  medicalHistory?: string;
+  medications?: string;
+  smoking?: "NON" | "ACTIVE" | "QUIT";
+  drinking?: "NON" | "LIGHT" | "MODERATE" | "HEAVY";
+  lifestyle?: ILifestyle;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // 날짜 범위 선택을 위한 인터페이스

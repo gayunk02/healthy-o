@@ -13,6 +13,16 @@ import { Label } from "@/components/ui/label";
 import { IHealthRecord, IHospitalRecord, IUserProfileData, ILifestyle } from "@/types/ui";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  GENDER_OPTIONS,
+  SMOKING_OPTIONS,
+  DRINKING_OPTIONS,
+  EXERCISE_OPTIONS,
+  SLEEP_OPTIONS,
+  WORK_STYLE_OPTIONS,
+  DIET_OPTIONS,
+  MEAL_REGULARITY_OPTIONS
+} from "@/lib/constants";
 
 import { FilterSection } from "@/components/mypage/FilterSection";
 import { HealthRecordSection } from "@/components/mypage/HealthRecordSection";
@@ -24,27 +34,32 @@ import { SupplementDetailModal } from "@/components/mypage/modals/SupplementDeta
 import { EditProfileModal } from "@/components/mypage/modals/EditProfileModal";
 import { EditHealthModal } from "@/components/mypage/modals/EditHealthModal";
 import { EditLifestyleModal } from "@/components/mypage/modals/EditLifestyleModal";
+import { BasicInfoCard } from "@/components/mypage/BasicInfoCard";
+import { HealthInfoCard } from "@/components/mypage/HealthInfoCard";
+import { LifestyleInfoCard } from "@/components/mypage/LifestyleInfoCard";
 
-// 임시 데이터
+// 임시 데이터 제거
 const mockUserData: IUserProfileData = {
   id: 1,
-  name: "홍길동",
-  email: "hong@example.com",
-  birthDate: "1990-01-01",
-  gender: "M" as const,
-  height: "175",
-  weight: "70",
+  name: "",
+  email: "",
+  phone: "",
+  birthDate: "",
+  gender: "M",
+  marketingAgree: false,
+  height: "0",
+  weight: "0",
   medicalHistory: "없음",
   medications: "없음",
-  smoking: "비흡연",
-  drinking: "주 1-2회",
+  smoking: "NON",
+  drinking: "NON",
   lifestyle: {
-    exercise: "정보 없음",
-    sleep: "정보 없음",
-    occupation: "정보 없음",
-    workStyle: "정보 없음",
-    diet: "정보 없음",
-    mealRegularity: "정보 없음"
+    exercise: "NONE",
+    sleep: "7_TO_8",
+    occupation: "",
+    workStyle: "SITTING",
+    diet: "BALANCED",
+    mealRegularity: "REGULAR"
   },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
@@ -368,14 +383,41 @@ export default function MyPage() {
           throw new Error('Failed to fetch user data');
         }
 
-        const data = await response.json();
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message);
+        }
+
+        // 사용자 정보와 건강 정보를 통합하여 상태 업데이트
+        const { user, healthInfo } = result.data;
+        
         setUserData({
-          ...data.data,
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          phone: user.phone || "",
+          birthDate: user.birthDate || "",
+          gender: user.gender || "M",
+          marketingAgree: user.marketingAgree || false,
+          height: healthInfo?.height || "",
+          weight: healthInfo?.weight || "",
+          medicalHistory: healthInfo?.chronicDiseases || "없음",
+          medications: healthInfo?.medications || "없음",
+          smoking: healthInfo?.smoking || "NON",
+          drinking: healthInfo?.drinking || "NON",
           lifestyle: {
-            ...mockUserData.lifestyle,
-            ...data.data.lifestyle
-          }
+            exercise: healthInfo?.exercise || "NONE",
+            sleep: healthInfo?.sleep || "7_TO_8",
+            occupation: healthInfo?.occupation || "",
+            workStyle: healthInfo?.workStyle || "SITTING",
+            diet: healthInfo?.diet || "BALANCED",
+            mealRegularity: healthInfo?.mealRegularity || "REGULAR"
+          },
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt
         });
+
+        console.log('Loaded user data:', { user, healthInfo }); // 디버깅용 로그
       } catch (err) {
         console.error('Error fetching user data:', err);
         setError('사용자 정보를 불러오는데 실패했습니다.');
@@ -395,6 +437,108 @@ export default function MyPage() {
       router.push('/login');
     }
   }, [isLoggedIn, router, toast]);
+
+  // 프로필 수정 핸들러
+  const handleProfileUpdate = async (updatedData: Partial<IUserProfileData>) => {
+    try {
+      console.log('Updating profile with data:', updatedData); // 디버깅 로그
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다.');
+      }
+
+      // 데이터 구조 변환
+      const requestData: any = {};
+      
+      // 기본 정보
+      if (updatedData.name !== undefined) requestData.name = updatedData.name;
+      if (updatedData.email !== undefined) requestData.email = updatedData.email;
+      if (updatedData.phone !== undefined) requestData.phone = updatedData.phone;
+      if (updatedData.birthDate !== undefined) requestData.birthDate = updatedData.birthDate;
+      if (updatedData.gender !== undefined) requestData.gender = updatedData.gender;
+      if (updatedData.marketingAgree !== undefined) requestData.marketingAgree = updatedData.marketingAgree;
+
+      // 건강 정보
+      if (updatedData.height !== undefined) requestData.height = updatedData.height;
+      if (updatedData.weight !== undefined) requestData.weight = updatedData.weight;
+      if (updatedData.medicalHistory !== undefined) requestData.medicalHistory = updatedData.medicalHistory;
+      if (updatedData.medications !== undefined) requestData.medications = updatedData.medications;
+      if (updatedData.smoking !== undefined) requestData.smoking = updatedData.smoking;
+      if (updatedData.drinking !== undefined) requestData.drinking = updatedData.drinking;
+
+      // 생활습관 정보
+      if (updatedData.lifestyle) {
+        requestData.lifestyle = {
+          exercise: updatedData.lifestyle.exercise,
+          sleep: updatedData.lifestyle.sleep,
+          occupation: updatedData.lifestyle.occupation,
+          workStyle: updatedData.lifestyle.workStyle,
+          diet: updatedData.lifestyle.diet,
+          mealRegularity: updatedData.lifestyle.mealRegularity
+        };
+      }
+
+      console.log('Sending request with data:', requestData); // 디버깅 로그
+
+      const response = await fetch('/api/mypage', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || '서버 응답이 실패했습니다.');
+      }
+
+      const result = await response.json();
+      console.log('Received response:', result); // 디버깅 로그
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      // 상태 업데이트
+      const { user, healthInfo } = result.data;
+      setUserData(prev => ({
+        ...prev,
+        ...user,
+        ...(healthInfo && {
+          height: healthInfo.height?.toString(),
+          weight: healthInfo.weight?.toString(),
+          medicalHistory: healthInfo.chronicDiseases,
+          medications: healthInfo.medications,
+          smoking: healthInfo.smoking,
+          drinking: healthInfo.drinking,
+          lifestyle: {
+            exercise: healthInfo.exercise || "NONE",
+            sleep: healthInfo.sleep || "7_TO_8",
+            occupation: healthInfo.occupation || "",
+            workStyle: healthInfo.workStyle || "SITTING",
+            diet: healthInfo.diet || "BALANCED",
+            mealRegularity: healthInfo.mealRegularity || "REGULAR"
+          }
+        })
+      }));
+
+      toast({
+        title: "정보가 수정되었습니다.",
+        description: "변경사항이 성공적으로 저장되었습니다.",
+      });
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      toast({
+        variant: "destructive",
+        title: "오류가 발생했습니다.",
+        description: err instanceof Error ? err.message : "정보 수정에 실패했습니다. 다시 시도해주세요.",
+      });
+      throw err;
+    }
+  };
 
   if (loading) {
     return (
@@ -470,15 +614,16 @@ export default function MyPage() {
 
   // lifestyle 관련 헬퍼 함수
   const getLifestyleValue = (key: keyof ILifestyle): string => {
-    return userData.lifestyle[key];
+    return userData.lifestyle?.[key] ?? "";
   };
 
   // 헬퍼 함수들
   const formatBirthDate = (birthDate: string): string => {
+    if (!birthDate) return '정보 없음';
     try {
       const date = new Date(birthDate);
       if (isNaN(date.getTime())) {
-        return '날짜 형식 오류';
+        return '정보 없음';
       }
       const year = date.getFullYear();
       const month = date.getMonth() + 1;
@@ -486,50 +631,53 @@ export default function MyPage() {
       return `${year}년 ${month}월 ${day}일`;
     } catch (error) {
       console.error('생년월일 변환 중 오류 발생:', error);
-      return '날짜 형식 오류';
+      return '정보 없음';
     }
   };
 
-  const getSleepText = (value: string): string => {
-    const sleepMap: { [key: string]: string } = {
-      'less5': '5시간 미만',
-      '5to6': '5-6시간',
-      '6to7': '6-7시간',
-      '7to8': '7-8시간',
-      'more8': '8시간 초과'
-    };
-    return sleepMap[value] || value;
+  const formatValue = (value: string | null | undefined, unit: string = ''): string => {
+    if (!value || value.trim() === '') return '정보 없음';
+    return `${value}${unit}`;
   };
 
-  const getWorkStyleText = (value: string): string => {
-    const workStyleMap: { [key: string]: string } = {
-      'sitting': '주로 앉아서 근무',
-      'standing': '주로 서서 근무',
-      'moving': '활동이 많은 근무',
-      'mixed': '복합적'
-    };
-    return workStyleMap[value] || value;
+  const getGenderText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return GENDER_OPTIONS[value as keyof typeof GENDER_OPTIONS] || '정보 없음';
   };
 
-  const getDietText = (value: string): string => {
-    const dietMap: { [key: string]: string } = {
-      'balanced': '균형 잡힌 식단',
-      'meat': '육류 위주',
-      'fish': '생선 위주',
-      'vegetable': '채식 위주',
-      'instant': '인스턴트 위주'
-    };
-    return dietMap[value] || value;
+  const getSmokingText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return SMOKING_OPTIONS[value as keyof typeof SMOKING_OPTIONS] || '정보 없음';
   };
 
-  const getMealRegularityText = (value: string): string => {
-    const mealRegularityMap: { [key: string]: string } = {
-      'regular': '규칙적',
-      'mostly': '대체로 규칙적',
-      'irregular': '불규칙적',
-      'very-irregular': '매우 불규칙적'
-    };
-    return mealRegularityMap[value] || value;
+  const getDrinkingText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return DRINKING_OPTIONS[value as keyof typeof DRINKING_OPTIONS] || '정보 없음';
+  };
+
+  const getExerciseText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return EXERCISE_OPTIONS[value as keyof typeof EXERCISE_OPTIONS] || '정보 없음';
+  };
+
+  const getSleepText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return SLEEP_OPTIONS[value as keyof typeof SLEEP_OPTIONS] || '정보 없음';
+  };
+
+  const getWorkStyleText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return WORK_STYLE_OPTIONS[value as keyof typeof WORK_STYLE_OPTIONS] || '정보 없음';
+  };
+
+  const getDietText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return DIET_OPTIONS[value as keyof typeof DIET_OPTIONS] || '정보 없음';
+  };
+
+  const getMealRegularityText = (value: string | null | undefined): string => {
+    if (!value) return '정보 없음';
+    return MEAL_REGULARITY_OPTIONS[value as keyof typeof MEAL_REGULARITY_OPTIONS] || '정보 없음';
   };
 
   return (
@@ -553,136 +701,18 @@ export default function MyPage() {
 
             <TabsContent value="info" className="space-y-6">
               <div className="space-y-6">
-                <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                        <User className="w-5 h-5 text-[#0B4619]" />
-                      </div>
-                      <h3 className="font-bold text-lg text-[#0B4619]">기본 정보</h3>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowEditProfile(true)}
-                      className="flex items-center gap-2 hover:bg-[#0B4619] hover:text-white transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      수정
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">이름</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.name}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">이메일</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.email}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">생년월일</Label>
-                      <p className="text-sm font-semibold text-gray-900">{formatBirthDate(userData?.birthDate)}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">성별</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.gender === "M" ? "남성" : "여성"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                        <Heart className="w-5 h-5 text-[#0B4619]" />
-                      </div>
-                      <h3 className="font-bold text-lg text-[#0B4619]">건강 정보</h3>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowEditHealth(true)}
-                      className="flex items-center gap-2 hover:bg-[#0B4619] hover:text-white transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      수정
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">키</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.height} cm</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">몸무게</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.weight} kg</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">과거 병력</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.medicalHistory ?? '없음'}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">복용 약물</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.medications ?? '없음'}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">흡연</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.smoking}</p>
-                    </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">음주</Label>
-                      <p className="text-sm font-semibold text-gray-900">{userData?.drinking}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                        <Activity className="w-5 h-5 text-[#0B4619]" />
-                      </div>
-                      <h3 className="font-bold text-lg text-[#0B4619]">생활습관 정보</h3>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowEditLifestyle(true)}
-                      className="flex items-center gap-2 hover:bg-[#0B4619] hover:text-white transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                      수정
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">운동 빈도</Label>
-                      <p className="font-medium">{getLifestyleValue('exercise')}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">수면 시간</Label>
-                      <p className="font-medium">{getSleepText(getLifestyleValue('sleep'))}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">직업</Label>
-                      <p className="font-medium">{getLifestyleValue('occupation')}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">근무 형태</Label>
-                      <p className="font-medium">{getWorkStyleText(getLifestyleValue('workStyle'))}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">식단 유형</Label>
-                      <p className="font-medium">{getDietText(getLifestyleValue('diet'))}</p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-gray-500">식사 규칙성</Label>
-                      <p className="font-medium">{getMealRegularityText(getLifestyleValue('mealRegularity'))}</p>
-                    </div>
-                  </div>
-                </div>
+                <BasicInfoCard
+                  userData={userData}
+                  onEdit={() => setShowEditProfile(true)}
+                />
+                <HealthInfoCard
+                  userData={userData}
+                  onEdit={() => setShowEditHealth(true)}
+                />
+                <LifestyleInfoCard
+                  userData={userData}
+                  onEdit={() => setShowEditLifestyle(true)}
+                />
               </div>
 
               <EditProfileModal
@@ -691,9 +721,12 @@ export default function MyPage() {
                 userData={{
                   name: userData?.name,
                   email: userData?.email,
+                  phone: userData?.phone,
                   birthDate: userData?.birthDate,
                   gender: userData?.gender,
+                  marketingAgree: userData?.marketingAgree,
                 }}
+                onSubmit={handleProfileUpdate}
               />
 
               <EditHealthModal
@@ -707,14 +740,23 @@ export default function MyPage() {
                   smoking: userData.smoking,
                   drinking: userData.drinking,
                 }}
+                onSubmit={handleProfileUpdate}
               />
 
               <EditLifestyleModal
                 open={showEditLifestyle}
                 onOpenChange={setShowEditLifestyle}
                 userData={{
-                  lifestyle: userData.lifestyle
+                  lifestyle: {
+                    exercise: userData.lifestyle?.exercise || undefined,
+                    sleep: userData.lifestyle?.sleep || undefined,
+                    occupation: userData.lifestyle?.occupation || "",
+                    workStyle: userData.lifestyle?.workStyle || undefined,
+                    diet: userData.lifestyle?.diet || undefined,
+                    mealRegularity: userData.lifestyle?.mealRegularity || undefined
+                  }
                 }}
+                onSubmit={handleProfileUpdate}
               />
             </TabsContent>
 

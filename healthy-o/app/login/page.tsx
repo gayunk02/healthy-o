@@ -92,20 +92,32 @@ export default function LoginPage() {
         }
       }
 
+      // 로그인 성공 처리
+      if (!data.success || !data.data?.name) {
+        throw new Error("사용자 정보가 올바르지 않습니다.");
+      }
+
+      const userData = data.data;
+      const userInfo = {
+        id: userData.id,
+        email: userData.email,
+        name: userData.name
+      };
+
       toast({
         title: "✨ 로그인 성공",
-        description: `${data.data?.user?.name || '사용자'}님, 환영합니다!`,
+        description: `${userData.name}님, 환영합니다!`,
         duration: 3000,
       });
 
       // zustand store에 로그인 상태 저장
-      setLoggedIn(data.data.token, data.data.user);
+      setLoggedIn(userData.token, userInfo);
 
       setTimeout(() => {
-        router.push('/');
+        router.push(userData.redirectTo || '/');
       }, 500);
 
-    } catch (error: any) {
+    } catch (error) {
       // 네트워크 오류 처리
       if (!window.navigator.onLine) {
         toast({
@@ -117,7 +129,7 @@ export default function LoginPage() {
         toast({
           variant: "destructive",
           title: "로그인 실패",
-          description: error.message
+          description: error instanceof Error ? error.message : "로그인 중 오류가 발생했습니다."
         });
       }
       console.error(error);

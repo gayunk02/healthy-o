@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { successResponse, errorResponse } from '@/utils/api-response';
+import { ApiResponse } from '@/utils/api-response';
 import { z } from 'zod';
 
 // 입력값 검증을 위한 Zod 스키마
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       .where(eq(users.email, validatedData.email));
 
     if (existingUser.length > 0) {
-      return errorResponse('이미 사용 중인 이메일입니다.');
+      return ApiResponse.error('이미 사용 중인 이메일입니다.', 400);
     }
 
     // 비밀번호 해싱
@@ -60,21 +60,18 @@ export async function POST(req: Request) {
     // 민감한 정보 제외하고 응답
     const { password: _, ...userWithoutPassword } = newUser;
 
-    return successResponse(
-      { user: userWithoutPassword },
+    return ApiResponse.success(
       '회원가입이 완료되었습니다.',
-      201
+      { user: userWithoutPassword }
     );
 
   } catch (error) {
-    console.error('회원가입 에러:', error);
+    console.error('[Signup API] Error:', error);
     
     if (error instanceof z.ZodError) {
-      return errorResponse('입력값이 올바르지 않습니다.', {
-        validation: error.errors,
-      });
+      return ApiResponse.error('입력값이 올바르지 않습니다.', 400);
     }
 
-    return errorResponse('회원가입 처리 중 오류가 발생했습니다.', undefined, 500);
+    return ApiResponse.error('회원가입 처리 중 오류가 발생했습니다.', 500);
   }
 } 

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,76 +9,90 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heart, Ruler, Scale, History, Pill, Cigarette, Wine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface IHealthInfo {
-  height: string;
-  weight: string;
-  medicalHistory: string;
-  medications: string;
-  smoking: string;
-  drinking: string;
-}
+import { IUserProfileData } from "@/types/ui";
 
 interface EditHealthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userData: IHealthInfo;
+  userData: Pick<IUserProfileData, 'height' | 'weight' | 'medicalHistory' | 'medications' | 'smoking' | 'drinking'>;
+  onSubmit: (data: Partial<IUserProfileData>) => Promise<void>;
 }
 
-export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModalProps) {
+export function EditHealthModal({ open, onOpenChange, userData, onSubmit }: EditHealthModalProps) {
   const { toast } = useToast();
-  const [height, setHeight] = useState(userData.height);
-  const [weight, setWeight] = useState(userData.weight);
-  const [medicalHistory, setMedicalHistory] = useState(userData.medicalHistory);
-  const [medications, setMedications] = useState(userData.medications);
-  const [smoking, setSmoking] = useState(userData.smoking);
-  const [drinking, setDrinking] = useState(userData.drinking);
+  const [formData, setFormData] = useState<Pick<IUserProfileData, 'height' | 'weight' | 'medicalHistory' | 'medications' | 'smoking' | 'drinking'>>({
+    height: "",
+    weight: "",
+    medicalHistory: "",
+    medications: "",
+    smoking: "NON",
+    drinking: "NON"
+  });
+
+  useEffect(() => {
+    if (userData) {
+      setFormData({
+        height: userData.height || "",
+        weight: userData.weight || "",
+        medicalHistory: userData.medicalHistory || "",
+        medications: userData.medications || "",
+        smoking: userData.smoking || "NON",
+        drinking: userData.drinking || "NON"
+      });
+    }
+  }, [userData]);
+
+  const handleInputChange = (key: keyof typeof formData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
   const handleSave = async () => {
     try {
-      const response = await fetch('/api/user/health', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          height,
-          weight,
-          medicalHistory,
-          medications,
-          smoking,
-          drinking,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('저장 실패');
-      }
-
+      console.log('Submitting health data:', formData);
+      await onSubmit(formData);
       toast({
         title: "건강 정보가 수정되었습니다.",
-        duration: 3000,
+        description: "변경사항이 성공적으로 저장되었습니다.",
       });
-
       onOpenChange(false);
     } catch (error) {
       console.error('Error saving health info:', error);
       toast({
-        title: "건강 정보 수정에 실패했습니다.",
         variant: "destructive",
-        duration: 3000,
+        title: "오류가 발생했습니다.",
+        description: "건강 정보 수정에 실패했습니다. 다시 시도해주세요.",
       });
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setFormData({
+        height: "",
+        weight: "",
+        medicalHistory: "",
+        medications: "",
+        smoking: "NON",
+        drinking: "NON"
+      });
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[600px]">
         <DialogHeader className="mb-8">
           <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
             <Heart className="w-8 h-8" />
             건강 정보 수정
           </DialogTitle>
+          <DialogDescription className="text-center text-gray-500">
+            회원님의 건강 정보를 수정할 수 있습니다.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -93,9 +107,9 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*\.?[0-9]*"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="키를 입력해 주세요"
+                  value={formData.height}
+                  onChange={(e) => handleInputChange("height", e.target.value)}
+                  placeholder={userData.height || "키를 입력해 주세요"}
                   className="text-center"
                 />
               </div>
@@ -109,9 +123,9 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   type="text"
                   inputMode="decimal"
                   pattern="[0-9]*\.?[0-9]*"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="몸무게를 입력해 주세요"
+                  value={formData.weight}
+                  onChange={(e) => handleInputChange("weight", e.target.value)}
+                  placeholder={userData.weight || "몸무게를 입력해 주세요"}
                   className="text-center"
                 />
               </div>
@@ -122,9 +136,9 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   <Label className="text-sm font-bold">과거 병력</Label>
                 </div>
                 <Input
-                  value={medicalHistory}
-                  onChange={(e) => setMedicalHistory(e.target.value)}
-                  placeholder="과거 병력을 입력해 주세요"
+                  value={formData.medicalHistory}
+                  onChange={(e) => handleInputChange("medicalHistory", e.target.value)}
+                  placeholder={userData.medicalHistory || "과거 병력을 입력해 주세요"}
                   className="text-center"
                 />
               </div>
@@ -135,9 +149,9 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   <Label className="text-sm font-bold">복용 중인 약물</Label>
                 </div>
                 <Input
-                  value={medications}
-                  onChange={(e) => setMedications(e.target.value)}
-                  placeholder="복용 중인 약물을 입력해 주세요"
+                  value={formData.medications}
+                  onChange={(e) => handleInputChange("medications", e.target.value)}
+                  placeholder={userData.medications || "복용 중인 약물을 입력해 주세요"}
                   className="text-center"
                 />
               </div>
@@ -147,14 +161,17 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   <Cigarette className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">흡연</Label>
                 </div>
-                <Select value={smoking} onValueChange={setSmoking}>
+                <Select 
+                  value={formData.smoking}
+                  onValueChange={(value) => handleInputChange("smoking", value as "NON" | "ACTIVE" | "QUIT")}
+                >
                   <SelectTrigger className="text-center justify-center">
                     <SelectValue placeholder="흡연 여부를 선택해 주세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="비흡연">비흡연</SelectItem>
-                    <SelectItem value="흡연">흡연</SelectItem>
-                    <SelectItem value="금연">금연</SelectItem>
+                    <SelectItem value="NON">비흡연</SelectItem>
+                    <SelectItem value="ACTIVE">흡연</SelectItem>
+                    <SelectItem value="QUIT">금연</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -164,15 +181,18 @@ export function EditHealthModal({ open, onOpenChange, userData }: EditHealthModa
                   <Wine className="w-4 h-4 text-[#0B4619]" />
                   <Label className="text-sm font-bold">음주</Label>
                 </div>
-                <Select value={drinking} onValueChange={setDrinking}>
+                <Select 
+                  value={formData.drinking}
+                  onValueChange={(value) => handleInputChange("drinking", value as "NON" | "LIGHT" | "MODERATE" | "HEAVY")}
+                >
                   <SelectTrigger className="text-center justify-center">
                     <SelectValue placeholder="음주 여부를 선택해 주세요" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="비음주">비음주</SelectItem>
-                    <SelectItem value="주 1-2회">주 1-2회</SelectItem>
-                    <SelectItem value="주 3-4회">주 3-4회</SelectItem>
-                    <SelectItem value="주 5회 이상">주 5회 이상</SelectItem>
+                    <SelectItem value="NON">비음주</SelectItem>
+                    <SelectItem value="LIGHT">주 1-2회</SelectItem>
+                    <SelectItem value="MODERATE">주 3-4회</SelectItem>
+                    <SelectItem value="HEAVY">주 5회 이상</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

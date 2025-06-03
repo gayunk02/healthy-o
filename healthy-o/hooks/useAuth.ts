@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface User {
   id: number;
@@ -31,91 +31,57 @@ interface SignupData {
 }
 
 interface UseAuthOptions {
-  requireConsent?: boolean;
+  requireAuth?: boolean;
   redirectTo?: string;
 }
 
-export function useAuth({ requireConsent = false, redirectTo = '/login' }: UseAuthOptions = {}) {
+export function useAuth({ requireAuth = true, redirectTo = '/login' } = {}) {
   const router = useRouter();
-  const { isLoggedIn, user, setLoggedIn, setLoggedOut } = useAuthStore();
+  const { isLoggedIn, token, user, setLoggedIn, setLoggedOut } = useAuthStore();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
 
-  // 사용자 정보 로드 및 인증 상태 체크
   useEffect(() => {
-    const loadUser = async () => {
+    const checkAuth = async () => {
+      const storedToken = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
+
+      if (!storedToken || !storedUser) {
+        setLoggedOut();
+        if (requireAuth) {
+          router.push(redirectTo);
+        }
+        return;
+      }
+
       try {
-        // 먼저 로컬 스토리지의 토큰 체크
-        const token = localStorage.getItem('token');
-        const userStr = localStorage.getItem('user');
-        
-        if (!token || !userStr) {
-          setLoggedOut();
-          setLoading(false);
-          return;
+        const response = await fetch('/api/mypage', {
+          headers: {
+            'Authorization': `Bearer ${storedToken}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Token validation failed');
         }
 
-        // 동의 여부 체크
-        if (requireConsent) {
-          const consent = localStorage.getItem('consent');
-          if (consent !== 'true') {
-            router.push('/disclaimer');
-            setLoading(false);
-            return;
-          }
-        }
-
-        try {
-          // API로 사용자 정보 갱신
-          const response = await fetch('/api/mypage', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-
-          if (!response.ok) {
-            if (response.status === 401) {
-              setLoggedOut();
-              if (redirectTo) {
-                router.push(redirectTo);
-              }
-              toast({
-                description: '로그인이 만료되었습니다. 다시 로그인해주세요.',
-                variant: 'destructive',
-              });
-              return;
-            }
-            throw new Error('Failed to fetch user info');
-          }
-
-          const data = await response.json();
-          setLoggedIn(token, data.data);
-        } catch (error) {
-          console.error('Failed to fetch user info:', error);
-          // API 호출 실패 시에도 토큰이 있다면 로그인 상태 유지
-          try {
-            const savedUser = JSON.parse(userStr);
-            setLoggedIn(token, savedUser);
-          } catch (parseError) {
-            console.error('Failed to parse saved user:', parseError);
-            setLoggedOut();
-            if (redirectTo) {
-              router.push(redirectTo);
-            }
-          }
+        const data = await response.json();
+        if (data.success) {
+          setLoggedIn(storedToken, data.data.user);
+        } else {
+          throw new Error(data.message);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
         setLoggedOut();
-        if (redirectTo) {
+        if (requireAuth) {
           router.push(redirectTo);
         }
-      } finally {
-        setLoading(false);
       }
     };
 
-    loadUser();
-  }, [router, requireConsent, redirectTo, setLoggedIn, setLoggedOut]);
+    checkAuth();
+  }, [requireAuth, redirectTo, router, setLoggedIn, setLoggedOut]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
@@ -150,6 +116,7 @@ export function useAuth({ requireConsent = false, redirectTo = '/login' }: UseAu
     user,
     loading,
     isLoggedIn,
+    token,
     login,
     signup,
     logout,

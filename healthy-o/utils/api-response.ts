@@ -23,21 +23,22 @@ export class ApiResponse {
     }, { status: 200 });
   }
 
-  static error(message: string, status: number = 500) {
+  static error(message: string, status: number = 500, errors?: any) {
     return NextResponse.json({
       success: false,
-      message
+      message,
+      errors
     }, { status });
   }
 
-  static unauthorized(message: string = "인증이 필요합니다.") {
+  static unauthorized(message: string = '인증이 필요합니다.') {
     return NextResponse.json({
       success: false,
       message
     }, { status: 401 });
   }
 
-  static notFound(message: string) {
+  static notFound(message: string = '리소스를 찾을 수 없습니다.') {
     return NextResponse.json({
       success: false,
       message
