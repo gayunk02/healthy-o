@@ -1,15 +1,16 @@
 'use client';
 
-import { useRouter } from "next/navigation"
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabNavigation } from "@/components/layout/TabNavigation";
 import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope } from "lucide-react";
-import { ISupplementUI } from "@/types/ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
-interface ISupplement {
-  name: string;
+interface Supplement {
+  supplementName: string;
   description: string;
   benefits: string[];
   matchingSymptoms: string[];
@@ -17,52 +18,87 @@ interface ISupplement {
 
 export default function SupplementPage() {
   const router = useRouter();
-  const [supplements, setSupplements] = useState<ISupplementUI[]>([]);
+  const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [supplements, setSupplements] = useState<Supplement[]>([]);
 
-  const mockSupplements: ISupplement[] = [
-    {
-      name: "비타민 D",
-      description: "면역력 강화와 뼈 건강에 필수적인 영양소",
-      benefits: [
-        "면역력 강화",
-        "뼈 건강 유지",
-        "칼슘 흡수 촉진"
-      ],
-      matchingSymptoms: [
-        "피로감",
-        "잦은 감기",
-        "근육 약화"
-      ]
-    },
-    {
-      name: "오메가 3",
-      description: "혈관 건강과 뇌 기능 개선에 도움",
-      benefits: [
-        "심혈관 건강",
-        "뇌 기능 향상",
-        "관절 건강"
-      ],
-      matchingSymptoms: [
-        "관절통",
-        "고지혈증",
-        "기억력 저하"
-      ]
-    },
-    {
-      name: "프로바이오틱스",
-      description: "장 건강과 면역력 향상에 효과적",
-      benefits: [
-        "장 건강 개선",
-        "면역력 강화",
-        "영양소 흡수 촉진"
-      ],
-      matchingSymptoms: [
-        "소화불량",
-        "복부 팽만감",
-        "변비"
-      ]
+  // 비로그인 사용자 체크
+  useEffect(() => {
+    if (!isLoggedIn) {
+      toast({
+        title: "로그인이 필요한 서비스입니다.",
+        description: "로그인 페이지로 이동합니다.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      router.push('/login');
+      return;
     }
-  ];
+  }, [isLoggedIn, router, toast]);
+
+  // 영양제 데이터 불러오기
+  useEffect(() => {
+    const fetchSupplements = async () => {
+      try {
+        setIsLoading(true);
+
+        // 토큰 확인
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('[Supplement Page] No token found, redirecting to login');
+          toast({
+            title: "로그인이 필요합니다",
+            description: "영양제 추천 서비스를 이용하려면 로그인이 필요합니다.",
+            duration: 3000,
+          });
+          router.push('/login');
+          return;
+        }
+
+        const response = await fetch('/api/supplements/recommendations', {
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          
+          if (response.status === 404 && errorData.message.includes('진단 결과가 없습니다')) {
+            toast({
+              title: "건강 설문 필요",
+              description: "맞춤형 영양제 추천을 위해 건강 설문이 필요합니다.",
+              duration: 3000,
+            });
+            router.push('/question');
+            return;
+          }
+          
+          throw new Error(errorData.message || '영양제 정보를 불러오는데 실패했습니다.');
+        }
+
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.message || '영양제 데이터를 불러오는데 실패했습니다.');
+        }
+
+        setSupplements(data.data.supplements);
+      } catch (error) {
+        console.error('[Supplement Page] 영양제 데이터 로딩 실패:', error);
+        toast({
+          title: "영양제 정보 로딩 실패",
+          description: error instanceof Error ? error.message : "영양제 정보를 불러오는데 실패했습니다.",
+          variant: "destructive",
+          duration: 5000,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchSupplements();
+    }
+  }, [isLoggedIn, router, toast]);
 
   return (
     <div className="w-full pt-[100px] pb-20">
@@ -74,7 +110,7 @@ export default function SupplementPage() {
           <div className="px-6 py-10">
             <CardHeader className="space-y-3 text-center">
               <CardTitle className="text-3xl font-bold text-[#0B4619]">
-              💊 맞춤 영양제 추천
+                💊 맞춤 영양제 추천
               </CardTitle>
               <div className="flex flex-col items-center gap-3">
                 <CardDescription className="text-base text-gray-600">
@@ -89,7 +125,7 @@ export default function SupplementPage() {
 
             <CardContent className="space-y-6">
               <div className="grid gap-4">
-                {mockSupplements.map((supplement, index) => (
+                {supplements.map((supplement, index) => (
                   <div 
                     key={index} 
                     className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
@@ -99,11 +135,11 @@ export default function SupplementPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
                             <Pill className="w-4 h-4 text-[#0B4619]/90" />
-                            {supplement.name}
+                            {supplement.supplementName}
                           </h3>
                         </div>
                       </div>
-
+                      
                       <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
                         <p className="text-sm text-gray-600 leading-relaxed">{supplement.description}</p>
                       </div>

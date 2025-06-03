@@ -1,69 +1,75 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/db';
-import { diagnosisRecords, supplementRecommendations } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
-import { verify } from 'jsonwebtoken';
+import { NextRequest } from "next/server";
+import { db } from "@/db";
+import { diagnoses, diagnosisResults, supplementRecommendations } from "@/db/schema";
+import { desc, eq, and } from "drizzle-orm";
+import { verifyAuth } from "@/lib/auth";
+import { ApiResponse } from "@/utils/api-response";
 
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { message: '인증이 필요합니다.' },
-        { status: 401 }
-      );
+    // 1. 인증 확인
+    const authResult = await verifyAuth(req);
+    const userId = Number(authResult.userId);
+    
+    if (!userId) {
+      return ApiResponse.unauthorized();
     }
 
-    const token = authHeader.split(' ')[1];
-    const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: number };
-    const userId = decoded.userId;
-
-    // 1. 가장 최근 DiagnosisRecord 조회
-    const recentDiagnosis = await db.query.diagnosisRecords.findFirst({
-      where: eq(diagnosisRecords.userId, userId),
-      orderBy: desc(diagnosisRecords.createdAt),
+    // 2. 최근 진단 기록 조회
+    const latestDiagnosis = await db.query.diagnoses.findFirst({
+      where: eq(diagnoses.userId, userId),
+      orderBy: [desc(diagnoses.submittedAt)],
     });
 
-    if (!recentDiagnosis) {
-      return NextResponse.json(
-        { message: '최근 진단 기록이 없습니다.' },
-        { status: 404 }
-      );
+    if (!latestDiagnosis) {
+      return ApiResponse.notFound("진단 결과가 없습니다. 건강 설문을 먼저 진행해주세요.");
     }
 
-    // 2. 해당 진단 기록에 연결된 SupplementRecommendation 조회
-    const recommendation = await db.query.supplementRecommendations.findFirst({
-      where: eq(supplementRecommendations.basedOnDiagnosisId, recentDiagnosis.id),
-      orderBy: desc(supplementRecommendations.createdAt),
+    // 3. 진단 결과 조회
+    const diagnosisResult = await db.query.diagnosisResults.findFirst({
+      where: eq(diagnosisResults.diagnosisId, latestDiagnosis.id),
     });
 
-    if (!recommendation) {
-      return NextResponse.json(
-        { message: '추천된 영양제가 없습니다.' },
-        { status: 404 }
-      );
+    if (!diagnosisResult || !diagnosisResult.supplements) {
+      return ApiResponse.notFound("영양제 추천 정보를 찾을 수 없습니다.");
     }
 
-    // 3. 아직 안 본 추천이면 wasViewed = true로 업데이트
-    if (!recommendation.wasViewed) {
-      await db
-        .update(supplementRecommendations)
-        .set({ wasViewed: true })
-        .where(eq(supplementRecommendations.id, recommendation.id));
-    }
-
-    // 4. JSON.parse 해서 supplements 리스트로 응답
-    const supplements = JSON.parse(recommendation.recommendations);
-
-    return NextResponse.json({
-      message: '영양제 추천 결과 조회 성공',
-      data: { supplements }
+    // 4. 이미 저장된 추천 정보가 있는지 확인
+    let existingRecommendation = await db.query.supplementRecommendations.findFirst({
+      where: and(
+        eq(supplementRecommendations.userId, userId),
+        eq(supplementRecommendations.diagnosisId, latestDiagnosis.id)
+      ),
     });
-  } catch (err) {
-    console.error('추천 조회 오류:', err);
-    return NextResponse.json(
-      { message: '영양제 추천 조회 실패' },
-      { status: 500 }
-    );
+
+    // 5. 없을 때만 새로 저장
+    if (!existingRecommendation) {
+      const [newRecommendation] = await db.insert(supplementRecommendations)
+        .values({
+          userId: userId,
+          diagnosisId: latestDiagnosis.id,
+          supplements: diagnosisResult.supplements,
+        })
+        .returning();
+      
+      existingRecommendation = newRecommendation;
+    }
+
+    // 6. 응답 데이터 구성
+    const responseData = {
+      supplements: diagnosisResult.supplements.map(supplement => ({
+        supplementName: supplement.supplementName,
+        description: supplement.description,
+        benefits: supplement.benefits,
+        matchingSymptoms: supplement.matchingSymptoms,
+      })),
+      recommendedAt: existingRecommendation?.recommendedAt?.toISOString() || new Date().toISOString(),
+    };
+
+    return ApiResponse.success("영양제 추천 정보를 성공적으로 조회했습니다.", responseData);
+
+  } catch (error) {
+    console.error("[Supplement Recommendations API Error]:", error);
+    return ApiResponse.error("영양제 추천 정보 조회 중 오류가 발생했습니다.");
   }
 } 

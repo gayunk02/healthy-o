@@ -79,11 +79,11 @@ export interface IHospitalUI extends IDatabaseHospital {
 }
 
 // UI에서 사용하는 영양제 정보 인터페이스
-export interface ISupplementUI extends IDatabaseSupplement {
-  dosage?: string;
-  timing?: string;
-  precautions?: string[];
-  duration?: string;
+export interface ISupplementUI {
+  supplementName: string;
+  description: string;
+  benefits: string[];
+  matchingSymptoms: string[];
 }
 
 export interface ILifestyle {
@@ -136,7 +136,10 @@ export const convertToUIHospital = (dbHospital: IDatabaseHospital): IHospitalUI 
 });
 
 export const convertToUISupplement = (dbSupplement: IDatabaseSupplement): ISupplementUI => ({
-  ...dbSupplement
+  supplementName: dbSupplement.supplementName,
+  description: dbSupplement.description,
+  benefits: dbSupplement.benefits,
+  matchingSymptoms: dbSupplement.matchingSymptoms
 });
 
 // 헬퍼 함수
