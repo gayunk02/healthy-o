@@ -18,13 +18,29 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Save, Download, Loader2, Stethoscope, User, Ruler, Activity, HeartPulse, Leaf } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/hooks/useAuth';
+import {
+  GENDER_OPTIONS,
+  SMOKING_OPTIONS,
+  DRINKING_OPTIONS,
+  EXERCISE_OPTIONS,
+  SLEEP_OPTIONS,
+  WORK_STYLE_OPTIONS,
+  DIET_OPTIONS,
+  MEAL_REGULARITY_OPTIONS,
+  getKeyByValue
+} from '@/lib/constants';
 
 export default function QuestionPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
   const toastShown = useRef(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const fetchedRef = useRef(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [hasPreviousData, setHasPreviousData] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
@@ -44,29 +60,28 @@ export default function QuestionPage() {
   const [diet, setDiet] = useState('');
   const [mealRegularity, setMealRegularity] = useState('');
   const [additionalInfo, setAdditionalInfo] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [highlightedFields, setHighlightedFields] = useState<string[]>([]);
-  const [hasPreviousData, setHasPreviousData] = useState(false);
 
   // 폼 데이터 상태
   const [formData, setFormData] = useState({
     name: '',
     age: '',
-    gender: '',  // placeholder가 보이도록 빈 값으로 설정
+    gender: '',
     height: '',
     weight: '',
     bmi: '',
+    mainSymptoms: '',
+    symptomDuration: '',
     chronicDiseases: '',
     medications: '',
-    smoking: '',  // placeholder가 보이도록 빈 값으로 설정
-    drinking: '',  // placeholder가 보이도록 빈 값으로 설정
-    exercise: '',  // placeholder가 보이도록 빈 값으로 설정
-    sleep: '',  // placeholder가 보이도록 빈 값으로 설정
+    smoking: '',
+    drinking: '',
+    exercise: '',
+    sleep: '',
     occupation: '',
-    workStyle: '',  // placeholder가 보이도록 빈 값으로 설정
-    diet: '',  // placeholder가 보이도록 빈 값으로 설정
-    mealRegularity: ''  // placeholder가 보이도록 빈 값으로 설정
+    workStyle: '',
+    diet: '',
+    mealRegularity: ''
   });
 
   // 에러 메시지를 한글로 변환하는 함수
@@ -105,9 +120,17 @@ export default function QuestionPage() {
       if (heightInMeter > 0 && weightInKg > 0) {
         const bmiValue = (weightInKg / (heightInMeter * heightInMeter)).toFixed(1);
         setBmi(bmiValue);
+        setFormData(prev => ({
+          ...prev,
+          bmi: bmiValue
+        }));
       }
     } else {
       setBmi('');
+      setFormData(prev => ({
+        ...prev,
+        bmi: ''
+      }));
     }
   }, [height, weight]);
 
@@ -121,37 +144,27 @@ export default function QuestionPage() {
 
   // 로그인 상태 체크 및 실시간 업데이트
   useEffect(() => {
-    const checkLoginStatus = () => {
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token');
-        const isValid = !!token && token.trim() !== '';
-        setIsLoggedIn(isValid);
-
-        // 최초 한 번만 이전 데이터 존재 여부 확인
-        if (isValid && !isChecked) {
-          checkPreviousData();
-          setIsChecked(true);
-        }
+    const checkLoginStatus = async () => {
+      if (isLoggedIn && !isChecked && !fetchedRef.current) {
+        fetchedRef.current = true;
+        await checkPreviousData();
+        setIsChecked(true);
       }
     };
 
     checkLoginStatus();
-    window.addEventListener('storage', checkLoginStatus);
-    window.addEventListener('focus', checkLoginStatus);
-
-    return () => {
-      window.removeEventListener('storage', checkLoginStatus);
-      window.removeEventListener('focus', checkLoginStatus);
-    };
-  }, [isChecked]);
+  }, [isLoggedIn]);
 
   // 이전 데이터 존재 여부만 확인하는 함수
   const checkPreviousData = async () => {
     try {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      if (!token) {
+        console.log('[Question Page] No token found');
+        return;
+      }
 
-      const response = await fetch('/api/question/latest', {
+      const response = await fetch('/api/health-info', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -159,33 +172,39 @@ export default function QuestionPage() {
       });
 
       if (response.ok) {
-        toast({
-          title: "이전에 입력한 정보가 있습니다.",
-          description: (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={loadHealthInfo}
-                className="text-[#0B4619] underline font-medium mt-1 text-sm"
-              >
-                <Download className="w-4 h-4" />
-                불러오기
-              </button>
-            </div>
-          ),
-          duration: 0,
-        });
+        const data = await response.json();
+        if (data.data) {
+          console.log('[Question Page] Found previous data');
+          setHasPreviousData(true);
+          if (!toastShown.current) {
+            toastShown.current = true;
+            toast({
+              title: "이전에 입력한 정보가 있습니다.",
+              description: (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={loadHealthInfo}
+                    className="text-[#0B4619] underline font-medium mt-1 text-sm"
+                  >
+                    <Download className="w-4 h-4 inline-block mr-1" />
+                    불러오기
+                  </button>
+                </div>
+              ),
+              duration: 0,
+            });
+          }
+        }
       }
     } catch (error) {
-      console.error('Error checking previous data:', error);
+      console.error('[Question Page] Error checking previous data:', error);
     }
   };
 
   // 건강 정보 불러오기 함수
   const loadHealthInfo = async () => {
     try {
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
+      if (!isLoggedIn) {
         toast({
           title: "로그인이 필요한 서비스입니다.",
           description: (
@@ -203,7 +222,8 @@ export default function QuestionPage() {
         return;
       }
 
-      const response = await fetch('/api/question/latest', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/health-info', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -241,73 +261,63 @@ export default function QuestionPage() {
       }
 
       const result = await response.json();
-      const data = result.data; // API 응답의 data 필드에서 실제 데이터를 가져옴
+      const data = result.data;
       
       if (!data) {
         throw new Error('데이터가 존재하지 않습니다.');
       }
 
-      console.log('Loaded data:', data); // 데이터 확인용 로그
-
-      // formData 상태 업데이트
+      // 모든 상태를 한 번에 업데이트
       const newFormData = {
-        name: data.name || '',  // 이름 추가
-        age: data.age?.toString() || '',  // 나이 추가
-        gender: data.gender === 'MALE' ? '남성' : '여성',  // 성별 추가
+        name: data.name || '',
+        age: data.age?.toString() || '',
+        gender: data.gender === 'MALE' ? '남성' : data.gender === 'FEMALE' ? '여성' : '',
         height: data.height?.toString() || '',
         weight: data.weight?.toString() || '',
         bmi: data.bmi?.toString() || '',
+        mainSymptoms: '',  // 이전 증상은 새로 입력받아야 함
+        symptomDuration: '', // 이전 증상 기간도 새로 입력받아야 함
         chronicDiseases: data.chronicDiseases || '',
         medications: data.medications || '',
         smoking: data.smoking === 'NON' ? '비흡연' :
-                data.smoking === 'ACTIVE' ? '흡연' : '금연',
+                 data.smoking === 'ACTIVE' ? '흡연' : 
+                 data.smoking === 'QUIT' ? '금연' : '',
         drinking: data.drinking === 'NON' ? '비음주' :
-                 data.drinking === 'LIGHT' ? '주 1-2회' :
-                 data.drinking === 'MODERATE' ? '주 3-4회' : '주 5회 이상',
+                  data.drinking === 'LIGHT' ? '주 1-2회' :
+                  data.drinking === 'MODERATE' ? '주 3-4회' : 
+                  data.drinking === 'HEAVY' ? '주 5회 이상' : '',
         exercise: data.exercise === 'NONE' ? '거의 안 함' :
-                 data.exercise === 'LIGHT' ? '가벼운 운동 (주 1-2회)' :
-                 data.exercise === 'MODERATE' ? '적당한 운동 (주 3-4회)' : '활발한 운동 (주 5회 이상)',
+                  data.exercise === 'LIGHT' ? '가벼운 운동 (주 1-2회)' :
+                  data.exercise === 'MODERATE' ? '적당한 운동 (주 3-4회)' : 
+                  data.exercise === 'HEAVY' ? '활발한 운동 (주 5회 이상)' : '',
         sleep: data.sleep === 'LESS_5' ? '5시간 미만' :
                data.sleep === '5_TO_6' ? '5-6시간' :
                data.sleep === '6_TO_7' ? '6-7시간' :
-               data.sleep === '7_TO_8' ? '7-8시간' : '8시간 초과',
+               data.sleep === '7_TO_8' ? '7-8시간' : 
+               data.sleep === 'MORE_8' ? '8시간 초과' : '',
         occupation: data.occupation || '',
         workStyle: data.workStyle === 'SITTING' ? '주로 앉아서 근무' :
-                  data.workStyle === 'STANDING' ? '주로 서서 근무' :
-                  data.workStyle === 'ACTIVE' ? '활동이 많은 근무' : '복합적',
+                   data.workStyle === 'STANDING' ? '주로 서서 근무' :
+                   data.workStyle === 'ACTIVE' ? '활동이 많은 근무' : 
+                   data.workStyle === 'MIXED' ? '복합적' : '',
         diet: data.diet === 'BALANCED' ? '균형 잡힌 식단' :
-              data.diet === 'MEAT' ? '육류 위주' :
-              data.diet === 'FISH' ? '생선 위주' :
-              data.diet === 'VEGGIE' ? '채식 위주' : '인스턴트 위주',
+               data.diet === 'MEAT' ? '육류 위주' :
+               data.diet === 'FISH' ? '생선 위주' :
+               data.diet === 'VEGGIE' ? '채식 위주' : 
+               data.diet === 'INSTANT' ? '인스턴트 위주' : '',
         mealRegularity: data.mealRegularity === 'REGULAR' ? '규칙적' :
-                       data.mealRegularity === 'MOSTLY' ? '대체로 규칙적' :
-                       data.mealRegularity === 'IRREGULAR' ? '불규칙적' : '매우 불규칙적'
+                         data.mealRegularity === 'MOSTLY' ? '대체로 규칙적' :
+                         data.mealRegularity === 'IRREGULAR' ? '불규칙적' : 
+                         data.mealRegularity === 'VERY_IRREGULAR' ? '매우 불규칙적' : ''
       };
-
-      // 개별 상태 업데이트
-      setName(newFormData.name);  // 이름 업데이트
-      setAge(newFormData.age);    // 나이 업데이트
-      setGender(newFormData.gender);  // 성별 업데이트
-      setHeight(newFormData.height);
-      setWeight(newFormData.weight);
-      setBmi(newFormData.bmi);
-      setChronicDiseases(newFormData.chronicDiseases);
-      setMedications(newFormData.medications);
-      setSmoking(newFormData.smoking);
-      setDrinking(newFormData.drinking);
-      setExercise(newFormData.exercise);
-      setSleep(newFormData.sleep);
-      setOccupation(newFormData.occupation);
-      setWorkStyle(newFormData.workStyle);
-      setDiet(newFormData.diet);
-      setMealRegularity(newFormData.mealRegularity);
 
       // formData 상태 업데이트
       setFormData(newFormData);
 
       toast({
         title: "건강 정보를 불러왔습니다.",
-        duration: 3000,
+        description: "주요 증상과 증상 발생 시기는 새로 입력해 주세요.",
+        duration: 5000,
       });
     } catch (error) {
       console.error('[Question Page] Error loading health info:', error);
@@ -455,99 +465,128 @@ export default function QuestionPage() {
     try {
       setIsLoading(true);
 
-      const healthStatus = {
-        height: Number(height),
-        weight: Number(weight),
-        bmi: Number(bmi),
-        mainSymptoms,
-        symptomDuration,
-        chronicDiseases,
-        medications,
-        smoking,
-        drinking,
-        exercise,
-        sleep,
-        occupation,
-        workStyle,
-        diet,
-        mealRegularity,
-        additionalInfo
-      };
-
+      // 설문 데이터 준비
       const submitData = {
         name, 
         age: Number(age), 
-        gender: gender === '남성' ? 'MALE' : 'FEMALE',
+        gender: getKeyByValue(GENDER_OPTIONS, gender) || 'FEMALE',
         height: Number(height),
         weight: Number(weight),
         bmi: Number(bmi),
+        mainSymptoms: mainSymptoms.trim(),
+        symptomDuration: symptomDuration.trim(),
         chronicDiseases: chronicDiseases || '',
         medications: medications || '',
-        smoking: smoking === '비흡연' ? 'NON' : smoking === '흡연' ? 'ACTIVE' : 'QUIT',
-        drinking: drinking === '비음주' ? 'NON' : 
-                 drinking === '주 1-2회' ? 'LIGHT' : 
-                 drinking === '주 3-4회' ? 'MODERATE' : 'HEAVY',
-        exercise: exercise === '거의 안 함' ? 'NONE' : 
-                 exercise === '가벼운 운동 (주 1-2회)' ? 'LIGHT' : 
-                 exercise === '적당한 운동 (주 3-4회)' ? 'MODERATE' : 'HEAVY',
-        sleep: sleep === '5시간 미만' ? 'LESS_5' : 
-               sleep === '5-6시간' ? '5_TO_6' : 
-               sleep === '6-7시간' ? '6_TO_7' : 
-               sleep === '7-8시간' ? '7_TO_8' : 'MORE_8',
+        smoking: smoking ? getKeyByValue(SMOKING_OPTIONS, smoking) : 'NONE',
+        drinking: drinking ? getKeyByValue(DRINKING_OPTIONS, drinking) : 'NONE',
+        exercise: exercise ? getKeyByValue(EXERCISE_OPTIONS, exercise) : 'NONE',
+        sleep: sleep ? getKeyByValue(SLEEP_OPTIONS, sleep) : 'NONE',
         occupation: occupation || '',
-        workStyle: workStyle === '주로 앉아서 근무' ? 'SITTING' : 
-                  workStyle === '주로 서서 근무' ? 'STANDING' : 
-                  workStyle === '활동이 많은 근무' ? 'ACTIVE' : 'MIXED',
-        diet: diet === '균형 잡힌 식단' ? 'BALANCED' : 
-              diet === '육류 위주' ? 'MEAT' : 
-              diet === '생선 위주' ? 'FISH' : 
-              diet === '채식 위주' ? 'VEGGIE' : 'INSTANT',
-        mealRegularity: mealRegularity === '규칙적' ? 'REGULAR' : 
-                       mealRegularity === '대체로 규칙적' ? 'MOSTLY' : 
-                       mealRegularity === '불규칙적' ? 'IRREGULAR' : 'VERY_IRREGULAR'
+        workStyle: workStyle ? getKeyByValue(WORK_STYLE_OPTIONS, workStyle) : 'NONE',
+        diet: diet ? getKeyByValue(DIET_OPTIONS, diet) : 'NONE',
+        mealRegularity: mealRegularity ? getKeyByValue(MEAL_REGULARITY_OPTIONS, mealRegularity) : 'NONE'
+      } as const;
+
+      // 분석 시작 상태 저장
+      localStorage.setItem('analysis_status', 'pending');
+      localStorage.setItem('analysis_data', JSON.stringify(submitData));
+      
+      // 바로 Result 페이지로 이동
+      router.push('/result');
+
+      // 백그라운드에서 분석 진행
+      const processAnalysis = async () => {
+        try {
+          let diagnosisId: number | null = null;
+
+          if (isLoggedIn) {
+            // 로그인 사용자: DB에 저장
+            const response = await fetch('/api/question/submit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              },
+              body: JSON.stringify(submitData)
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.message || '설문 제출에 실패했습니다.');
+            }
+
+            const result = await response.json();
+            diagnosisId = result.diagnosisId;
+
+            if (!diagnosisId || typeof diagnosisId !== 'number') {
+              throw new Error('진단 ID가 올바르지 않습니다.');
+            }
+          }
+
+          // AI 분석 요청
+          const requestBody = {
+            data: submitData,
+            ...(isLoggedIn && diagnosisId ? { diagnosisId } : {})
+          };
+
+          console.log('[Question Page] Sending request:', JSON.stringify(requestBody, null, 2));
+
+          const diagnosisResponse = await fetch('/api/health/diagnosis', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(isLoggedIn ? { 'Authorization': `Bearer ${localStorage.getItem('token')}` } : {})
+            },
+            body: JSON.stringify(requestBody)
+          });
+
+          const responseData = await diagnosisResponse.json();
+          
+          if (!diagnosisResponse.ok) {
+            console.error('[Question Page] API Error:', {
+              status: diagnosisResponse.status,
+              statusText: diagnosisResponse.statusText,
+              response: responseData
+            });
+            throw new Error(responseData.message || 'AI 분석에 실패했습니다.');
+          }
+
+          if (!responseData.success) {
+            console.error('[Question Page] Analysis Failed:', responseData);
+            throw new Error(responseData.message || 'AI 분석 결과가 올바르지 않습니다.');
+          }
+
+          // diagnosis_id 쿠키 설정
+          const expirationDate = new Date();
+          expirationDate.setHours(expirationDate.getHours() + 1);
+          
+          if (isLoggedIn && diagnosisId) {
+            document.cookie = `diagnosis_id=${diagnosisId}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`;
+          } else if (!isLoggedIn && responseData.data?.tempDiagnosisId) {
+            document.cookie = `diagnosis_id=${responseData.data.tempDiagnosisId}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`;
+          }
+
+          // 분석 결과 저장
+          localStorage.setItem('diagnosis_result', JSON.stringify(responseData.data));
+          localStorage.setItem('analysis_status', 'completed');
+
+          console.log('[Question Page] Analysis successful:', responseData);
+        } catch (error) {
+          console.error('[Question Page] Error:', error);
+          localStorage.setItem('analysis_status', 'error');
+          localStorage.setItem('analysis_error', error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+        }
       };
 
-      console.log('[Question Page] Submitting data to server:', submitData);
-
-      const response = await fetch('/api/question/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(submitData)
-      });
-
-      console.log('[Question Page] Server response status:', response.status);
-      console.log('[Question Page] Server response headers:', [...response.headers.entries()]);
-
-      let result;
-      try {
-        const responseText = await response.text();
-        console.log('[Question Page] Raw response:', responseText);
-        
-        result = JSON.parse(responseText);
-        console.log('[Question Page] Parsed response:', result);
-      } catch (jsonError) {
-        console.error('[Question Page] JSON parsing failed:', jsonError);
-        console.error('[Question Page] Response was not valid JSON');
-        throw new Error('서버에서 잘못된 응답을 받았습니다.');
-      }
-
-      if (!response.ok) {
-        console.error('[Question Page] Server returned error:', result);
-        throw new Error(result?.error || result?.message || "서버 요청 실패");
-      }
-
-      console.log('[Question Page] Submit successful, redirecting to result page');
-      // 응답 성공 시 result 페이지로 이동
-      router.push('/result');
+      // 백그라운드에서 분석 시작
+      processAnalysis();
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error('[Question Page] Error:', error);
       toast({
         title: "제출 중 오류가 발생했습니다.",
-        description: getKoreanErrorMessage(error),
+        description: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
         variant: "destructive",
-        duration: 0,
+        duration: 5000,
       });
     } finally {
       setIsLoading(false);
@@ -558,6 +597,7 @@ export default function QuestionPage() {
   const saveHealthInfo = async () => {
     console.log('[Question Page] saveHealthInfo called:', { 
       isLoggedIn, 
+      isSaving, 
       timestamp: new Date().toLocaleTimeString() 
     });
     
@@ -578,39 +618,61 @@ export default function QuestionPage() {
       const healthData = {
         name,
         age: Number(age),
-        gender: gender === '남성' ? 'MALE' : 'FEMALE',
+        gender: gender === '남성' ? 'MALE' : gender === '여성' ? 'FEMALE' : '',
         height: Number(height),
         weight: Number(weight),
         bmi: Number(bmi),
         chronicDiseases: chronicDiseases || '',
         medications: medications || '',
-        smoking: smoking === '비흡연' ? 'NON' : smoking === '흡연' ? 'ACTIVE' : 'QUIT',
-        drinking: drinking === '비음주' ? 'NON' : 
-                 drinking === '주 1-2회' ? 'LIGHT' : 
-                 drinking === '주 3-4회' ? 'MODERATE' : 'HEAVY',
-        exercise: exercise === '거의 안 함' ? 'NONE' : 
-                 exercise === '가벼운 운동 (주 1-2회)' ? 'LIGHT' : 
-                 exercise === '적당한 운동 (주 3-4회)' ? 'MODERATE' : 'HEAVY',
-        sleep: sleep === '5시간 미만' ? 'LESS_5' : 
-               sleep === '5-6시간' ? '5_TO_6' : 
-               sleep === '6-7시간' ? '6_TO_7' : 
-               sleep === '7-8시간' ? '7_TO_8' : 'MORE_8',
+        smoking: smoking ? (
+          smoking === '비흡연' ? 'NON' : 
+          smoking === '흡연' ? 'ACTIVE' : 
+          smoking === '금연' ? 'QUIT' : ''
+        ) : '',
+        drinking: drinking ? (
+          drinking === '비음주' ? 'NON' : 
+          drinking === '주 1-2회' ? 'LIGHT' : 
+          drinking === '주 3-4회' ? 'MODERATE' : 
+          drinking === '주 5회 이상' ? 'HEAVY' : ''
+        ) : '',
+        exercise: exercise ? (
+          exercise === '거의 안 함' ? 'NONE' : 
+          exercise === '가벼운 운동 (주 1-2회)' ? 'LIGHT' : 
+          exercise === '적당한 운동 (주 3-4회)' ? 'MODERATE' : 
+          exercise === '활발한 운동 (주 5회 이상)' ? 'HEAVY' : ''
+        ) : '',
+        sleep: sleep ? (
+          sleep === '5시간 미만' ? 'LESS_5' : 
+          sleep === '5-6시간' ? '5_TO_6' : 
+          sleep === '6-7시간' ? '6_TO_7' : 
+          sleep === '7-8시간' ? '7_TO_8' : 
+          sleep === '8시간 초과' ? 'MORE_8' : ''
+        ) : '',
         occupation: occupation || '',
-        workStyle: workStyle === '주로 앉아서 근무' ? 'SITTING' : 
-                  workStyle === '주로 서서 근무' ? 'STANDING' : 
-                  workStyle === '활동이 많은 근무' ? 'ACTIVE' : 'MIXED',
-        diet: diet === '균형 잡힌 식단' ? 'BALANCED' : 
-              diet === '육류 위주' ? 'MEAT' : 
-              diet === '생선 위주' ? 'FISH' : 
-              diet === '채식 위주' ? 'VEGGIE' : 'INSTANT',
-        mealRegularity: mealRegularity === '규칙적' ? 'REGULAR' : 
-                       mealRegularity === '대체로 규칙적' ? 'MOSTLY' : 
-                       mealRegularity === '불규칙적' ? 'IRREGULAR' : 'VERY_IRREGULAR'
+        workStyle: workStyle ? (
+          workStyle === '주로 앉아서 근무' ? 'SITTING' : 
+          workStyle === '주로 서서 근무' ? 'STANDING' : 
+          workStyle === '활동이 많은 근무' ? 'ACTIVE' : 
+          workStyle === '복합적' ? 'MIXED' : ''
+        ) : '',
+        diet: diet ? (
+          diet === '균형 잡힌 식단' ? 'BALANCED' : 
+          diet === '육류 위주' ? 'MEAT' : 
+          diet === '생선 위주' ? 'FISH' : 
+          diet === '채식 위주' ? 'VEGGIE' : 
+          diet === '인스턴트 위주' ? 'INSTANT' : ''
+        ) : '',
+        mealRegularity: mealRegularity ? (
+          mealRegularity === '규칙적' ? 'REGULAR' : 
+          mealRegularity === '대체로 규칙적' ? 'MOSTLY' : 
+          mealRegularity === '불규칙적' ? 'IRREGULAR' : 
+          mealRegularity === '매우 불규칙적' ? 'VERY_IRREGULAR' : ''
+        ) : ''
       };
 
       console.log('[Question Page] Saving health data:', healthData);
 
-      const response = await fetch('/api/question/save', {
+      const response = await fetch('/api/health-info', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

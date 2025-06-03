@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,13 +12,7 @@ import { Bot, Stethoscope, Info, Lightbulb, PenLine, ClipboardList, AlertCircle,
 export default function DisclaimerPage() {
   const router = useRouter();
   const [input, setInput] = useState("");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
 
   const handleConfirm = () => {
     if (input !== "동의합니다") {

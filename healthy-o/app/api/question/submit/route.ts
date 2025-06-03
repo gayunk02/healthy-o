@@ -4,6 +4,8 @@ import { diagnoses } from '@/db/schema';
 import { verifyJwtToken } from '@/lib/auth';
 import { z } from 'zod';
 import { successResponse, errorResponse } from '@/utils/api-response';
+import { NextResponse } from 'next/server';
+import { verify } from 'jsonwebtoken';
 
 // 입력값 검증을 위한 Zod 스키마
 const diagnosisSchema = z.object({
@@ -28,68 +30,68 @@ const diagnosisSchema = z.object({
   mealRegularity: z.enum(["REGULAR", "MOSTLY", "IRREGULAR", "VERY_IRREGULAR"]),
 });
 
-export async function POST(req: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
+    const data = await request.json();
     
-    // 입력값 검증
-    const validatedData = diagnosisSchema.parse(body);
-
-    // 토큰 검증
-    const token = req.cookies.get('token')?.value;
-    let userId = null;
+    // 사용자 인증 확인
+    let userId: number | null = null;
+    const authHeader = request.headers.get('authorization');
     
-    if (token) {
-      const payload = await verifyJwtToken(token);
-      if (payload) {
-        userId = parseInt(payload.id, 10);
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.split(' ')[1];
+        const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as { id: number };
+        userId = decoded.id;
+      } catch (err) {
+        console.error('[Question Submit API] Token verification failed:', err);
       }
     }
 
-    // 진단 데이터 생성
-    const diagnosisData = {
-      userId: userId,
-      name: validatedData.name,
-      age: validatedData.age,
-      gender: validatedData.gender,
-      height: validatedData.height.toString(),
-      weight: validatedData.weight.toString(),
-      bmi: validatedData.bmi.toString(),
-      chronicDiseases: validatedData.chronicDiseases || '없음',
-      medications: validatedData.medications || '없음',
-      smoking: validatedData.smoking,
-      drinking: validatedData.drinking,
-      exercise: validatedData.exercise,
-      sleep: validatedData.sleep,
-      occupation: validatedData.occupation || null,
-      workStyle: validatedData.workStyle,
-      diet: validatedData.diet,
-      mealRegularity: validatedData.mealRegularity,
-    };
-
-    // 로그인한 사용자만 DB에 저장
-    let savedData = null;
+    // 로그인한 사용자인 경우에만 DB에 저장
+    let diagnosisId = null;
     if (userId) {
-      const result = await db.insert(diagnoses).values(diagnosisData).returning();
-      savedData = result[0];
+      try {
+        const diagnosisData = {
+          user_id: userId,
+          name: String(data.name),
+          age: Number(data.age),
+          gender: String(data.gender),
+          height: data.height.toString(),
+          weight: data.weight.toString(),
+          bmi: data.bmi.toString(),
+          chronicDiseases: String(data.chronicDiseases || '없음'),
+          medications: String(data.medications || '없음'),
+          smoking: String(data.smoking),
+          drinking: String(data.drinking),
+          exercise: String(data.exercise),
+          sleep: String(data.sleep),
+          occupation: String(data.occupation || ''),
+          workStyle: String(data.workStyle),
+          diet: String(data.diet),
+          mealRegularity: String(data.mealRegularity),
+        };
+
+        const newDiagnosis = await db.insert(diagnoses).values(diagnosisData).returning();
+        diagnosisId = newDiagnosis[0].id;
+      } catch (err) {
+        console.error('[Question Submit API] Failed to save diagnosis:', err);
+        return NextResponse.json(
+          { message: '설문 저장에 실패했습니다.' },
+          { status: 500 }
+        );
+      }
     }
 
-    return successResponse(
-      savedData || diagnosisData,
-      userId 
-        ? "진단이 성공적으로 저장되었습니다." 
-        : "진단이 완료되었습니다. 결과를 저장하려면 로그인해주세요."
+    return NextResponse.json({
+      message: userId ? '설문이 저장되었습니다.' : '설문이 제출되었습니다.',
+      diagnosisId
+    });
+  } catch (err) {
+    console.error('[Question Submit API] Unexpected error:', err);
+    return NextResponse.json(
+      { message: '예기치 않은 오류가 발생했습니다.' },
+      { status: 500 }
     );
-
-  } catch (error) {
-    console.error('Error submitting diagnosis:', error);
-    
-    if (error instanceof z.ZodError) {
-      return errorResponse("입력값이 올바르지 않습니다.", {
-        validation: error.errors,
-      }, 400);
-    }
-
-    return errorResponse("서버 오류가 발생했습니다.", undefined, 500);
   }
 } 

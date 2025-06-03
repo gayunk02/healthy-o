@@ -33,7 +33,7 @@ import { useAuthStore } from "@/store/auth";
 export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { checkAuthStatus } = useAuthStore();
+  const { setLoggedIn, isLoggedIn } = useAuthStore();
   const [phone1, setPhone1] = useState("");
   const [phone2, setPhone2] = useState("");
   const [phone3, setPhone3] = useState("");
@@ -58,10 +58,29 @@ export default function SignUpPage() {
 
   // 로그인 상태 체크
   useEffect(() => {
-    if (checkAuthStatus()) {
+    // 토큰과 사용자 정보 확인
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setLoggedIn(token, user);
+        router.replace('/');
+      } catch (error) {
+        // 파싱 실패 시 토큰 제거
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [router, setLoggedIn]);
+
+  // 이미 로그인된 상태라면 홈으로 리다이렉트
+  useEffect(() => {
+    if (isLoggedIn) {
       router.replace('/');
     }
-  }, [router, checkAuthStatus]);
+  }, [isLoggedIn, router]);
 
   // 연도 범위 계산 (14세 ~ 120세)
   const currentYear = new Date().getFullYear();

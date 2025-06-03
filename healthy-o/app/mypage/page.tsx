@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { IHealthRecord, IHospitalRecord, IUserProfileData } from "@/types/ui";
+import { IHealthRecord, IHospitalRecord, IUserProfileData, ILifestyle } from "@/types/ui";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 import { FilterSection } from "@/components/mypage/FilterSection";
 import { HealthRecordSection } from "@/components/mypage/HealthRecordSection";
@@ -24,11 +26,12 @@ import { EditHealthModal } from "@/components/mypage/modals/EditHealthModal";
 import { EditLifestyleModal } from "@/components/mypage/modals/EditLifestyleModal";
 
 // 임시 데이터
-const mockUserData = {
+const mockUserData: IUserProfileData = {
+  id: 1,
   name: "홍길동",
   email: "hong@example.com",
   birthDate: "1990-01-01",
-  gender: "M",
+  gender: "M" as const,
   height: "175",
   weight: "70",
   medicalHistory: "없음",
@@ -36,13 +39,15 @@ const mockUserData = {
   smoking: "비흡연",
   drinking: "주 1-2회",
   lifestyle: {
-    exercise: "주 3-4회",
-    sleep: "7to8",
-    occupation: "사무직",
-    workStyle: "sitting",
-    diet: "balanced",
-    mealRegularity: "mostly"
-  }
+    exercise: "정보 없음",
+    sleep: "정보 없음",
+    occupation: "정보 없음",
+    workStyle: "정보 없음",
+    diet: "정보 없음",
+    mealRegularity: "정보 없음"
+  },
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
 };
 
 // 건강 검진 기록과 분석 결과를 통합
@@ -321,6 +326,11 @@ const mockSupplementRecommendations = [
 
 export default function MyPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState<IUserProfileData>(mockUserData);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("info");
   const [selectedRecord, setSelectedRecord] = useState<(typeof mockHealthRecords)[0] | null>(null);
   const [selectedHospitalRec, setSelectedHospitalRec] = useState<(typeof mockHospitalRecommendations)[0] | null>(null);
@@ -333,6 +343,82 @@ export default function MyPage() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditHealth, setShowEditHealth] = useState(false);
   const [showEditLifestyle, setShowEditLifestyle] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          router.push('/login');
+          return;
+        }
+
+        const response = await fetch('/api/mypage', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token');
+            router.push('/login');
+            return;
+          }
+          throw new Error('Failed to fetch user data');
+        }
+
+        const data = await response.json();
+        setUserData({
+          ...data.data,
+          lifestyle: {
+            ...mockUserData.lifestyle,
+            ...data.data.lifestyle
+          }
+        });
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError('사용자 정보를 불러오는데 실패했습니다.');
+        toast({
+          title: "오류",
+          description: "사용자 정보를 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchUserData();
+    } else {
+      router.push('/login');
+    }
+  }, [isLoggedIn, router, toast]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4619] mx-auto"></div>
+          <p className="text-[#0B4619] font-medium">정보를 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <p className="text-red-500 font-medium">{error}</p>
+          <Button onClick={() => router.push('/login')}>
+            다시 로그인하기
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // 날짜 필터링 함수
   const filterByDate = (date: string) => {
@@ -382,6 +468,70 @@ export default function MyPage() {
     }
   };
 
+  // lifestyle 관련 헬퍼 함수
+  const getLifestyleValue = (key: keyof ILifestyle): string => {
+    return userData.lifestyle[key];
+  };
+
+  // 헬퍼 함수들
+  const formatBirthDate = (birthDate: string): string => {
+    try {
+      const date = new Date(birthDate);
+      if (isNaN(date.getTime())) {
+        return '날짜 형식 오류';
+      }
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      return `${year}년 ${month}월 ${day}일`;
+    } catch (error) {
+      console.error('생년월일 변환 중 오류 발생:', error);
+      return '날짜 형식 오류';
+    }
+  };
+
+  const getSleepText = (value: string): string => {
+    const sleepMap: { [key: string]: string } = {
+      'less5': '5시간 미만',
+      '5to6': '5-6시간',
+      '6to7': '6-7시간',
+      '7to8': '7-8시간',
+      'more8': '8시간 초과'
+    };
+    return sleepMap[value] || value;
+  };
+
+  const getWorkStyleText = (value: string): string => {
+    const workStyleMap: { [key: string]: string } = {
+      'sitting': '주로 앉아서 근무',
+      'standing': '주로 서서 근무',
+      'moving': '활동이 많은 근무',
+      'mixed': '복합적'
+    };
+    return workStyleMap[value] || value;
+  };
+
+  const getDietText = (value: string): string => {
+    const dietMap: { [key: string]: string } = {
+      'balanced': '균형 잡힌 식단',
+      'meat': '육류 위주',
+      'fish': '생선 위주',
+      'vegetable': '채식 위주',
+      'instant': '인스턴트 위주'
+    };
+    return dietMap[value] || value;
+  };
+
+  const getMealRegularityText = (value: string): string => {
+    const mealRegularityMap: { [key: string]: string } = {
+      'regular': '규칙적',
+      'mostly': '대체로 규칙적',
+      'irregular': '불규칙적',
+      'very-irregular': '매우 불규칙적'
+    };
+    return mealRegularityMap[value] || value;
+  };
+
   return (
     <div className="w-full pt-[100px] pb-20">
       <Card className="w-full max-w-[800px] mx-auto shadow-lg">
@@ -424,19 +574,19 @@ export default function MyPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">이름</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.name}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.name}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">이메일</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.email}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.email}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">생년월일</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.birthDate}</p>
+                      <p className="text-sm font-semibold text-gray-900">{formatBirthDate(userData?.birthDate)}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">성별</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.gender === "M" ? "남성" : "여성"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.gender === "M" ? "남성" : "여성"}</p>
                     </div>
                   </div>
                 </div>
@@ -462,27 +612,27 @@ export default function MyPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">키</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.height} cm</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.height} cm</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">몸무게</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.weight} kg</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.weight} kg</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">과거 병력</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.medicalHistory || "없음"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.medicalHistory ?? '없음'}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">복용 약물</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.medications || "없음"}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.medications ?? '없음'}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">흡연</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.smoking}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.smoking}</p>
                     </div>
                     <div className="space-y-1.5 py-2">
                       <Label className="text-sm font-medium text-gray-600">음주</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.drinking}</p>
+                      <p className="text-sm font-semibold text-gray-900">{userData?.drinking}</p>
                     </div>
                   </div>
                 </div>
@@ -493,7 +643,7 @@ export default function MyPage() {
                       <div className="bg-[#0B4619]/10 p-2 rounded-lg">
                         <Activity className="w-5 h-5 text-[#0B4619]" />
                       </div>
-                      <h3 className="font-bold text-lg text-[#0B4619]">생활 습관 정보</h3>
+                      <h3 className="font-bold text-lg text-[#0B4619]">생활습관 정보</h3>
                     </div>
                     <Button
                       variant="outline"
@@ -505,30 +655,31 @@ export default function MyPage() {
                       수정
                     </Button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">운동</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.lifestyle.exercise}</p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">운동 빈도</Label>
+                      <p className="font-medium">{getLifestyleValue('exercise')}</p>
                     </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">수면</Label>
-                      <p className="text-sm font-semibold text-gray-900">{getSleepText(mockUserData.lifestyle.sleep)}</p>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">수면 시간</Label>
+                      <p className="font-medium">{getSleepText(getLifestyleValue('sleep'))}</p>
                     </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">직업</Label>
-                      <p className="text-sm font-semibold text-gray-900">{mockUserData.lifestyle.occupation}</p>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">직업</Label>
+                      <p className="font-medium">{getLifestyleValue('occupation')}</p>
                     </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">근무 형태</Label>
-                      <p className="text-sm font-semibold text-gray-900">{getWorkStyleText(mockUserData.lifestyle.workStyle)}</p>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">근무 형태</Label>
+                      <p className="font-medium">{getWorkStyleText(getLifestyleValue('workStyle'))}</p>
                     </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">식사 형태</Label>
-                      <p className="text-sm font-semibold text-gray-900">{getDietText(mockUserData.lifestyle.diet)}</p>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">식단 유형</Label>
+                      <p className="font-medium">{getDietText(getLifestyleValue('diet'))}</p>
                     </div>
-                    <div className="space-y-1.5 py-2">
-                      <Label className="text-sm font-medium text-gray-600">식사 규칙성</Label>
-                      <p className="text-sm font-semibold text-gray-900">{getMealRegularityText(mockUserData.lifestyle.mealRegularity)}</p>
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-500">식사 규칙성</Label>
+                      <p className="font-medium">{getMealRegularityText(getLifestyleValue('mealRegularity'))}</p>
                     </div>
                   </div>
                 </div>
@@ -538,10 +689,10 @@ export default function MyPage() {
                 open={showEditProfile}
                 onOpenChange={setShowEditProfile}
                 userData={{
-                  name: mockUserData.name,
-                  email: mockUserData.email,
-                  birthDate: mockUserData.birthDate,
-                  gender: mockUserData.gender,
+                  name: userData?.name,
+                  email: userData?.email,
+                  birthDate: userData?.birthDate,
+                  gender: userData?.gender,
                 }}
               />
 
@@ -549,12 +700,12 @@ export default function MyPage() {
                 open={showEditHealth}
                 onOpenChange={setShowEditHealth}
                 userData={{
-                  height: mockUserData.height,
-                  weight: mockUserData.weight,
-                  medicalHistory: mockUserData.medicalHistory,
-                  medications: mockUserData.medications,
-                  smoking: mockUserData.smoking,
-                  drinking: mockUserData.drinking,
+                  height: userData.height,
+                  weight: userData.weight,
+                  medicalHistory: userData.medicalHistory,
+                  medications: userData.medications,
+                  smoking: userData.smoking,
+                  drinking: userData.drinking,
                 }}
               />
 
@@ -562,7 +713,7 @@ export default function MyPage() {
                 open={showEditLifestyle}
                 onOpenChange={setShowEditLifestyle}
                 userData={{
-                  lifestyle: mockUserData.lifestyle,
+                  lifestyle: userData.lifestyle
                 }}
               />
             </TabsContent>
@@ -759,47 +910,4 @@ export default function MyPage() {
       </Card>
     </div>
   );
-}
-
-// 헬퍼 함수들
-function getSleepText(sleep: string): string {
-  const sleepMap: { [key: string]: string } = {
-    'less5': '5시간 미만',
-    '5to6': '5-6시간',
-    '6to7': '6-7시간',
-    '7to8': '7-8시간',
-    'more8': '8시간 초과'
-  };
-  return sleepMap[sleep] || sleep;
-}
-
-function getWorkStyleText(workStyle: string): string {
-  const workStyleMap: { [key: string]: string } = {
-    'sitting': '주로 앉아서 근무',
-    'standing': '주로 서서 근무',
-    'moving': '활동이 많은 근무',
-    'mixed': '복합적'
-  };
-  return workStyleMap[workStyle] || workStyle;
-}
-
-function getDietText(diet: string): string {
-  const dietMap: { [key: string]: string } = {
-    'balanced': '균형 잡힌 식단',
-    'meat': '육류 위주',
-    'fish': '생선 위주',
-    'vegetable': '채식 위주',
-    'instant': '인스턴트 위주'
-  };
-  return dietMap[diet] || diet;
-}
-
-function getMealRegularityText(mealRegularity: string): string {
-  const mealRegularityMap: { [key: string]: string } = {
-    'regular': '규칙적',
-    'mostly': '대체로 규칙적',
-    'irregular': '불규칙적',
-    'very-irregular': '매우 불규칙적'
-  };
-  return mealRegularityMap[mealRegularity] || mealRegularity;
 } 

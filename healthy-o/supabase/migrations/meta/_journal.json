@@ -8,6 +8,34 @@
       "when": 1748847715207,
       "tag": "0000_big_jazinda",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1748874420791,
+      "tag": "0001_powerful_ares",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1748874584813,
+      "tag": "0002_fixed_shinko_yamashiro",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1748874698608,
+      "tag": "0003_medical_lethal_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748874851291,
+      "tag": "0004_public_rattler",
+      "breakpoints": true
     }
   ]
 }

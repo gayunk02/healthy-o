@@ -6,12 +6,31 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/auth';
 import { useToast } from "@/hooks/use-toast";
 import Image from 'next/image';
+import { useEffect } from 'react';
 
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const { isLoggedIn, user, setLoggedOut } = useAuthStore();
+  const { isLoggedIn, user, setLoggedOut, setLoggedIn } = useAuthStore();
   const { toast } = useToast();
+
+  // 컴포넌트 마운트 시 인증 상태 체크
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const savedUser = JSON.parse(userStr);
+        setLoggedIn(token, savedUser);
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        setLoggedOut();
+      }
+    } else {
+      setLoggedOut();
+    }
+  }, [setLoggedIn, setLoggedOut]);
 
   const handleLogout = () => {
     setLoggedOut();

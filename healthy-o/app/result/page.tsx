@@ -1,68 +1,171 @@
 'use client';
 
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabNavigation } from "@/components/layout/TabNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ChevronDown, Stethoscope, Lightbulb } from "lucide-react";
-import { IHealthResultUI } from "@/types/ui";
+import { IHealthDiagnosisResultUI, IHealthResult } from "@/types/ui";
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ResultPage() {
   const router = useRouter();
+  const { toast } = useToast();
+  const { isLoggedIn } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [results, setResults] = useState<IHealthResultUI[]>([
-    {
-      name: "고혈압",
-      description: "혈압이 높은 상태를 의미하며, 의사의 진단을 받는 것을 추천합니다.",
-      mainSymptoms: [
-        "두통이 자주 발생",
-        "어지러움",
-        "피로감 증가"
-      ],
-      keyAdvice: [
-        "규칙적인 운동 (하루 30분 이상 걷기)",
-        "저염식 식단 유지",
-        "정기적인 혈압 체크"
-      ],
-      riskLevel: '중간'
-    },
-    {
-      name: "비염",
-      description: "재채기, 콧물, 코막힘 증상을 동반할 수 있는 알레르기 질환입니다.",
-      mainSymptoms: [
-        "잦은 재채기",
-        "맑은 콧물",
-        "코막힘"
-      ],
-      keyAdvice: [
-        "실내 습도 조절 (40-50%)",
-        "정기적인 환기와 청소",
-        "알레르기 검사 권장"
-      ],
-      riskLevel: '낮음'
-    },
-    {
-      name: "위염",
-      description: "위 점막의 염증으로 인한 소화기 질환으로, 적절한 식이 관리가 중요합니다.",
-      mainSymptoms: [
-        "상복부 통증",
-        "메스꺼움",
-        "소화불량"
-      ],
-      keyAdvice: [
-        "규칙적인 식사하기",
-        "자극적인 음식 피하기",
-        "천천히 식사하기"
-      ],
-      riskLevel: '중간'
+  const [diagnosisResult, setDiagnosisResult] = useState<IHealthDiagnosisResultUI>({
+    results: [],
+    recommendedDepartments: [],
+    supplement_recommendations: [],
+    disclaimer: ''
+  });
+  const fetchedRef = useRef(false);
+
+  const checkAnalysisStatus = async () => {
+    try {
+      console.log('[Result Page] Checking analysis status...');
+      
+      const status = localStorage.getItem('analysis_status');
+      const savedResult = localStorage.getItem('diagnosis_result');
+      
+      console.log('[Result Page] Current status:', status);
+      console.log('[Result Page] Has saved result:', !!savedResult);
+      
+      if (status === 'completed' && savedResult) {
+        // 분석 완료된 경우
+        try {
+          const parsedResult = JSON.parse(savedResult);
+          setDiagnosisResult(parsedResult);
+          setLoading(false);
+          
+          // 사용한 데이터 정리
+          localStorage.removeItem('diagnosis_result');
+          localStorage.removeItem('analysis_status');
+          localStorage.removeItem('analysis_data');
+          
+          console.log('[Result Page] Successfully loaded result');
+        } catch (error) {
+          console.error('[Result Page] Error parsing result:', error);
+          throw new Error('결과 데이터 형식이 올바르지 않습니다.');
+        }
+      } else if (status === 'error') {
+        // 에러 발생한 경우
+        const errorMessage = localStorage.getItem('analysis_error') || '분석 중 오류가 발생했습니다.';
+        console.error('[Result Page] Analysis failed:', errorMessage);
+        toast({
+          title: "분석 실패",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 5000,
+        });
+        router.push('/question');
+        
+        // 데이터 정리
+        localStorage.removeItem('analysis_status');
+        localStorage.removeItem('analysis_error');
+        localStorage.removeItem('analysis_data');
+      } else if (!status) {
+        // 분석 상태가 없는 경우 (직접 URL 접근 등)
+        console.log('[Result Page] No analysis status found');
+        toast({
+          title: "잘못된 접근",
+          description: "먼저 건강 설문을 작성해주세요.",
+          variant: "destructive",
+          duration: 5000,
+        });
+        router.push('/question');
+      }
+    } catch (error) {
+      console.error('[Result Page] Error:', error);
+      toast({
+        title: "오류 발생",
+        description: error instanceof Error ? error.message : "결과를 불러오는 중 오류가 발생했습니다.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      router.push('/question');
     }
-  ]);
+  };
 
   useEffect(() => {
-    // TODO: API에서 실제 결과 데이터를 가져오는 로직 추가
-    setLoading(false);
+    if (!fetchedRef.current) {
+      fetchedRef.current = true;
+      
+      // 초기 상태 확인
+      const initialCheck = async () => {
+        const status = localStorage.getItem('analysis_status');
+        const savedResult = localStorage.getItem('diagnosis_result');
+        
+        if (status === 'completed' && savedResult) {
+          // 이미 결과가 있는 경우 바로 표시
+          await checkAnalysisStatus();
+        } else if (status === 'pending') {
+          // 결과 대기 중인 경우 주기적으로 확인
+          const statusCheck = setInterval(async () => {
+            const currentStatus = localStorage.getItem('analysis_status');
+            if (currentStatus === 'completed' || currentStatus === 'error') {
+              clearInterval(statusCheck);
+              await checkAnalysisStatus();
+            }
+          }, 1000);
+
+          // 60초 후에도 결과가 없으면 사용자에게 선택권 제공
+          setTimeout(() => {
+            clearInterval(statusCheck);
+            if (loading) {
+              const finalStatus = localStorage.getItem('analysis_status');
+              if (finalStatus === 'pending') {
+                toast({
+                  title: "분석이 예상보다 오래 걸리고 있습니다",
+                  description: "계속 기다리시겠습니까?",
+                  action: (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => router.push('/question')}
+                        className="bg-red-500 text-white px-3 py-1 rounded"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={() => {
+                          toast({
+                            title: "분석을 계속 진행합니다",
+                            description: "결과가 나오면 자동으로 표시됩니다",
+                            duration: 3000,
+                          });
+                        }}
+                        className="bg-[#0B4619] text-white px-3 py-1 rounded"
+                      >
+                        계속 기다리기
+                      </button>
+                    </div>
+                  ),
+                  duration: 0,
+                });
+              }
+            }
+          }, 60000);
+
+          return () => {
+            clearInterval(statusCheck);
+          };
+        } else {
+          // 잘못된 접근
+          toast({
+            title: "잘못된 접근",
+            description: "먼저 건강 설문을 작성해주세요.",
+            variant: "destructive",
+            duration: 5000,
+          });
+          router.push('/question');
+        }
+      };
+
+      initialCheck();
+    }
   }, []);
 
   const onClickHospital = () => {
@@ -73,25 +176,41 @@ export default function ResultPage() {
     router.push('/supplement');
   }
 
-  const getRiskLevelStyle = (level: string): string => {
+  const getRiskLevelStyle = (level: 'low' | 'medium' | 'high'): string => {
     switch (level) {
-      case '높음':
+      case 'high':
         return 'bg-red-50 text-red-700 border-red-200';
-      case '중간':
+      case 'medium':
         return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case '낮음':
+      case 'low':
         return 'bg-green-50 text-green-700 border-green-200';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
+  const getRiskLevelText = (level: 'low' | 'medium' | 'high'): string => {
+    const map = {
+      low: '낮음',
+      medium: '중간',
+      high: '높음'
+    };
+    return map[level];
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="text-2xl font-bold mb-4">결과를 불러오는 중...</div>
-          <div className="text-gray-600">잠시만 기다려주세요.</div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0B4619] mx-auto"></div>
+          <div className="text-2xl font-bold text-[#0B4619]">건강 정보를 분석중입니다</div>
+          <div className="text-gray-600 max-w-md mx-auto space-y-2">
+            <p>입력하신 증상과 건강 정보를 바탕으로</p>
+            <p>정확한 분석을 진행하고 있습니다.</p>
+            <p className="text-sm text-gray-500 mt-2">
+              상세한 분석을 위해 20-30초 정도 소요될 수 있습니다.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -122,7 +241,7 @@ export default function ResultPage() {
 
             <CardContent className="space-y-6">
               <div className="grid gap-6">
-                {results.map((result, index) => (
+                {diagnosisResult.results.map((result, index) => (
                   <div 
                     key={index} 
                     className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
@@ -132,13 +251,13 @@ export default function ResultPage() {
                         <div className="flex items-center gap-2">
                           <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
                             <Stethoscope className="w-4 h-4 text-[#0B4619]/90" />
-                            {result.name}
+                            {result.diseaseName}
                           </h3>
                           <Badge 
                             variant="outline" 
                             className={`text-sm px-2 py-0.5 ${getRiskLevelStyle(result.riskLevel)}`}
                           >
-                            위험도: {result.riskLevel}
+                            위험도: {getRiskLevelText(result.riskLevel)}
                           </Badge>
                         </div>
                       </div>
@@ -170,10 +289,10 @@ export default function ResultPage() {
                               관리 수칙
                             </h4>
                             <ul className="space-y-1.5">
-                              {result.keyAdvice.slice(0, 3).map((advice, idx) => (
+                              {result.managementTips.map((tip, idx) => (
                                 <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
                                   <span className="text-[#0B4619] font-medium">•</span>
-                                  {advice}
+                                  {tip}
                                 </li>
                               ))}
                             </ul>

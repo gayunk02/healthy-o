@@ -101,7 +101,7 @@ export const diagnosesRelations = relations(diagnoses, ({ one, many }) => ({
 export const diagnosisResults = pgTable('diagnosis_results', {
   id: serial('id').primaryKey(),
   diagnosisId: integer('diagnosis_id').notNull().references(() => diagnoses.id),
-  recommendedDepartment: text('recommended_department').notNull(),
+  recommendedDepartments: json('recommended_departments').notNull().$type<string[]>(),
   diseases: json('diseases').notNull().$type<{
     diseaseName: string;
     description: string;
@@ -109,10 +109,19 @@ export const diagnosisResults = pgTable('diagnosis_results', {
     mainSymptoms: string[];
     managementTips: string[];
   }[]>(),
+  supplements: json('supplements').$type<{
+    supplementName: string;
+    description: string;
+    benefits: string[];
+    matchingSymptoms: string[];
+  }[]>(),
+  supplementsViewed: boolean('supplements_viewed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => {
   return {
-    diseasesCheck: sql`check(json_array_length(${table.diseases}) <= 3)`
+    diseasesCheck: sql`check(json_array_length(${table.diseases}) <= 3)`,
+    supplementsCheck: sql`check(json_array_length(${table.supplements}) <= 3)`,
+    departmentsCheck: sql`check(json_array_length(${table.recommendedDepartments}) <= 3)`
   }
 });
 

@@ -9,15 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Activity, Coffee, Dumbbell, Moon, Briefcase, PersonStanding, UtensilsCrossed, Clock, Leaf } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface ILifestyle {
-  exercise: string;
-  sleep: string;
-  occupation: string;
-  workStyle: string;
-  diet: string;
-  mealRegularity: string;
-}
+import { ILifestyle } from "@/types/ui";
 
 interface EditLifestyleModalProps {
   open: boolean;
@@ -42,6 +34,7 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
           exercise,
@@ -63,6 +56,8 @@ export function EditLifestyleModal({ open, onOpenChange, userData }: EditLifesty
       });
 
       onOpenChange(false);
+      // 페이지 새로고침하여 업데이트된 정보 표시
+      window.location.reload();
     } catch (error) {
       console.error('Error saving lifestyle info:', error);
       toast({

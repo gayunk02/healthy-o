@@ -17,14 +17,33 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { setLoggedIn, checkAuthStatus } = useAuthStore();
+  const { setLoggedIn, isLoggedIn } = useAuthStore();
 
   // 로그인 상태 체크
   useEffect(() => {
-    if (checkAuthStatus()) {
+    // 토큰과 사용자 정보 확인
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setLoggedIn(token, user);
+        router.replace('/');
+      } catch (error) {
+        // 파싱 실패 시 토큰 제거
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [router, setLoggedIn]);
+
+  // 이미 로그인된 상태라면 홈으로 리다이렉트
+  useEffect(() => {
+    if (isLoggedIn) {
       router.replace('/');
     }
-  }, [router, checkAuthStatus]);
+  }, [isLoggedIn, router]);
 
   const onSubmit = async () => {
     // 이메일 형식 검증

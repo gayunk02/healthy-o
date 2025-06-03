@@ -86,26 +86,31 @@ export interface ISupplementUI extends IDatabaseSupplement {
   duration?: string;
 }
 
+export interface ILifestyle {
+  exercise: string;
+  sleep: string;
+  occupation: string;
+  workStyle: string;
+  diet: string;
+  mealRegularity: string;
+}
+
 // 마이페이지에서 사용하는 사용자 데이터 인터페이스
 export interface IUserProfileData {
-  name: string;
+  id: number;
   email: string;
+  name: string;
+  gender: 'M' | 'F';
   birthDate: string;
-  gender: Gender;
   height: string;
   weight: string;
-  chronicDiseases?: string;
-  medications?: string;
-  smoking: SmokingStatus;
-  drinking: DrinkingStatus;
-  lifestyle: {
-    exercise: ExerciseStatus;
-    sleep: string;
-    occupation: string;
-    workStyle: WorkStyle;
-    diet: DietType;
-    mealRegularity: MealRegularity;
-  };
+  medicalHistory: string;
+  medications: string;
+  smoking: string;
+  drinking: string;
+  lifestyle: ILifestyle;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 날짜 범위 선택을 위한 인터페이스
@@ -142,4 +147,26 @@ const convertRiskLevel = (dbLevel: 'low' | 'medium' | 'high'): '낮음' | '중�
     high: '높음'
   };
   return map[dbLevel];
-}; 
+};
+
+export interface IHealthResult {
+  diseaseName: string;
+  description: string;
+  riskLevel: 'low' | 'medium' | 'high';
+  mainSymptoms: string[];
+  managementTips: string[];
+}
+
+export interface ISupplementRecommendation {
+  supplementName: string;
+  description: string;
+  benefits: string[];
+  matchingSymptoms: string[];
+}
+
+export interface IHealthDiagnosisResultUI {
+  results: IHealthResult[];
+  recommendedDepartments: string[];
+  supplement_recommendations: ISupplementRecommendation[];
+  disclaimer: string;
+} 

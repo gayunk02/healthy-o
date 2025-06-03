@@ -1,9 +1,12 @@
 'use client';
 
+import { useAuth } from '@/hooks/useAuth';
+import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRouter } from 'next/navigation';
 import { Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ITab {
   value: string;
@@ -35,28 +38,73 @@ const tabs: ITab[] = [
 export function TabNavigation() {
   const router = useRouter();
   const pathname = usePathname();
+  const { isLoggedIn } = useAuth();
+  const { toast } = useToast();
   
-  // 현재 경로에서 첫 번째 세그먼트를 가져옴 (예: /hospital -> hospital)
-  const currentTab = pathname.split('/')[1] || 'result';
+  // 현재 경로에서 정확한 탭 값을 계산
+  const getCurrentTab = () => {
+    const path = pathname.toLowerCase();
+    if (path.includes('/result')) return 'result';
+    if (path.includes('/hospital')) return 'hospital';
+    if (path.includes('/supplement')) return 'supplement';
+    return 'result'; // 기본값
+  };
+
+  const currentTab = getCurrentTab();
+
+  const handleTabClick = (tab: ITab) => {
+    if (tab.requiresAuth && !isLoggedIn) {
+      toast({
+        title: "로그인이 필요한 서비스입니다",
+        description: "해당 서비스를 이용하려면 로그인이 필요합니다.",
+        duration: 3000,
+      });
+      router.push('/login');
+      return;
+    }
+    router.push(tab.href);
+  };
 
   return (
     <div className="w-full">
       <Tabs value={currentTab} className="w-full">
-        <TabsList className="w-full h-14 grid grid-cols-3 bg-gray-100 rounded-t-xl">
+        <TabsList className="w-full h-14 grid grid-cols-3 bg-gray-100 rounded-t-xl border-b border-gray-200">
           {tabs.map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              onClick={() => router.push(tab.href)}
-              className="relative h-full text-gray-500 data-[state=active]:text-[#0B4619] data-[state=active]:font-bold transition-all duration-200 after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2.5px] after:bg-[#0B4619] after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:duration-200 hover:text-[#0B4619]/70 data-[state=active]:bg-white data-[state=active]:shadow-sm hover:bg-white/60"
-            >
-              <div className="flex items-center gap-1.5">
-                {tab.label}
-                {tab.requiresAuth && (
-                  <Lock className="w-3.5 h-3.5" />
+            <TooltipProvider key={tab.value}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger
+                    value={tab.value}
+                    onClick={() => handleTabClick(tab)}
+                    className={`
+                      relative h-full 
+                      text-gray-500 
+                      transition-all duration-200
+                      data-[state=active]:text-[#0B4619] 
+                      data-[state=active]:font-bold 
+                      data-[state=active]:bg-white 
+                      hover:text-[#0B4619]/70 
+                      hover:bg-white/60
+                      ${tab.requiresAuth && !isLoggedIn ? 'cursor-not-allowed opacity-50' : ''}
+                      border-b-[3px] border-transparent
+                      data-[state=active]:border-[#0B4619]
+                    `}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {tab.label}
+                      {tab.requiresAuth && !isLoggedIn && (
+                        <Lock className="w-3.5 h-3.5" />
+                      )}
+                    </div>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                {tab.requiresAuth && !isLoggedIn && (
+                  <TooltipContent side="bottom" align="center">
+                    <p className="text-sm">로그인이 필요한 서비스입니다</p>
+                  </TooltipContent>
                 )}
-              </div>
-            </TabsTrigger>
+              </Tooltip>
+            </TooltipProvider>
           ))}
         </TabsList>
       </Tabs>
