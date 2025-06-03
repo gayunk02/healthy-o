@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     if (userId) {
       try {
         const diagnosisData = {
-          user_id: userId,
+          userId: userId,
           name: String(data.name),
           age: Number(data.age),
           gender: String(data.gender),
@@ -85,7 +85,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       message: userId ? '설문이 저장되었습니다.' : '설문이 제출되었습니다.',
-      diagnosisId
+      diagnosisId,
+      clearHospitalCache: !!userId
     });
   } catch (err) {
     console.error('[Question Submit API] Unexpected error:', err);

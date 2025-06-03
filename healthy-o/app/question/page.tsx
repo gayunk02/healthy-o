@@ -465,31 +465,15 @@ export default function QuestionPage() {
     try {
       setIsLoading(true);
 
-      // 설문 데이터 준비
-      const submitData = {
-        name, 
-        age: Number(age), 
-        gender: getKeyByValue(GENDER_OPTIONS, gender) || 'FEMALE',
-        height: Number(height),
-        weight: Number(weight),
-        bmi: Number(bmi),
-        mainSymptoms: mainSymptoms.trim(),
-        symptomDuration: symptomDuration.trim(),
-        chronicDiseases: chronicDiseases || '',
-        medications: medications || '',
-        smoking: smoking ? getKeyByValue(SMOKING_OPTIONS, smoking) : 'NONE',
-        drinking: drinking ? getKeyByValue(DRINKING_OPTIONS, drinking) : 'NONE',
-        exercise: exercise ? getKeyByValue(EXERCISE_OPTIONS, exercise) : 'NONE',
-        sleep: sleep ? getKeyByValue(SLEEP_OPTIONS, sleep) : 'NONE',
-        occupation: occupation || '',
-        workStyle: workStyle ? getKeyByValue(WORK_STYLE_OPTIONS, workStyle) : 'NONE',
-        diet: diet ? getKeyByValue(DIET_OPTIONS, diet) : 'NONE',
-        mealRegularity: mealRegularity ? getKeyByValue(MEAL_REGULARITY_OPTIONS, mealRegularity) : 'NONE'
-      } as const;
+      // 새로운 분석 시작 시 이전 데이터 삭제
+      localStorage.removeItem('diagnosis_result');
+      localStorage.removeItem('analysis_status');
+      localStorage.removeItem('analysis_data');
+      localStorage.removeItem('analysis_error');
 
-      // 분석 시작 상태 저장
+      // 분석 상태를 pending으로 설정
       localStorage.setItem('analysis_status', 'pending');
-      localStorage.setItem('analysis_data', JSON.stringify(submitData));
+      localStorage.setItem('analysis_data', JSON.stringify(formData));
       
       // 바로 Result 페이지로 이동
       router.push('/result');
@@ -507,7 +491,7 @@ export default function QuestionPage() {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
               },
-              body: JSON.stringify(submitData)
+              body: JSON.stringify(formData)
             });
 
             if (!response.ok) {
@@ -517,6 +501,14 @@ export default function QuestionPage() {
 
             const result = await response.json();
             diagnosisId = result.diagnosisId;
+            
+            // 새로운 설문 제출 시 병원 페이지 캐시 클리어
+            if (result.clearHospitalCache) {
+              localStorage.removeItem('cached_hospitals');
+              localStorage.removeItem('cached_department');
+              localStorage.removeItem('hospitals_cache_timestamp');
+              console.log('[Question Page] Hospital cache cleared due to new diagnosis');
+            }
 
             if (!diagnosisId || typeof diagnosisId !== 'number') {
               throw new Error('진단 ID가 올바르지 않습니다.');
@@ -525,7 +517,7 @@ export default function QuestionPage() {
 
           // AI 분석 요청
           const requestBody = {
-            data: submitData,
+            data: formData,
             ...(isLoggedIn && diagnosisId ? { diagnosisId } : {})
           };
 

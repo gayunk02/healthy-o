@@ -19,9 +19,9 @@ export async function POST(request: Request) {
     }
 
     // GPT 분석 수행
-    try {
-      const result = await performGptAnalysis(body.data);
-      
+      try {
+        const result = await performGptAnalysis(body.data);
+
       // 로그인 여부 확인
       const authHeader = request.headers.get('authorization');
       const isLoggedIn = authHeader?.startsWith('Bearer ') && body.diagnosisId;
@@ -30,19 +30,19 @@ export async function POST(request: Request) {
       
       // 로그인 사용자인 경우에만 결과 저장
       if (isLoggedIn) {
-        try {
+      try {
           const token = authHeader!.split(' ')[1];
-          const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
           await jwtVerify(token, secret);
+        
+        // 결과 저장
+        await db.insert(diagnosisResults).values({
+          diagnosisId: body.diagnosisId,
+          recommendedDepartments: result.recommendedDepartments,
+          diseases: result.results,
+          supplements: result.supplement_recommendations
+        });
 
-          // 결과 저장
-          await db.insert(diagnosisResults).values({
-            diagnosisId: body.diagnosisId,
-            recommendedDepartments: result.recommendedDepartments,
-            diseases: result.results,
-            supplements: result.supplement_recommendations
-          });
-          
           console.log('[Health Diagnosis API] Result saved for logged-in user');
         } catch (error) {
           console.error('[Health Diagnosis API] Error saving result:', error);
@@ -53,21 +53,21 @@ export async function POST(request: Request) {
       }
 
       // 모든 사용자에게 동일한 응답 형식 제공
-      return NextResponse.json({
-        success: true,
-        message: '건강 정보 분석 완료',
+        return NextResponse.json({
+          success: true,
+          message: '건강 정보 분석 완료',
         data: {
           ...result,
           disclaimer: '이 정보는 건강 상식 제공용이며, 진단이나 치료를 대신하지 않습니다. 증상이 지속되면 반드시 병원을 방문해주세요.'
         }
-      });
+        });
     } catch (error) {
       console.error('[Health Diagnosis API] Error processing request:', error);
-      return NextResponse.json(
-        { message: '건강 정보 분석 중 오류가 발생했습니다.' },
-        { status: 500 }
-      );
-    }
+        return NextResponse.json(
+          { message: '건강 정보 분석 중 오류가 발생했습니다.' },
+          { status: 500 }
+        );
+      }
   } catch (error) {
     console.error('[Health Diagnosis API] Unexpected error:', error);
     return NextResponse.json(
@@ -138,31 +138,31 @@ async function performGptAnalysis(data: any) {
     try {
       console.log(`[Health Diagnosis API] Attempt ${attempt} - Making GPT request`);
       const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
+      'https://api.openai.com/v1/chat/completions',
+      {
           model: 'gpt-4-turbo-preview',
-          messages: [
-            {
-              role: 'system',
+        messages: [
+          {
+            role: 'system',
               content: '당신은 건강 정보 검색을 도와주는 AI 도우미입니다. 반드시 JSON 형식으로만 응답해야 하며, 다른 어떤 설명이나 텍스트도 포함하지 않습니다. 응답이 JSON 형식이 아닌 경우 시스템이 작동하지 않습니다.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
           temperature: 0.2,
           max_tokens: 1500,
           presence_penalty: 0,
           frequency_penalty: 0,
           top_p: 1,
           response_format: { type: "json_object" }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
         },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
           timeout: 50000 // 50초 타임아웃
         }
       );
@@ -198,29 +198,29 @@ async function performGptAnalysis(data: any) {
   try {
     const gptResponse = await makeRequest();
     let gptReply = gptResponse.data.choices[0].message.content.trim();
-    
-    try {
-      const parsedResult = JSON.parse(gptReply);
-      
-      // 결과 검증
-      if (!parsedResult.results || parsedResult.results.length < 1 || parsedResult.results.length > 3) {
-        throw new Error('질환 결과는 1개 이상 3개 이하여야 합니다.');
-      }
-      if (!parsedResult.recommendedDepartments || parsedResult.recommendedDepartments.length !== 1) {
-        throw new Error('권장 진료과는 정확히 1개여야 합니다.');
-      }
-      if (!parsedResult.supplement_recommendations || 
-          parsedResult.supplement_recommendations.length < 1 || 
-          parsedResult.supplement_recommendations.length > 3) {
-        throw new Error('영양제 추천은 1개 이상 3개 이하여야 합니다.');
-      }
 
-      return {
+    try {
+    const parsedResult = JSON.parse(gptReply);
+    
+      // 결과 검증
+    if (!parsedResult.results || parsedResult.results.length < 1 || parsedResult.results.length > 3) {
+      throw new Error('질환 결과는 1개 이상 3개 이하여야 합니다.');
+    }
+    if (!parsedResult.recommendedDepartments || parsedResult.recommendedDepartments.length !== 1) {
+      throw new Error('권장 진료과는 정확히 1개여야 합니다.');
+    }
+    if (!parsedResult.supplement_recommendations || 
+        parsedResult.supplement_recommendations.length < 1 || 
+        parsedResult.supplement_recommendations.length > 3) {
+      throw new Error('영양제 추천은 1개 이상 3개 이하여야 합니다.');
+    }
+
+    return {
         results: parsedResult.results,
         recommendedDepartments: parsedResult.recommendedDepartments,
         supplement_recommendations: parsedResult.supplement_recommendations,
-        disclaimer: '이 정보는 건강 상식 제공용이며, 진단이나 치료를 대신하지 않습니다. 증상이 지속되면 반드시 병원을 방문해주세요.'
-      };
+      disclaimer: '이 정보는 건강 상식 제공용이며, 진단이나 치료를 대신하지 않습니다. 증상이 지속되면 반드시 병원을 방문해주세요.'
+    };
     } catch (parseError) {
       console.error('[Health Diagnosis API] JSON Parse Error:', parseError);
       throw new Error('AI 응답 형식이 올바르지 않습니다.');

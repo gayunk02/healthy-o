@@ -40,12 +40,6 @@ export default function ResultPage() {
           const parsedResult = JSON.parse(savedResult);
           setDiagnosisResult(parsedResult);
           setLoading(false);
-          
-          // 사용한 데이터 정리
-          localStorage.removeItem('diagnosis_result');
-          localStorage.removeItem('analysis_status');
-          localStorage.removeItem('analysis_data');
-          
           console.log('[Result Page] Successfully loaded result');
         } catch (error) {
           console.error('[Result Page] Error parsing result:', error);
@@ -62,11 +56,6 @@ export default function ResultPage() {
           duration: 5000,
         });
         router.push('/question');
-        
-        // 데이터 정리
-        localStorage.removeItem('analysis_status');
-        localStorage.removeItem('analysis_error');
-        localStorage.removeItem('analysis_data');
       } else if (!status) {
         // 분석 상태가 없는 경우 (직접 URL 접근 등)
         console.log('[Result Page] No analysis status found');

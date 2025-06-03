@@ -1,10 +1,16 @@
 import { create } from 'zustand';
 
+interface IUser {
+  id: number;
+  email: string;
+  name: string;
+}
+
 interface AuthState {
   isLoggedIn: boolean;
   token: string | null;
-  user: any | null;
-  setLoggedIn: (token: string, user: any) => void;
+  user: IUser | null;
+  setLoggedIn: (token: string, user: IUser) => void;
   setLoggedOut: () => void;
 }
 
