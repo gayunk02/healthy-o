@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { TabNavigation } from "@/components/layout/TabNavigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, ChevronDown, Stethoscope, Lightbulb } from "lucide-react";
+import { AlertTriangle, ChevronDown, Stethoscope, Lightbulb, ArrowRight } from "lucide-react";
 import { IHealthDiagnosisResultUI, IHealthResult } from "@/types/ui";
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from '@/hooks/useAuth';
@@ -158,10 +158,50 @@ export default function ResultPage() {
   }, []);
 
   const onClickHospital = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "로그인이 필요한 서비스입니다",
+        description: (
+          <div className="mt-1 relative pr-7">
+            <p className="text-sm text-gray-500">해당 서비스를 이용하려면 로그인이 필요합니다.</p>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="absolute right-[-8px] top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-transparent hover:text-[#0B4619] text-gray-400"
+              onClick={() => router.push('/login')}
+            >
+              <ArrowRight className="h-5 w-5" strokeWidth={2} />
+            </Button>
+          </div>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
     router.push('/hospital');
   }
 
   const onClickSupplement = () => {
+    if (!isLoggedIn) {
+      toast({
+        title: "로그인이 필요한 서비스입니다",
+        description: (
+          <div className="mt-1 relative pr-7">
+            <p className="text-sm text-gray-500">해당 서비스를 이용하려면 로그인이 필요합니다.</p>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="absolute right-[-8px] top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-transparent hover:text-[#0B4619] text-gray-400"
+              onClick={() => router.push('/login')}
+            >
+              <ArrowRight className="h-5 w-5" strokeWidth={2} />
+            </Button>
+          </div>
+        ),
+        duration: 5000,
+      });
+      return;
+    }
     router.push('/supplement');
   }
 
