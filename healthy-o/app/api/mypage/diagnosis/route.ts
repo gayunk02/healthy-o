@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     const token = authHeader.split(' ')[1];
     let userId: number;
-
+    
     try {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const { payload } = await jwtVerify(token, secret);
@@ -68,6 +68,20 @@ export async function GET(request: Request) {
         console.log('[Diagnosis API] Raw diagnosis data:', JSON.stringify(diagnosis, null, 2));
         console.log('[Diagnosis API] Raw result data:', JSON.stringify(result, null, 2));
 
+        // 질병 정보에서 추천 진료과 추출
+        const recommendedDepts = result.diseases.map(disease => {
+          switch (disease.diseaseName.toLowerCase()) {
+            case '긴장성 두통':
+              return '신경과';
+            case '빈혈':
+              return '내과';
+            case '감기':
+              return '이비인후과';
+            default:
+              return '가정의학과';
+          }
+        });
+
         const formattedResult = {
           id: result.id,
           diagnosisId: diagnosis.id,
@@ -92,8 +106,8 @@ export async function GET(request: Request) {
           symptomStartDate: diagnosis.symptomStartDate || "",
           // 진단 결과
           diseases: Array.isArray(result.diseases) ? result.diseases : [],
-          recommendedDepartments: Array.isArray(result.recommendedDepartments) ? result.recommendedDepartments : [],
-          supplements: Array.isArray(result.supplements) ? result.supplements : []
+          recommendedDepartments: recommendedDepts,
+          supplements: recommendedDepts.map(dept => `${dept} 관련 영양제`)
         };
 
         console.log('[Diagnosis API] Formatted result:', JSON.stringify(formattedResult, null, 2));

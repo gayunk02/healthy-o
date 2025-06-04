@@ -5,6 +5,13 @@ import { desc, eq, and } from "drizzle-orm";
 import { verifyAuth } from "@/lib/auth";
 import { ApiResponse } from "@/utils/api-response";
 
+interface Supplement {
+  supplementName: string;
+  description: string;
+  benefits: string[];
+  matchingSymptoms: string[];
+}
+
 export async function GET(req: NextRequest) {
   try {
     // 1. 인증 확인
@@ -30,9 +37,23 @@ export async function GET(req: NextRequest) {
       where: eq(diagnosisResults.diagnosisId, latestDiagnosis.id),
     });
 
-    if (!diagnosisResult || !diagnosisResult.supplements) {
+    if (!diagnosisResult || !diagnosisResult.diseases) {
       return ApiResponse.notFound("영양제 추천 정보를 찾을 수 없습니다.");
     }
+
+    // 질병 정보에서 영양제 추천 정보 추출
+    const diseases = diagnosisResult.diseases;
+    const supplementsList: Supplement[] = diseases.flatMap(disease => {
+      if (disease.mainSymptoms && disease.managementTips) {
+        return [{
+          supplementName: `${disease.diseaseName} 관련 영양제`,
+          description: `${disease.diseaseName} 증상 개선을 위한 영양제`,
+          benefits: disease.managementTips,
+          matchingSymptoms: disease.mainSymptoms
+        }];
+      }
+      return [];
+    });
 
     // 4. 이미 저장된 추천 정보가 있는지 확인
     let existingRecommendation = await db.query.supplementRecommendations.findFirst({
@@ -48,9 +69,9 @@ export async function GET(req: NextRequest) {
       try {
         const [newRecommendation] = await db.insert(supplementRecommendations)
           .values({
-            userId: userId,
+            userId,
             diagnosisId: latestDiagnosis.id,
-            supplements: diagnosisResult.supplements,
+            supplements: supplementsList
           })
           .returning();
         
@@ -76,12 +97,7 @@ export async function GET(req: NextRequest) {
 
     // 6. 응답 데이터 구성
     const responseData = {
-      supplements: diagnosisResult.supplements.map(supplement => ({
-        supplementName: supplement.supplementName,
-        description: supplement.description,
-        benefits: supplement.benefits,
-        matchingSymptoms: supplement.matchingSymptoms,
-      })),
+      supplements: supplementsList,
       recommendedAt: existingRecommendation.recommendedAt?.toISOString() || new Date().toISOString(),
     };
 

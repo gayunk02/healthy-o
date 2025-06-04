@@ -39,12 +39,21 @@ interface ApiError {
   message: string;
 }
 
+// 로그인이 필요하지 않은 페이지 목록
+const publicPages = ['/question', '/result'];
+
 export function useAuth({ requireAuth = true, redirectTo = '/login' } = {}) {
   const router = useRouter();
   const { isLoggedIn, token, user, setLoggedIn, setLoggedOut } = useAuthStore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+
+  // 현재 페이지가 public 페이지인지 확인하는 함수
+  const isPublicPage = useCallback(() => {
+    const pathname = window.location.pathname;
+    return publicPages.some(page => pathname.startsWith(page));
+  }, []);
 
   // 초기 인증 상태 설정
   useEffect(() => {
@@ -58,7 +67,7 @@ export function useAuth({ requireAuth = true, redirectTo = '/login' } = {}) {
           setLoggedOut();
           setInitialized(true);
           setLoading(false);
-          if (requireAuth) {
+          if (requireAuth && !isPublicPage()) {
             router.push(redirectTo);
           }
           return;
@@ -73,7 +82,7 @@ export function useAuth({ requireAuth = true, redirectTo = '/login' } = {}) {
           setLoggedOut();
           setInitialized(true);
           setLoading(false);
-          if (requireAuth) {
+          if (requireAuth && !isPublicPage()) {
             router.push(redirectTo);
           }
           return;
@@ -116,7 +125,7 @@ export function useAuth({ requireAuth = true, redirectTo = '/login' } = {}) {
           localStorage.removeItem('user');
           setLoggedOut();
           
-          if (requireAuth) {
+          if (requireAuth && !isPublicPage()) {
             const errorMessage = error instanceof Error ? error.message : '인증에 실패했습니다';
             if (errorMessage === 'Token expired') {
               toast({

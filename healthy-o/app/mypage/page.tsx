@@ -75,13 +75,11 @@ const mockHealthRecords: DiagnosisRecord[] = [
     id: 1,
     diagnosisId: 1,
     createdAt: "2024-03-15",
-    // 기본 정보
     height: "170",
     weight: "65",
     bmi: "22.5",
     chronicDiseases: "없음",
     medications: "없음",
-    // 생활습관 정보
     smoking: "NON",
     drinking: "NON",
     exercise: "NONE",
@@ -90,10 +88,8 @@ const mockHealthRecords: DiagnosisRecord[] = [
     workStyle: "DESK",
     diet: "BALANCED",
     mealRegularity: "REGULAR",
-    // 증상 정보
     symptoms: "두통, 어지러움",
     symptomStartDate: "2024-03-14",
-    // 진단 결과
     diseases: [
       {
         diseaseName: "긴장성 두통",
@@ -121,32 +117,17 @@ const mockHealthRecords: DiagnosisRecord[] = [
       }
     ],
     recommendedDepartments: ["신경과", "내과"],
-    supplements: [
-      {
-        supplementName: "비타민 B 복합체",
-        description: "신경 건강과 에너지 대사를 돕는 영양제",
-        benefits: ["두통 완화", "신경 안정", "에너지 대사 개선"],
-        matchingSymptoms: ["두통", "피로감", "스트레스"]
-      },
-      {
-        supplementName: "철분제",
-        description: "빈혈 예방과 개선을 위한 영양제",
-        benefits: ["빈혈 개선", "피로 회복", "면역력 강화"],
-        matchingSymptoms: ["어지러움", "피로감", "창백함"]
-      }
-    ]
+    supplements: ["비타민 B 복합체", "철분제"]
   },
   {
     id: 2,
     diagnosisId: 2,
     createdAt: "2024-03-10",
-    // 기본 정보
     height: "170",
     weight: "65",
     bmi: "22.5",
     chronicDiseases: "없음",
     medications: "없음",
-    // 생활습관 정보
     smoking: "NON",
     drinking: "NON",
     exercise: "NONE",
@@ -155,10 +136,8 @@ const mockHealthRecords: DiagnosisRecord[] = [
     workStyle: "DESK",
     diet: "BALANCED",
     mealRegularity: "REGULAR",
-    // 증상 정보
     symptoms: "기침, 가래",
     symptomStartDate: "2024-03-09",
-    // 진단 결과
     diseases: [
       {
         diseaseName: "감기",
@@ -174,20 +153,7 @@ const mockHealthRecords: DiagnosisRecord[] = [
       }
     ],
     recommendedDepartments: ["이비인후과", "가정의학과"],
-    supplements: [
-      {
-        supplementName: "비타민 C",
-        description: "면역력 강화와 감기 증상 완화를 돕는 영양제",
-        benefits: ["면역력 강화", "항산화 작용", "피로 회복"],
-        matchingSymptoms: ["감기 증상", "피로감"]
-      },
-      {
-        supplementName: "아연",
-        description: "면역 기능 향상을 돕는 미네랄",
-        benefits: ["면역 기능 향상", "감기 예방", "상처 치유 촉진"],
-        matchingSymptoms: ["감기 증상", "면역력 저하"]
-      }
-    ]
+    supplements: ["비타민 C", "아연"]
   }
 ];
 
@@ -205,7 +171,9 @@ const mockHospitalRecommendations: HospitalRecord[] = [
         availableTime: "09:00-18:00",
         reservation: "예약 가능",
         address: "서울특별시 종로구 대학로 101",
-        contact: "02-2072-2114"
+        contact: "02-2072-2114",
+        hospitalUrl: "https://www.snuh.org",
+        phoneNumber: "02-2072-2114"
       },
       {
         name: "세브란스병원",
@@ -215,10 +183,32 @@ const mockHospitalRecommendations: HospitalRecord[] = [
         availableTime: "09:00-17:30",
         reservation: "예약 가능",
         address: "서울특별시 서대문구 연세로 50-1",
-        contact: "02-2228-0114"
+        contact: "02-2228-0114",
+        hospitalUrl: "https://sev.iseverance.com",
+        phoneNumber: "02-2228-0114"
       }
     ],
-    reason: "두통 및 어지러움 증상에 대한 전문적인 진단 필요"
+    reason: "두통 및 어지러움 증상에 대한 전문적인 진단 필요",
+    healthRecordId: 1,
+    diagnosisId: 1,
+    diagnosisResults: [
+      {
+        id: 1,
+        diseaseName: "긴장성 두통",
+        description: "스트레스나 피로로 인한 근육 긴장이 원인일 수 있음",
+        riskLevel: "high",
+        createdAt: "2024-03-15",
+        symptoms: "두통, 어지러움"
+      },
+      {
+        id: 2,
+        diseaseName: "빈혈",
+        description: "철분 부족으로 인한 증상일 수 있음",
+        riskLevel: "medium",
+        createdAt: "2024-03-15",
+        symptoms: "두통, 어지러움"
+      }
+    ]
   },
   {
     id: 2,
@@ -233,7 +223,9 @@ const mockHospitalRecommendations: HospitalRecord[] = [
         availableTime: "09:00-17:00",
         reservation: "예약 가능",
         address: "서울특별시 송파구 올림픽로43길 88",
-        contact: "02-3010-3114"
+        contact: "02-3010-3114",
+        hospitalUrl: "http://www.amc.seoul.kr",
+        phoneNumber: "02-3010-3114"
       },
       {
         name: "삼성서울병원",
@@ -243,10 +235,24 @@ const mockHospitalRecommendations: HospitalRecord[] = [
         availableTime: "09:00-17:30",
         reservation: "예약 가능",
         address: "서울특별시 강남구 일원로 81",
-        contact: "02-3410-2114"
+        contact: "02-3410-2114",
+        hospitalUrl: "https://www.samsunghospital.com",
+        phoneNumber: "02-3410-2114"
       }
     ],
-    reason: "지속적인 기침과 가래 증상에 대한 정확한 진단 필요"
+    reason: "지속적인 기침과 가래 증상에 대한 정확한 진단 필요",
+    healthRecordId: 2,
+    diagnosisId: 2,
+    diagnosisResults: [
+      {
+        id: 3,
+        diseaseName: "감기",
+        description: "바이러스성 상기도 감염으로 인한 증상",
+        riskLevel: "low",
+        createdAt: "2024-03-10",
+        symptoms: "기침, 가래"
+      }
+    ]
   }
 ];
 
@@ -320,6 +326,8 @@ export default function MyPage() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<IUserProfileData>(mockUserData);
   const [diagnosisRecords, setDiagnosisRecords] = useState<DiagnosisRecord[]>([]);
+  const [hospitalRecords, setHospitalRecords] = useState<HospitalRecord[]>([]);
+  const [supplementRecords, setSupplementRecords] = useState<SupplementRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("info");
   const [selectedRecord, setSelectedRecord] = useState<DiagnosisRecord | null>(null);
@@ -585,6 +593,114 @@ export default function MyPage() {
     }
   }, [initialized, isLoggedIn, toast, router]);
 
+  // 병원 추천 기록 로드
+  useEffect(() => {
+    const fetchHospitalRecords = async () => {
+      try {
+        if (!initialized || !isLoggedIn) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('인증 토큰이 없습니다.');
+        }
+
+        const response = await fetch('/api/mypage/hospital-records', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
+            router.push('/login');
+            return;
+          }
+          throw new Error('병원 추천 기록을 불러오는데 실패했습니다.');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message);
+        }
+
+        setHospitalRecords(result.data);
+      } catch (error) {
+        console.error('Error fetching hospital records:', error);
+        toast({
+          title: "오류",
+          description: error instanceof Error ? error.message : "병원 추천 기록을 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (initialized && isLoggedIn) {
+      fetchHospitalRecords();
+    }
+  }, [initialized, isLoggedIn, router, toast]);
+
+  // 영양제 추천 기록 로드
+  useEffect(() => {
+    const fetchSupplementRecords = async () => {
+      try {
+        if (!initialized || !isLoggedIn) return;
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('인증 토큰이 없습니다.');
+        }
+
+        const response = await fetch('/api/mypage/supplement-records', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
+            router.push('/login');
+            return;
+          }
+          throw new Error('영양제 추천 기록을 불러오는데 실패했습니다.');
+        }
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.message);
+        }
+
+        setSupplementRecords(result.data);
+      } catch (error) {
+        console.error('Error fetching supplement records:', error);
+        toast({
+          title: "오류",
+          description: error instanceof Error ? error.message : "영양제 추천 기록을 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (initialized && isLoggedIn) {
+      fetchSupplementRecords();
+    }
+  }, [initialized, isLoggedIn, router, toast]);
+
   // 프로필 수정 핸들러
   const handleProfileUpdate = async (updatedData: Partial<IUserProfileData>) => {
     try {
@@ -744,12 +860,12 @@ export default function MyPage() {
     .filter(record => filterBySearch(record, 'health'))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const filteredHospitalRecs = mockHospitalRecommendations
+  const filteredHospitalRecs = hospitalRecords
     .filter(rec => filterByDate(rec.createdAt))
     .filter(rec => filterBySearch(rec, 'hospital'))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const filteredSupplementRecs = mockSupplementRecommendations
+  const filteredSupplementRecs = supplementRecords
     .filter(rec => filterByDate(rec.createdAt))
     .filter(rec => filterBySearch(rec, 'supplement'))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -984,8 +1100,10 @@ export default function MyPage() {
 
               <HospitalRecordCard
                 records={filteredHospitalRecs}
-                onRecordClick={(record: HospitalRecord) => {
-                  setSelectedHospitalRec(record);
+                onRecordClick={(record) => {
+                  const hospitalRecord = mockHospitalRecommendations.find(hr => hr.id === record.id);
+                  if (!hospitalRecord) return;
+                  setSelectedHospitalRec(hospitalRecord);
                   setShowHospitalDetail(true);
                 }}
                 dateRange={dateRange}
@@ -1013,9 +1131,17 @@ export default function MyPage() {
 
               <HospitalDetailModal
                 record={selectedHospitalRec}
-                healthRecord={selectedHospitalRec ? mockHealthRecords.find(r => r.createdAt === selectedHospitalRec.createdAt) : null}
+                healthRecord={null}
                 open={showHospitalDetail}
                 onOpenChange={setShowHospitalDetail}
+                diagnosisResults={selectedHospitalRec?.diagnosisResults || []}
+                userData={{
+                  name: userData.name || '',
+                  birthDate: userData.birthDate || '',
+                  gender: userData.gender || '',
+                }}
+                setSelectedRecord={setSelectedRecord}
+                setShowDetail={setShowDetail}
               />
 
               <SupplementDetailModal

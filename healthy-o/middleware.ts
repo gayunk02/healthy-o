@@ -6,17 +6,20 @@ import { getTokenFromCookies, shouldRefreshToken, refreshToken, setTokenCookie }
 // 로그인이 필요한 페이지 목록
 const protectedPages = ['/mypage'];
 
+// 인증이 필요하지 않은 API 경로
+const publicApiPaths = [
+  '/api/auth/login',
+  '/api/auth/signup',
+  '/api/auth/check',
+  '/api/question/submit',  // question API는 비로그인도 허용
+  '/api/health/diagnosis', // health diagnosis API도 비로그인 허용
+];
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // API 요청 처리
   if (pathname.startsWith('/api/')) {
-    // 인증이 필요하지 않은 API 경로
-    const publicApiPaths = [
-      '/api/auth/login',
-      '/api/auth/signup',
-      '/api/auth/check',
-    ];
     if (publicApiPaths.includes(pathname)) {
       return NextResponse.next();
     }
@@ -73,5 +76,5 @@ export async function middleware(request: NextRequest) {
 
 // 미들웨어를 적용할 경로 설정
 export const config = {
-  matcher: ['/login', '/signup', '/mypage', '/question/:path*', '/api/:path*']
+  matcher: ['/login', '/signup', '/mypage', '/api/:path*']
 }; 

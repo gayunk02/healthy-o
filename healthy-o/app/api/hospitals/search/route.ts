@@ -158,9 +158,7 @@ export async function POST(request: Request) {
         .select({
           diagnosisResultId: diagnosisResults.id,
           diagnosisId: diagnosisResults.diagnosisId,
-          recommendedDepartments: diagnosisResults.recommendedDepartments,
           diseases: diagnosisResults.diseases,
-          supplements: diagnosisResults.supplements,
           createdAt: diagnosisResults.createdAt,
           submittedAt: diagnoses.submittedAt
         })
@@ -183,12 +181,19 @@ export async function POST(request: Request) {
       // 5. 가장 최근 결과 선택
       const latestResult = userDiagnosisResults[0];
       diagnosisId = latestResult.diagnosisId;
-      recommendedDepartments = latestResult.recommendedDepartments as string[];
 
-      console.log('[Hospital Search API] Selected latest result:', {
-        diagnosisId,
-        recommendedDepartments,
-        createdAt: latestResult.createdAt
+      // 질병 정보에서 추천 진료과 추출
+      recommendedDepartments = latestResult.diseases.map(disease => {
+        switch (disease.diseaseName.toLowerCase()) {
+          case '긴장성 두통':
+            return '신경과';
+          case '빈혈':
+            return '내과';
+          case '감기':
+            return '이비인후과';
+          default:
+            return '가정의학과';
+        }
       });
 
       if (!recommendedDepartments || !Array.isArray(recommendedDepartments) || recommendedDepartments.length === 0) {

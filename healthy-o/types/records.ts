@@ -22,28 +22,30 @@ export interface DiagnosisRecord {
   id: number;
   diagnosisId: number;
   createdAt: string;
-  // 기본 정보
   height: string;
   weight: string;
   bmi: string;
-  chronicDiseases: string | null;
-  medications: string | null;
-  // 생활습관 정보
-  smoking: string;
-  drinking: string;
-  exercise: string;
+  chronicDiseases: string;
+  medications: string;
+  smoking: "NON" | "LIGHT" | "HEAVY";
+  drinking: "NON" | "LIGHT" | "HEAVY";
+  exercise: "NONE" | "LIGHT" | "MODERATE" | "HEAVY";
   sleep: string;
-  occupation: string | null;
+  occupation: string;
   workStyle: string;
   diet: string;
   mealRegularity: string;
-  // 증상 정보
   symptoms: string;
   symptomStartDate: string;
-  // 진단 결과
-  diseases: Disease[];
+  diseases: Array<{
+    diseaseName: string;
+    description: string;
+    riskLevel: "high" | "medium" | "low";
+    mainSymptoms: string[];
+    managementTips: string[];
+  }>;
   recommendedDepartments: string[];
-  supplements: SupplementInfo[];
+  supplements: string[];
 }
 
 // 병원 정보 타입
@@ -63,8 +65,29 @@ export interface HospitalRecord {
   id: number;
   createdAt: string;
   recommendedDepartment: string;
-  hospitals: Hospital[];
+  hospitals: Array<{
+    name: string;
+    specialty: string;
+    distance: string;
+    rating: number;
+    availableTime: string;
+    reservation: string;
+    address: string;
+    contact: string;
+    hospitalUrl: string;
+    phoneNumber: string;
+  }>;
   reason: string;
+  healthRecordId: number;
+  diagnosisId: number;
+  diagnosisResults: Array<{
+    id: number;
+    diseaseName: string;
+    description: string;
+    riskLevel: "high" | "medium" | "low";
+    createdAt: string;
+    symptoms: string;
+  }>;
 }
 
 // 영양제 정보 타입
@@ -82,7 +105,15 @@ export interface Supplement {
 export interface SupplementRecord {
   id: number;
   createdAt: string;
-  supplements: Supplement[];
+  supplements: Array<{
+    name: string;
+    type: string;
+    dosage: string;
+    timing: string;
+    benefits: string[];
+    precautions: string[];
+    duration: string;
+  }>;
   reason: string;
   dietaryConsiderations: string[];
 }

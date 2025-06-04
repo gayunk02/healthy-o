@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
-import { Pill } from "lucide-react";
+import { Pill, ArrowRight } from "lucide-react";
 import { DateRange } from "react-day-picker";
+import { Button } from "@/components/ui/button";
+
+// 날짜 포맷 함수 추가
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월 ${String(date.getDate()).padStart(2, '0')}일`;
+};
 
 interface Supplement {
   name: string;
@@ -18,15 +25,18 @@ interface SupplementRecord {
   supplements: Supplement[];
   reason: string;
   dietaryConsiderations: string[];
+  healthRecordId?: number;
+  condition?: string;
 }
 
 interface SupplementRecordCardProps {
   records: SupplementRecord[];
   onRecordClick: (record: SupplementRecord) => void;
+  onHealthRecordClick?: (healthRecordId: number) => void;
   dateRange?: DateRange;
 }
 
-export function SupplementRecordCard({ records, onRecordClick, dateRange }: SupplementRecordCardProps) {
+export function SupplementRecordCard({ records, onRecordClick, onHealthRecordClick, dateRange }: SupplementRecordCardProps) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
       <div className="flex items-center gap-3">
@@ -40,8 +50,7 @@ export function SupplementRecordCard({ records, onRecordClick, dateRange }: Supp
           records.map((record, index) => (
             <div
               key={record.id}
-              className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => onRecordClick(record)}
+              className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -50,10 +59,12 @@ export function SupplementRecordCard({ records, onRecordClick, dateRange }: Supp
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-gray-900">{record.createdAt}</p>
-                      <Badge className="bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20">
-                        {record.reason}
-                      </Badge>
+                      <p className="text-sm font-semibold text-gray-900">{formatDate(record.createdAt)}</p>
+                      {record.condition && (
+                        <Badge className="bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20">
+                          {record.condition}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-gray-600">{record.supplements[0].name}</p>
@@ -63,14 +74,39 @@ export function SupplementRecordCard({ records, onRecordClick, dateRange }: Supp
                     </div>
                   </div>
                 </div>
-                <div className="text-[#0B4619]">→</div>
+                <div className="flex items-center gap-2">
+                  {record.healthRecordId && onHealthRecordClick && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[#0B4619] hover:text-[#0B4619] hover:bg-[#0B4619]/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (record.healthRecordId) {
+                          onHealthRecordClick(record.healthRecordId);
+                        }
+                      }}
+                    >
+                      <span className="text-sm">건강 검색 기록</span>
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-[#0B4619]"
+                    onClick={() => onRecordClick(record)}
+                  >
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           ))
         ) : (
           <div className="text-center py-8 text-gray-500 text-sm">
             {dateRange?.from ? 
-              `${dateRange.from.toLocaleDateString()} - ${dateRange.to ? dateRange.to.toLocaleDateString() : '현재'} 기간에 건강 검색 기록이 없습니다.` : 
+              `${formatDate(dateRange.from.toISOString())} - ${dateRange.to ? formatDate(dateRange.to.toISOString()) : '현재'} 기간에 건강 검색 기록이 없습니다.` : 
               '영양제 추천 기록이 없습니다.'}
           </div>
         )}
