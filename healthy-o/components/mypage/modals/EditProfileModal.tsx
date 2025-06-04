@@ -322,7 +322,7 @@ export function EditProfileModal({ open, onOpenChange, userData, onSubmit }: Edi
                 <div className="grid grid-cols-3 gap-2">
                   <Select value={birthDate.year} onValueChange={(value) => handleBirthDateChange('year', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="연도" />
+                      <SelectValue placeholder="출생 연도" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -338,7 +338,7 @@ export function EditProfileModal({ open, onOpenChange, userData, onSubmit }: Edi
 
                   <Select value={birthDate.month} onValueChange={(value) => handleBirthDateChange('month', value)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="월" />
+                      <SelectValue placeholder="월 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -352,13 +352,13 @@ export function EditProfileModal({ open, onOpenChange, userData, onSubmit }: Edi
                     </SelectContent>
                   </Select>
 
-                  <Select 
+                  <Select
                     value={birthDate.day} 
                     onValueChange={(value) => handleBirthDateChange('day', value)}
                     disabled={!birthDate.year || !birthDate.month}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="일" />
+                      <SelectValue placeholder="일 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>

@@ -82,6 +82,8 @@ export const diagnoses = pgTable('diagnoses', {
   workStyle: text('work_style').notNull(),
   diet: text('diet').notNull(),
   mealRegularity: text('meal_regularity').notNull(),
+  symptoms: text('symptoms').notNull(),
+  symptomStartDate: text('symptom_start_date').notNull(),
   submittedAt: timestamp('submitted_at').defaultNow().notNull(),
 });
 

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(token, secret);
       
-      if (!payload.sub || typeof payload.sub !== 'string') {
+      if (!payload.sub) {
         console.error('[Auth Check API] Invalid token payload:', payload);
         return ApiResponse.unauthorized();
       }

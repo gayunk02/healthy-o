@@ -3,9 +3,9 @@ import { db } from '@/db';
 import { diagnoses } from '@/db/schema';
 import { verifyJwtToken } from '@/lib/auth';
 import { z } from 'zod';
-import { successResponse, errorResponse } from '@/utils/api-response';
+import { ApiResponse } from '@/utils/api-response';
 import { NextResponse } from 'next/server';
-import { verify } from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 // 입력값 검증을 위한 Zod 스키마
 const diagnosisSchema = z.object({
@@ -28,6 +28,10 @@ const diagnosisSchema = z.object({
   workStyle: z.enum(["SITTING", "STANDING", "ACTIVE", "MIXED"]),
   diet: z.enum(["BALANCED", "MEAT", "FISH", "VEGGIE", "INSTANT"]),
   mealRegularity: z.enum(["REGULAR", "MOSTLY", "IRREGULAR", "VERY_IRREGULAR"]),
+  
+  // 증상 정보 (단순 텍스트로 변경)
+  mainSymptoms: z.string().min(1, "증상을 입력해주세요."),
+  symptomDuration: z.string().min(1, "증상 발생 시기를 입력해주세요.")
 });
 
 export async function POST(request: Request) {
@@ -41,8 +45,18 @@ export async function POST(request: Request) {
     if (authHeader?.startsWith('Bearer ')) {
       try {
         const token = authHeader.split(' ')[1];
-        const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as { id: number };
-        userId = decoded.id;
+        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+        const { payload } = await jwtVerify(token, secret);
+        
+        if (!payload.id || typeof payload.id !== 'string') {
+          console.error('[Question Submit API] Invalid token payload:', payload);
+          throw new Error('유효하지 않은 토큰입니다.');
+        }
+        
+        userId = Number(payload.id);
+        if (userId <= 0) {
+          throw new Error('유효하지 않은 사용자 ID입니다.');
+        }
       } catch (err) {
         console.error('[Question Submit API] Token verification failed:', err);
       }
@@ -70,6 +84,8 @@ export async function POST(request: Request) {
           workStyle: String(data.workStyle),
           diet: String(data.diet),
           mealRegularity: String(data.mealRegularity),
+          symptoms: String(data.mainSymptoms),
+          symptomStartDate: String(data.symptomDuration)
         };
 
         const newDiagnosis = await db.insert(diagnoses).values(diagnosisData).returning();

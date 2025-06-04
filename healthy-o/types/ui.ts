@@ -87,12 +87,12 @@ export interface ISupplementUI {
 }
 
 export interface ILifestyle {
-  exercise: "NONE" | "LIGHT" | "MODERATE" | "HEAVY";
-  sleep: "LESS_5" | "5_TO_6" | "6_TO_7" | "7_TO_8" | "MORE_8";
-  occupation: string;
-  workStyle: "SITTING" | "STANDING" | "ACTIVE" | "MIXED";
-  diet: "BALANCED" | "MEAT" | "FISH" | "VEGGIE" | "INSTANT";
-  mealRegularity: "REGULAR" | "MOSTLY" | "IRREGULAR" | "VERY_IRREGULAR";
+  exercise?: "NONE" | "LIGHT" | "MODERATE" | "HEAVY";
+  sleep?: "LESS_5" | "5_TO_6" | "6_TO_7" | "7_TO_8" | "MORE_8";
+  occupation?: string;
+  workStyle?: "SITTING" | "STANDING" | "ACTIVE" | "MIXED";
+  diet?: "BALANCED" | "MEAT" | "FISH" | "VEGGIE" | "INSTANT";
+  mealRegularity?: "REGULAR" | "MOSTLY" | "IRREGULAR" | "VERY_IRREGULAR";
 }
 
 // 마이페이지에서 사용하는 사용자 데이터 인터페이스

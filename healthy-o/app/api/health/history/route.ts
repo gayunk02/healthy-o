@@ -1,39 +1,47 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { diagnosisRecords } from '@/db/schema';
+import { diagnoses } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { verifyJwt } from '@/utils';
+import { jwtVerify } from 'jose';
 
 export async function GET(request: Request) {
   try {
-    const token = request.headers.get('Authorization')?.split(' ')[1];
-    
-    if (!token) {
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json(
         { message: '인증이 필요합니다.' },
         { status: 401 }
       );
     }
 
-    const payload = verifyJwt(token);
-    if (!payload) {
+    const token = authHeader.split(' ')[1];
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    
+    let userId: number;
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (!payload.id || typeof payload.id !== 'string') {
+        return NextResponse.json(
+          { message: '유효하지 않은 인증 토큰입니다.' },
+          { status: 401 }
+        );
+      }
+      userId = Number(payload.id);
+    } catch (error) {
       return NextResponse.json(
-        { message: '유효하지 않은 토큰입니다.' },
+        { message: '유효하지 않은 인증 토큰입니다.' },
         { status: 401 }
       );
     }
 
-    const userId = payload.id;
-
-    const records = await db.query.diagnosisRecords.findMany({
-      where: eq(diagnosisRecords.userId, userId),
-      orderBy: desc(diagnosisRecords.createdAt),
+    const records = await db.query.diagnoses.findMany({
+      where: eq(diagnoses.userId, userId),
+      orderBy: desc(diagnoses.submittedAt),
       columns: {
         id: true,
-        symptoms: true,
-        diagnosisResult: true,
-        departments: true,
-        createdAt: true,
+        chronicDiseases: true,
+        medications: true,
+        submittedAt: true,
       },
     });
 

@@ -22,13 +22,13 @@ export async function GET(request: Request) {
     let userId: number;
     try {
       const { payload } = await jwtVerify(token, secret);
-      if (!payload.id || typeof payload.id !== 'number') {
+      if (!payload.id || typeof payload.id !== 'string') {
         return NextResponse.json(
           { message: '유효하지 않은 인증 토큰입니다.' },
           { status: 401 }
         );
       }
-      userId = payload.id;
+      userId = Number(payload.id);
     } catch (error) {
       return NextResponse.json(
         { message: '유효하지 않은 인증 토큰입니다.' },

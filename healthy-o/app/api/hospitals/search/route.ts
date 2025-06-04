@@ -45,7 +45,9 @@ export async function POST(request: Request) {
     try {
       console.log('[Hospital Search API] Verifying JWT token');
       const { payload } = await jwtVerify(token, secret);
-      if (!payload.id || typeof payload.id !== 'number') {
+      console.log('[Hospital Search API] Token payload:', payload);
+      
+      if (!payload.id || typeof payload.id !== 'string') {
         console.error('[Hospital Search API] Invalid token payload:', payload);
         return NextResponse.json(
           { message: '유효하지 않은 인증 토큰입니다.' },
@@ -53,7 +55,7 @@ export async function POST(request: Request) {
         );
       }
       
-      userId = payload.id;
+      userId = Number(payload.id);
       console.log('[Hospital Search API] User ID from token:', userId);
       
       if (userId <= 0) {
@@ -243,8 +245,19 @@ export async function POST(request: Request) {
         );
       }
 
-      // 상위 3개 병원만 선택
+      // 상위 3개 병원만 선택하고 상세 정보 가져오기
       const topHospitals = hospitals.slice(0, 3);
+      
+      // 각 병원의 상세 정보 가져오기
+      const detailedHospitals = await Promise.all(
+        topHospitals.map(async (hospital) => {
+          return {
+            ...hospital,
+            operating_hours: "09:00~18:00",
+            phone: hospital.phone || "전화번호 정보 없음"
+          };
+        })
+      );
 
       // 병원 추천 결과를 DB에 저장
       try {
@@ -262,16 +275,17 @@ export async function POST(request: Request) {
           await db.insert(hospitalRecommendations).values({
             userId,
             diagnosisId,
-            hospitals: topHospitals.map(hospital => ({
+            hospitals: detailedHospitals.map(hospital => ({
               hospitalName: hospital.place_name,
               placeId: hospital.place_id,
               placeUrl: hospital.place_url,
               address: hospital.address_name,
-              phone: hospital.phone,
+              phone: hospital.phone || "전화번호 정보 없음",
               category: hospital.category_name,
               latitude: parseFloat(hospital.y),
               longitude: parseFloat(hospital.x),
-              department
+              department,
+              operatingHours: "09:00~18:00"
             }))
           });
           console.log('[Hospital Search API] New hospital recommendations saved');
@@ -280,23 +294,23 @@ export async function POST(request: Request) {
         }
       } catch (saveError) {
         console.error('[Hospital Search API] Failed to save recommendations:', saveError);
-        // 저장 실패는 사용자 응답에 영향을 주지 않도록 함
       }
 
       return NextResponse.json({
         success: true,
         message: '병원 검색 완료',
-        data: topHospitals.map(hospital => ({
+        data: detailedHospitals.map(hospital => ({
           hospitalName: hospital.place_name,
           placeId: hospital.place_id,
           address: hospital.address_name,
-          phoneNumber: hospital.phone,
-          distance: parseFloat(hospital.distance),
+          phoneNumber: hospital.phone || "전화번호 정보 없음",
+          distance: hospital.distance, // 미터 단위로 전달
           kakaoMapUrl: hospital.place_url,
           latitude: parseFloat(hospital.y),
           longitude: parseFloat(hospital.x),
           placeUrl: hospital.place_url,
-          department
+          department,
+          operatingHours: "09:00~18:00"
         }))
       });
 

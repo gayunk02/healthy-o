@@ -40,12 +40,14 @@ export async function POST(req: Request) {
     // JWT 토큰 생성 (24시간 유효)
     const token = await new SignJWT({
       sub: user.id.toString(),  // sub 클레임에는 사용자 ID만 포함
+      id: user.id.toString(),   // 기존 코드와의 호환성을 위해 id도 포함
       name: user.name,          // 사용자 이름
       email: user.email,        // 사용자 이메일
     })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setExpirationTime('24h')
+      .setProtectedHeader({ alg: 'HS256', typ: 'JWT' })
       .setIssuedAt()
+      .setExpirationTime('24h')
+      .setNotBefore(new Date()) // 토큰이 즉시 유효하도록 설정
       .sign(new TextEncoder().encode(process.env.JWT_SECRET));
 
     // 응답 데이터 준비
@@ -57,13 +59,15 @@ export async function POST(req: Request) {
       redirectTo: '/',
     };
 
-    // 쿠키 설정
+    // 쿠키 설정 (토큰과 동일한 만료 시간 설정)
     const response = ApiResponse.success('로그인에 성공했습니다.', userData);
+    const cookieMaxAge = 60 * 60 * 24; // 24시간 (초 단위)
     response.cookies.set('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24시간
+      maxAge: cookieMaxAge,
+      path: '/',
     });
 
     return response;

@@ -18,8 +18,11 @@ interface LifestyleInfoCardProps {
 }
 
 export function LifestyleInfoCard({ userData, onEdit }: LifestyleInfoCardProps) {
-  const getLifestyleValue = (key: keyof ILifestyle): string => {
-    return userData.lifestyle[key];
+  const getLifestyleValue = (key: keyof ILifestyle): string | undefined => {
+    if (!userData.lifestyle) return undefined;
+    const value = userData.lifestyle[key];
+    if (!value || value.trim() === '') return undefined;
+    return value;
   };
 
   const getExerciseText = (value: string | undefined): string => {

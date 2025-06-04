@@ -25,8 +25,8 @@ export function EditHealthModal({ open, onOpenChange, userData, onSubmit }: Edit
     weight: "",
     medicalHistory: "",
     medications: "",
-    smoking: "NON",
-    drinking: "NON"
+    smoking: undefined,
+    drinking: undefined
   });
 
   useEffect(() => {
@@ -36,8 +36,8 @@ export function EditHealthModal({ open, onOpenChange, userData, onSubmit }: Edit
         weight: userData.weight || "",
         medicalHistory: userData.medicalHistory || "",
         medications: userData.medications || "",
-        smoking: userData.smoking || "NON",
-        drinking: userData.drinking || "NON"
+        smoking: userData.smoking || undefined,
+        drinking: userData.drinking || undefined
       });
     }
   }, [userData]);
@@ -75,8 +75,8 @@ export function EditHealthModal({ open, onOpenChange, userData, onSubmit }: Edit
         weight: "",
         medicalHistory: "",
         medications: "",
-        smoking: "NON",
-        drinking: "NON"
+        smoking: undefined,
+        drinking: undefined
       });
     }
     onOpenChange(newOpen);

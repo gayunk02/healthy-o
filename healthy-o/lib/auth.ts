@@ -80,22 +80,36 @@ export function removeTokenCookie(response: NextResponse) {
 }
 
 export async function verifyAuth(req: NextRequest) {
-  const token = req.cookies.get('token')?.value;
-
-  if (!token) {
-    return { userId: null };
+  // 먼저 Authorization 헤더 체크
+  const authHeader = req.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const verified = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
+      const payload = verified.payload as unknown as CustomJWTPayload;
+      return {
+        userId: payload.id,
+      };
+    } catch (error) {
+      console.error('Token verification failed:', error);
+    }
   }
 
-  try {
-    const verified = await jwtVerify(token, new TextEncoder().encode(SECRET_KEY));
-    const payload = verified.payload as unknown as CustomJWTPayload;
-    return {
-      userId: payload.id,
-    };
-  } catch (error) {
-    console.error('Token verification failed:', error);
-    return { userId: null };
+  // Authorization 헤더가 없거나 실패한 경우 쿠키 체크
+  const cookieToken = req.cookies.get('token')?.value;
+  if (cookieToken) {
+    try {
+      const verified = await jwtVerify(cookieToken, new TextEncoder().encode(SECRET_KEY));
+      const payload = verified.payload as unknown as CustomJWTPayload;
+      return {
+        userId: payload.id,
+      };
+    } catch (error) {
+      console.error('Token verification failed:', error);
+    }
   }
+
+  return { userId: null };
 }
 
 export async function verifyJwtToken(token: string): Promise<CustomJWTPayload | null> {

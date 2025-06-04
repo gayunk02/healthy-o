@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { UserPlus, FileText, ShieldCheck, ScrollText, Lock, Info, AlertCircle, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { UserPlus, FileText, ShieldCheck, ScrollText, Lock, Info, AlertCircle, FileSpreadsheet, AlertTriangle, Bot, Stethoscope } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
 export default function SignUpPage() {
@@ -606,7 +606,130 @@ export default function SignUpPage() {
                             </div>
                           </DialogTitle>
                           <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
-                            {/* ... (기존 약관 내용 유지) ... */}
+                            <div className="space-y-8 text-gray-700">
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <Bot className="w-5 h-5" />
+                                  서비스 정의
+                                </h3>
+                                <p className="leading-relaxed text-[15px]">
+                                  본 서비스는 OpenAI의 생성형 인공지능(chatGPT) 기술을 기반으로,
+                                  사용자가 입력한 데이터를 바탕으로 <span className="font-semibold text-[#0B4619]">참고용 검색 결과를 제공하는 AI 통합 정보 검색 도구</span>입니다.
+                                </p>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <UserPlus className="w-5 h-5" />
+                                  회원가입 및 계정
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-2">
+                                  <p>
+                                    회원가입은 만 14세 이상의 개인 누구나 신청할 수 있으며, 
+                                    <span className="font-semibold text-[#0B4619]">이메일 주소를 통한 본인 인증 절차</span>를 거쳐 완료됩니다.
+                                  </p>
+                                  <p>
+                                    회원은 <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">하나의 이메일 주소로 하나의 계정만 생성할 수 있으며</span>, 
+                                    타인의 정보를 도용하거나 허위 정보를 등록할 경우 서비스 이용이 제한될 수 있습니다.
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <Stethoscope className="w-5 h-5" />
+                                  의료 서비스 관련 고지
+                                </h3>
+                                <p className="leading-relaxed text-[15px] space-y-2">
+                                  본 서비스는 <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">의료법상 의료기관이 아니며, 또한 의료인(의사, 약사, 간호사 등) 및 의료 면허를 가진
+                                  전문가에 의해 운영되지 않습니다.</span> 따라서 본 서비스가 제공하는 정보는 <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">의학적 진단, 치료, 예방, 처방을 위한 
+                                  조언이나 의료행위에 해당하지 않습니다.</span>
+                                </p>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <AlertCircle className="w-5 h-5" />
+                                  AI 정보 제공의 한계
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    AI가 제시하는 정보는 일반적인 지식과 인공지능의 학습 결과를 기반으로 자동 생성된 것이며,
+                                    <span className="font-semibold text-[#0B4619]">개별 사용자에 맞춘 정확한 의학적 판단을 제공할 수 없습니다.</span>
+                                  </p>
+                                  <p>
+                                    본 서비스는 AI 기술의 한계로 인해 <span className="font-semibold text-[#0B4619]">부정확하거나 오해의 소지가 있는 정보가 포함될 수 있습니다.</span>
+                                    제공된 정보를 기반으로 사용자가 내린 건강, 의료, 생활 등과 관련한 판단이나 행동의 결과에 대해
+                                    <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">본 서비스는 그 어떠한 법적·의료적 책임도 지지 않습니다.</span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <AlertTriangle className="w-5 h-5" />
+                                  권장사항
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    본 서비스에서 제공되는 정보는 <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">의료 서비스나 의료 전문가의 진료 및 진단을 대체할 수 없습니다.</span>
+                                    사용자는 본 서비스를 통해 제공되는 정보를 <span className="font-semibold text-[#0B4619]">단순 참고 자료로만 활용</span>해야 하며, 건강상 우려가 있을 경우
+                                    <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">반드시 자격 있는 의료 전문가와 상담하거나 의료기관을 직접 방문하여 진료를 받으시기 바랍니다.</span>
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <ShieldCheck className="w-5 h-5" />
+                                  회원의 의무
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-2">
+                                  <p>회원은 다음과 같은 행위를 해서는 안 됩니다:</p>
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    <li>타인의 개인정보를 도용하거나 허위정보를 등록하는 행위</li>
+                                    <li>서비스를 이용하여 법령과 본 약관이 금지하는 행위를 하는 경우</li>
+                                    <li>다른 회원의 개인정보를 무단으로 수집, 저장, 공개하는 행위</li>
+                                    <li>서비스의 안정적 운영을 방해하는 행위</li>
+                                    <li>회사의 지식재산권 또는 제3자의 지식재산권을 침해하는 행위</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <Lock className="w-5 h-5" />
+                                  서비스 제한 및 계정 정지
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    회사는 <span className="font-semibold text-[#0B4619]">회원이 본 약관의 의무를 위반하거나 서비스의 정상적인 운영을 방해한 경우</span>, 
+                                    경고, 일시정지, 영구이용정지 등으로 서비스 이용을 단계적으로 제한할 수 있습니다.
+                                  </p>
+                                  <p>
+                                    <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">영구이용정지 시 회원의 개인정보는 즉시 파기</span>되며, 
+                                    해당 계정으로는 재가입이 불가능할 수 있습니다.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <ScrollText className="w-5 h-5" />
+                                  약관 변경
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    회사는 필요한 경우 약관을 변경할 수 있으며, 변경된 약관은 서비스 내 공지사항을 통해 공지합니다.
+                                    회원은 변경된 약관에 동의하지 않을 경우 서비스 이용을 중단하고 탈퇴할 수 있습니다.
+                                  </p>
+                                  <p>
+                                    <span className="font-semibold text-[#0B4619]">변경된 약관의 효력 발생일 이후에도 서비스를 계속 이용하는 경우 
+                                    약관 변경에 동의한 것으로 간주</span>됩니다.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </DialogDescription>
                         </DialogHeader>
                       </DialogContent>
@@ -634,7 +757,70 @@ export default function SignUpPage() {
                             </div>
                           </DialogTitle>
                           <DialogDescription className="max-h-[500px] overflow-y-auto mt-4">
-                            {/* ... (기존 개인정보 처리방침 내용 유지) ... */}
+                            <div className="space-y-8 text-gray-700">
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <FileText className="w-5 h-5" />
+                                  수집하는 개인정보 항목
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-2">
+                                  <p>회사는 회원가입 및 서비스 이용을 위해 다음의 개인정보를 수집합니다:</p>
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    <li><span className="font-semibold text-[#0B4619]">필수항목:</span> 이메일 주소, 비밀번호, 이름, 생년월일, 성별, 휴대전화번호</li>
+                                    <li><span className="font-semibold text-[#0B4619]">선택항목:</span> 마케팅 정보 수신 동의</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <Info className="w-5 h-5" />
+                                  개인정보의 수집 및 이용목적
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-2">
+                                  <p>수집한 개인정보는 다음의 목적으로만 이용됩니다:</p>
+                                  <ul className="list-disc pl-5 space-y-1">
+                                    <li>회원 가입 및 관리</li>
+                                    <li>서비스 제공 및 운영</li>
+                                    <li>서비스 이용 기록 분석 및 통계</li>
+                                    <li>마케팅 및 광고 활용 (선택 동의 시)</li>
+                                  </ul>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <ShieldCheck className="w-5 h-5" />
+                                  개인정보의 보유 및 이용기간
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    회원의 개인정보는 <span className="font-semibold text-[#0B4619]">원칙적으로 개인정보의 수집 및 이용목적이 달성되면 지체 없이 파기</span>됩니다.
+                                    다만, 관계법령의 규정에 의하여 보존할 필요가 있는 경우 회사는 해당 법령에서 정한 일정한 기간 동안 정보를 보관합니다.
+                                  </p>
+                                  <p>
+                                    <span className="text-red-500 font-semibold bg-red-50 px-1 rounded">회원탈퇴 시 개인정보는 즉시 파기</span>되며, 
+                                    어떠한 이유로도 탈퇴한 회원의 정보를 보관하지 않습니다.
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-100">
+                                <h3 className="font-bold text-lg text-[#0B4619] flex items-center gap-2 pb-2 border-b border-gray-300">
+                                  <ScrollText className="w-5 h-5" />
+                                  개인정보의 파기절차 및 방법
+                                </h3>
+                                <div className="leading-relaxed text-[15px] space-y-4">
+                                  <p>
+                                    회원의 개인정보는 목적이 달성된 후 별도의 DB로 옮겨져 내부 방침 및 기타 관련 법령에 의한 
+                                    정보보호 사유에 따라 일정 기간 저장된 후 파기됩니다.
+                                  </p>
+                                  <p>
+                                    전자적 파일 형태로 저장된 개인정보는 <span className="font-semibold text-[#0B4619]">기록을 재생할 수 없는 기술적 방법을 사용하여 삭제</span>합니다.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </DialogDescription>
                         </DialogHeader>
                       </DialogContent>

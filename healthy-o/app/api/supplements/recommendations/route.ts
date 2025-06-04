@@ -44,15 +44,34 @@ export async function GET(req: NextRequest) {
 
     // 5. 없을 때만 새로 저장
     if (!existingRecommendation) {
-      const [newRecommendation] = await db.insert(supplementRecommendations)
-        .values({
-          userId: userId,
-          diagnosisId: latestDiagnosis.id,
-          supplements: diagnosisResult.supplements,
-        })
-        .returning();
-      
-      existingRecommendation = newRecommendation;
+      console.log('[Supplement API] Creating new recommendation for diagnosis:', latestDiagnosis.id);
+      try {
+        const [newRecommendation] = await db.insert(supplementRecommendations)
+          .values({
+            userId: userId,
+            diagnosisId: latestDiagnosis.id,
+            supplements: diagnosisResult.supplements,
+          })
+          .returning();
+        
+        existingRecommendation = newRecommendation;
+        console.log('[Supplement API] Successfully created recommendation');
+      } catch (error) {
+        // 동시에 여러 요청이 들어왔을 때 중복 저장 방지
+        console.log('[Supplement API] Error while creating recommendation:', error);
+        existingRecommendation = await db.query.supplementRecommendations.findFirst({
+          where: and(
+            eq(supplementRecommendations.userId, userId),
+            eq(supplementRecommendations.diagnosisId, latestDiagnosis.id)
+          ),
+        });
+        
+        if (!existingRecommendation) {
+          throw error;
+        }
+      }
+    } else {
+      console.log('[Supplement API] Found existing recommendation for diagnosis:', latestDiagnosis.id);
     }
 
     // 6. 응답 데이터 구성
@@ -63,7 +82,7 @@ export async function GET(req: NextRequest) {
         benefits: supplement.benefits,
         matchingSymptoms: supplement.matchingSymptoms,
       })),
-      recommendedAt: existingRecommendation?.recommendedAt?.toISOString() || new Date().toISOString(),
+      recommendedAt: existingRecommendation.recommendedAt?.toISOString() || new Date().toISOString(),
     };
 
     return ApiResponse.success("영양제 추천 정보를 성공적으로 조회했습니다.", responseData);

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TabNavigation } from "@/components/layout/TabNavigation";
-import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope } from "lucide-react";
+import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -37,6 +37,99 @@ export default function SupplementPage() {
     }
   }, [isLoggedIn, router, toast]);
 
+  // 캐시된 데이터 확인
+  useEffect(() => {
+    const checkAndClearCache = () => {
+      const cachedSupplements = localStorage.getItem('cached_supplements');
+      const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
+      const cachedDiagnosisId = localStorage.getItem('cached_diagnosis_id');
+      const questionSubmitted = localStorage.getItem('question_submitted');
+      
+      // 현재 진단 ID 확인 (쿠키에서)
+      const currentDiagnosisId = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('diagnosis_id='))
+        ?.split('=')[1];
+
+      console.log('[Supplement Page] Cache check:', {
+        currentDiagnosisId,
+        cachedDiagnosisId,
+        hasCachedSupplements: !!cachedSupplements,
+        cacheTimestamp: cacheTimestamp ? new Date(parseInt(cacheTimestamp)).toISOString() : null,
+        questionSubmitted: !!questionSubmitted
+      });
+
+      // question 페이지에서 submit된 경우 캐시 초기화
+      if (questionSubmitted) {
+        console.log('[Supplement Page] Question was submitted, clearing cache');
+        localStorage.removeItem('cached_supplements');
+        localStorage.removeItem('supplements_cache_timestamp');
+        localStorage.removeItem('cached_diagnosis_id');
+        localStorage.removeItem('question_submitted');
+        return false;
+      }
+
+      // 캐시된 데이터가 유효한지 확인
+      if (cachedSupplements) {
+        try {
+          const supplements = JSON.parse(cachedSupplements);
+          if (!Array.isArray(supplements) || supplements.length === 0) {
+            console.log('[Supplement Page] Cached data is invalid or empty, clearing cache');
+            localStorage.removeItem('cached_supplements');
+            localStorage.removeItem('supplements_cache_timestamp');
+            localStorage.removeItem('cached_diagnosis_id');
+            return false;
+          }
+        } catch (error) {
+          console.log('[Supplement Page] Failed to parse cached data, clearing cache');
+          localStorage.removeItem('cached_supplements');
+          localStorage.removeItem('supplements_cache_timestamp');
+          localStorage.removeItem('cached_diagnosis_id');
+          return false;
+        }
+      }
+      
+      // 새로운 진단 ID가 있거나 캐시된 진단 ID가 다르면 캐시 무효화
+      if (currentDiagnosisId && (!cachedDiagnosisId || currentDiagnosisId !== cachedDiagnosisId)) {
+        console.log('[Supplement Page] Clearing cache due to diagnosis ID mismatch');
+        localStorage.removeItem('cached_supplements');
+        localStorage.removeItem('supplements_cache_timestamp');
+        localStorage.removeItem('cached_diagnosis_id');
+        return false;
+      }
+      
+      // 캐시가 30분 이내면 사용
+      if (cachedSupplements && cacheTimestamp) {
+        const cacheAge = Date.now() - parseInt(cacheTimestamp);
+        const thirtyMinutes = 30 * 60 * 1000;
+        
+        if (cacheAge < thirtyMinutes) {
+          const supplements = JSON.parse(cachedSupplements);
+          if (Array.isArray(supplements) && supplements.length > 0) {
+            console.log('[Supplement Page] Using valid cache');
+            setSupplements(supplements);
+            setIsLoading(false);
+            return true;
+          }
+          console.log('[Supplement Page] Cached data is empty, clearing cache');
+        } else {
+          console.log('[Supplement Page] Cache expired, clearing');
+        }
+        localStorage.removeItem('cached_supplements');
+        localStorage.removeItem('supplements_cache_timestamp');
+        localStorage.removeItem('cached_diagnosis_id');
+        return false;
+      }
+      
+      return false;
+    };
+
+    const shouldSkipFetch = checkAndClearCache();
+    if (!shouldSkipFetch) {
+      console.log('[Supplement Page] Cache invalid or cleared, will fetch new data');
+    }
+  }, []);
+
   // 영양제 데이터 불러오기
   useEffect(() => {
     const fetchSupplements = async () => {
@@ -56,8 +149,12 @@ export default function SupplementPage() {
           return;
         }
 
+        console.log('[Supplement Page] Fetching new data');
         const response = await fetch('/api/supplements/recommendations', {
           credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         });
 
         if (!response.ok) {
@@ -77,11 +174,32 @@ export default function SupplementPage() {
         }
 
         const data = await response.json();
-        if (!data.success) {
-          throw new Error(data.message || '영양제 데이터를 불러오는데 실패했습니다.');
+        if (!data.success || !data.data.supplements || data.data.supplements.length === 0) {
+          console.log('[Supplement Page] No supplements data received');
+          toast({
+            title: "영양제 추천을 생성 중입니다",
+            description: "잠시 후 다시 시도해주세요.",
+            duration: 3000,
+          });
+          return;
         }
 
+        console.log('[Supplement Page] New data received, updating cache');
         setSupplements(data.data.supplements);
+
+        // 새로운 데이터 캐싱
+        const currentDiagnosisId = document.cookie
+          .split('; ')
+          .find(row => row.startsWith('diagnosis_id='))
+          ?.split('=')[1];
+
+        if (currentDiagnosisId) {
+          localStorage.setItem('cached_supplements', JSON.stringify(data.data.supplements));
+          localStorage.setItem('supplements_cache_timestamp', Date.now().toString());
+          localStorage.setItem('cached_diagnosis_id', currentDiagnosisId);
+          console.log('[Supplement Page] Cache updated with new diagnosis ID:', currentDiagnosisId);
+        }
+
       } catch (error) {
         console.error('[Supplement Page] 영양제 데이터 로딩 실패:', error);
         toast({
@@ -124,84 +242,93 @@ export default function SupplementPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              <div className="grid gap-4">
-                {supplements.map((supplement, index) => (
-                  <div 
-                    key={index} 
-                    className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
-                  >
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
-                            <Pill className="w-4 h-4 text-[#0B4619]/90" />
-                            {supplement.supplementName}
-                          </h3>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <p className="text-sm text-gray-600 leading-relaxed">{supplement.description}</p>
-                      </div>
+              {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                  <Loader2 className="h-8 w-8 animate-spin text-[#0B4619]" />
+                  <p className="text-sm text-gray-500">맞춤 영양제를 분석하고 있습니다...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid gap-4">
+                    {supplements.map((supplement, index) => (
+                      <div 
+                        key={index} 
+                        className="p-5 rounded-lg border bg-white hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between gap-3 pb-3 border-b border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <h3 className="flex items-center gap-2 text-lg font-bold tracking-wide text-[#0B4619]">
+                                <Pill className="w-4 h-4 text-[#0B4619]/90" />
+                                {supplement.supplementName}
+                              </h3>
+                            </div>
+                          </div>
+                          
+                          <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                            <p className="text-sm text-gray-600 leading-relaxed">{supplement.description}</p>
+                          </div>
 
-                      <div className="grid md:grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
-                            <Zap className="w-4 h-4" />
-                            주요 효능
-                          </h4>
-                          <ul className="space-y-1.5">
-                            {supplement.benefits.map((benefit, idx) => (
-                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
-                                <span className="text-[#0B4619] font-medium">•</span>
-                                {benefit}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
+                                <Zap className="w-4 h-4" />
+                                주요 효능
+                              </h4>
+                              <ul className="space-y-1.5">
+                                {supplement.benefits.map((benefit, idx) => (
+                                  <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
+                                    <span className="text-[#0B4619] font-medium">•</span>
+                                    {benefit}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
 
-                        <div>
-                          <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
-                            <Stethoscope className="w-4 h-4" />
-                            관련 증상
-                          </h4>
-                          <ul className="space-y-1.5">
-                            {supplement.matchingSymptoms.map((symptom, idx) => (
-                              <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
-                                <span className="text-[#0B4619] font-medium">•</span>
-                                {symptom}
-                              </li>
-                            ))}
-                          </ul>
+                            <div>
+                              <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
+                                <Stethoscope className="w-4 h-4" />
+                                관련 증상
+                              </h4>
+                              <ul className="space-y-1.5">
+                                {supplement.matchingSymptoms.map((symptom, idx) => (
+                                  <li key={idx} className="text-sm text-gray-700 flex items-start gap-1.5">
+                                    <span className="text-[#0B4619] font-medium">•</span>
+                                    {symptom}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    ))}
+                  </div>
+
+                  <div className="text-center space-y-4 pt-6">
+                    <div className="flex items-center justify-center gap-2 text-base text-gray-600">
+                      <ChevronDown className="w-5 h-5 animate-bounce" />
+                      <span>아래에서 다른 건강 정보도 확인해보세요</span>
+                      <ChevronDown className="w-5 h-5 animate-bounce" />
+                    </div>
+                    <div className="flex justify-center gap-4">
+                      <Button
+                        onClick={() => router.push('/')}
+                        variant="outline"
+                        className="border-[#0B4619] text-[#0B4619] hover:bg-[#0B4619]/5"
+                      >
+                        메인으로
+                      </Button>
+                      <Button
+                        onClick={() => router.push('/hospital')}
+                        className="bg-[#0B4619] hover:bg-[#0B4619]/90 text-white font-medium"
+                      >
+                        병원 찾기
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              <div className="text-center space-y-4 pt-6">
-                <div className="flex items-center justify-center gap-2 text-base text-gray-600">
-                  <ChevronDown className="w-5 h-5 animate-bounce" />
-                  <span>아래에서 다른 건강 정보도 확인해보세요</span>
-                  <ChevronDown className="w-5 h-5 animate-bounce" />
-                </div>
-                <div className="flex justify-center gap-4">
-                  <Button
-                    onClick={() => router.push('/')}
-                    variant="outline"
-                    className="border-[#0B4619] text-[#0B4619] hover:bg-[#0B4619]/5"
-                  >
-                    메인으로
-                  </Button>
-                  <Button
-                    onClick={() => router.push('/hospital')}
-                    className="bg-[#0B4619] hover:bg-[#0B4619]/90 text-white font-medium"
-                  >
-                    병원 찾기
-                  </Button>
-                </div>
-              </div>
+                </>
+              )}
             </CardContent>
           </div>
         </div>

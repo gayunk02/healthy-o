@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { IHealthRecord, IHospitalRecord, IUserProfileData, ILifestyle } from "@/types/ui";
+import { IUserProfileData, ILifestyle } from "@/types/ui";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -37,6 +37,10 @@ import { EditLifestyleModal } from "@/components/mypage/modals/EditLifestyleModa
 import { BasicInfoCard } from "@/components/mypage/BasicInfoCard";
 import { HealthInfoCard } from "@/components/mypage/HealthInfoCard";
 import { LifestyleInfoCard } from "@/components/mypage/LifestyleInfoCard";
+import DiagnosisRecordCard from "@/components/mypage/DiagnosisRecordCard";
+import { HospitalRecordCard } from "@/components/mypage/HospitalRecordCard";
+import { SupplementRecordCard } from "@/components/mypage/SupplementRecordCard";
+import { DiagnosisRecord, HospitalRecord, SupplementRecord } from "@/types/records";
 
 // 임시 데이터 제거
 const mockUserData: IUserProfileData = {
@@ -45,173 +49,171 @@ const mockUserData: IUserProfileData = {
   email: "",
   phone: "",
   birthDate: "",
-  gender: "M",
+  gender: undefined,
   marketingAgree: false,
-  height: "0",
-  weight: "0",
+  height: "",
+  weight: "",
   medicalHistory: "없음",
   medications: "없음",
-  smoking: "NON",
-  drinking: "NON",
+  smoking: undefined,
+  drinking: undefined,
   lifestyle: {
-    exercise: "NONE",
-    sleep: "7_TO_8",
+    exercise: undefined,
+    sleep: undefined,
     occupation: "",
-    workStyle: "SITTING",
-    diet: "BALANCED",
-    mealRegularity: "REGULAR"
+    workStyle: undefined,
+    diet: undefined,
+    mealRegularity: undefined
   },
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString()
 };
 
 // 건강 검진 기록과 분석 결과를 통합
-const mockHealthRecords = [
+const mockHealthRecords: DiagnosisRecord[] = [
   {
     id: 1,
-    date: "2024-03-15",
-    type: "건강 검진",
-    basicInfo: {
-      height: "175cm",
-      weight: "70kg",
-      bloodPressure: "120/80mmHg",
-      bloodSugar: "95mg/dL",
-      bmi: "22.9"
-    },
-    symptoms: {
-      main: "두통, 어지러움",
-      duration: "3일",
-      painLevel: "중간",
-      frequency: "하루 3-4회",
-      triggers: "스트레스, 수면 부족",
-      accompaniedSymptoms: "메스꺼움, 목 뻣뻣함"
-    },
-    lifestyle: {
-      sleepQuality: "불량",
-      stressLevel: "높음",
-      exercise: "주 1-2회",
-      diet: "불규칙",
-      smoking: "비흡연",
-      drinking: "주 1-2회"
-    },
-    analysis: {
-      possibleConditions: [
-        {
-          name: "긴장성 두통",
-          probability: "높음",
-          description: "스트레스나 피로로 인한 근육 긴장이 원인일 수 있음",
-          recommendedActions: [
-            "충분한 수면",
-            "스트레스 관리",
-            "목 스트레칭",
-            "규칙적인 운동"
-          ]
-        },
-        {
-          name: "빈혈",
-          probability: "중간",
-          description: "철분 부족으로 인한 증상일 수 있음",
-          recommendedActions: [
-            "철분이 풍부한 식사",
-            "비타민 C 섭취",
-            "정기적인 혈액검사",
-            "충분한 휴식"
-          ]
-        }
-      ],
-      riskLevel: "중간",
-      recommendedLifestyleChanges: [
-        "수면 시간 규칙적으로 맞추기",
-        "스트레스 관리 방법 찾기",
-        "균형 잡힌 식단 유지"
-      ]
-    }
+    diagnosisId: 1,
+    createdAt: "2024-03-15",
+    // 기본 정보
+    height: "170",
+    weight: "65",
+    bmi: "22.5",
+    chronicDiseases: "없음",
+    medications: "없음",
+    // 생활습관 정보
+    smoking: "NON",
+    drinking: "NON",
+    exercise: "NONE",
+    sleep: "GOOD",
+    occupation: "회사원",
+    workStyle: "DESK",
+    diet: "BALANCED",
+    mealRegularity: "REGULAR",
+    // 증상 정보
+    symptoms: "두통, 어지러움",
+    symptomStartDate: "2024-03-14",
+    // 진단 결과
+    diseases: [
+      {
+        diseaseName: "긴장성 두통",
+        description: "스트레스나 피로로 인한 근육 긴장이 원인일 수 있음",
+        riskLevel: "high",
+        mainSymptoms: ["두통", "어지러움", "메스꺼움", "목 뻣뻣함"],
+        managementTips: [
+          "충분한 수면",
+          "스트레스 관리",
+          "목 스트레칭",
+          "규칙적인 운동"
+        ]
+      },
+      {
+        diseaseName: "빈혈",
+        description: "철분 부족으로 인한 증상일 수 있음",
+        riskLevel: "medium",
+        mainSymptoms: ["어지러움", "피로감", "창백함"],
+        managementTips: [
+          "철분이 풍부한 식사",
+          "비타민 C 섭취",
+          "정기적인 혈액검사",
+          "충분한 휴식"
+        ]
+      }
+    ],
+    recommendedDepartments: ["신경과", "내과"],
+    supplements: [
+      {
+        supplementName: "비타민 B 복합체",
+        description: "신경 건강과 에너지 대사를 돕는 영양제",
+        benefits: ["두통 완화", "신경 안정", "에너지 대사 개선"],
+        matchingSymptoms: ["두통", "피로감", "스트레스"]
+      },
+      {
+        supplementName: "철분제",
+        description: "빈혈 예방과 개선을 위한 영양제",
+        benefits: ["빈혈 개선", "피로 회복", "면역력 강화"],
+        matchingSymptoms: ["어지러움", "피로감", "창백함"]
+      }
+    ]
   },
   {
     id: 2,
-    date: "2024-03-10",
-    type: "건강 검진",
-    basicInfo: {
-      height: "175cm",
-      weight: "70kg",
-      bloodPressure: "118/78mmHg",
-      bloodSugar: "92mg/dL",
-      bmi: "22.9"
-    },
-    symptoms: {
-      main: "기침, 가래",
-      duration: "1주일",
-      painLevel: "경미",
-      frequency: "지속적",
-      triggers: "환절기, 미세먼지",
-      accompaniedSymptoms: "인후통, 코막힘"
-    },
-    lifestyle: {
-      sleepQuality: "보통",
-      stressLevel: "보통",
-      exercise: "주 2-3회",
-      diet: "규칙적",
-      smoking: "비흡연",
-      drinking: "주 1-2회"
-    },
-    analysis: {
-      possibleConditions: [
-        {
-          name: "감기",
-          probability: "높음",
-          description: "바이러스성 상기도 감염으로 인한 증상",
-          recommendedActions: [
-            "충분한 휴식",
-            "수분 섭취",
-            "비타민 C 보충",
-            "따뜻한 차 마시기"
-          ]
-        },
-        {
-          name: "기관지염",
-          probability: "낮음",
-          description: "기도의 염증으로 인한 증상",
-          recommendedActions: [
-            "가습기 사용",
-            "금연",
-            "따뜻한 물로 목 헹구기",
-            "실내 공기 관리"
-          ]
-        }
-      ],
-      riskLevel: "낮음",
-      recommendedLifestyleChanges: [
-        "실내 습도 관리",
-        "마스크 착용",
-        "충분한 수면"
-      ]
-    }
+    diagnosisId: 2,
+    createdAt: "2024-03-10",
+    // 기본 정보
+    height: "170",
+    weight: "65",
+    bmi: "22.5",
+    chronicDiseases: "없음",
+    medications: "없음",
+    // 생활습관 정보
+    smoking: "NON",
+    drinking: "NON",
+    exercise: "NONE",
+    sleep: "GOOD",
+    occupation: "회사원",
+    workStyle: "DESK",
+    diet: "BALANCED",
+    mealRegularity: "REGULAR",
+    // 증상 정보
+    symptoms: "기침, 가래",
+    symptomStartDate: "2024-03-09",
+    // 진단 결과
+    diseases: [
+      {
+        diseaseName: "감기",
+        description: "바이러스성 상기도 감염으로 인한 증상",
+        riskLevel: "low",
+        mainSymptoms: ["기침", "가래", "인후통", "코막힘"],
+        managementTips: [
+          "충분한 휴식",
+          "수분 섭취",
+          "비타민 C 보충",
+          "따뜻한 차 마시기"
+        ]
+      }
+    ],
+    recommendedDepartments: ["이비인후과", "가정의학과"],
+    supplements: [
+      {
+        supplementName: "비타민 C",
+        description: "면역력 강화와 감기 증상 완화를 돕는 영양제",
+        benefits: ["면역력 강화", "항산화 작용", "피로 회복"],
+        matchingSymptoms: ["감기 증상", "피로감"]
+      },
+      {
+        supplementName: "아연",
+        description: "면역 기능 향상을 돕는 미네랄",
+        benefits: ["면역 기능 향상", "감기 예방", "상처 치유 촉진"],
+        matchingSymptoms: ["감기 증상", "면역력 저하"]
+      }
+    ]
   }
 ];
 
-const mockHospitalRecommendations = [
+const mockHospitalRecommendations: HospitalRecord[] = [
   {
     id: 1,
-    date: "2024-03-15",
+    createdAt: "2024-03-15",
     recommendedDepartment: "신경과",
     hospitals: [
       {
         name: "서울대학교병원",
-        specialty: "두통 클리닉",
+        specialty: "신경과",
         distance: "2.5km",
         rating: 4.8,
-        availableTime: "09:00-17:30",
+        availableTime: "09:00-18:00",
         reservation: "예약 가능",
         address: "서울특별시 종로구 대학로 101",
         contact: "02-2072-2114"
       },
       {
         name: "세브란스병원",
-        specialty: "신경과 전문",
+        specialty: "신경과",
         distance: "3.2km",
         rating: 4.7,
-        availableTime: "09:00-17:00",
-        reservation: "예약 필요",
+        availableTime: "09:00-17:30",
+        reservation: "예약 가능",
         address: "서울특별시 서대문구 연세로 50-1",
         contact: "02-2228-0114"
       }
@@ -220,26 +222,26 @@ const mockHospitalRecommendations = [
   },
   {
     id: 2,
-    date: "2024-03-10",
+    createdAt: "2024-03-10",
     recommendedDepartment: "호흡기내과",
     hospitals: [
       {
         name: "서울아산병원",
-        specialty: "호흡기 질환 전문",
+        specialty: "호흡기내과",
         distance: "4.1km",
         rating: 4.9,
-        availableTime: "09:00-17:30",
+        availableTime: "09:00-17:00",
         reservation: "예약 가능",
         address: "서울특별시 송파구 올림픽로43길 88",
         contact: "02-3010-3114"
       },
       {
         name: "삼성서울병원",
-        specialty: "호흡기내과 전문",
-        distance: "5.0km",
+        specialty: "호흡기내과",
+        distance: "3.8km",
         rating: 4.8,
-        availableTime: "09:00-17:00",
-        reservation: "예약 필요",
+        availableTime: "09:00-17:30",
+        reservation: "예약 가능",
         address: "서울특별시 강남구 일원로 81",
         contact: "02-3410-2114"
       }
@@ -248,42 +250,28 @@ const mockHospitalRecommendations = [
   }
 ];
 
-const mockSupplementRecommendations = [
+const mockSupplementRecommendations: SupplementRecord[] = [
   {
     id: 1,
-    date: "2024-03-15",
+    createdAt: "2024-03-15",
     supplements: [
       {
-        name: "비타민 B",
-        type: "영양제",
-        dosage: "1일 1회",
-        timing: "아침 식후",
-        benefits: [
-          "두통 완화",
-          "신경 안정",
-          "에너지 대사 개선"
-        ],
-        precautions: [
-          "공복 섭취 피하기",
-          "과다 섭취 주의"
-        ],
-        duration: "1개월"
+        name: "비타민 B 복합체",
+        type: "비타민",
+        dosage: "1정/일",
+        timing: "아침 식사 후",
+        benefits: ["두통 완화", "신경 안정", "에너지 대사 개선"],
+        precautions: ["공복 섭취 피하기", "과다 섭취 주의"],
+        duration: "3개월"
       },
       {
         name: "마그네슘",
         type: "미네랄",
-        dosage: "1일 1회",
-        timing: "저녁 식후",
-        benefits: [
-          "근육 이완",
-          "스트레스 감소",
-          "수면 질 개선"
-        ],
-        precautions: [
-          "칼슘과 함께 섭취 피하기",
-          "신장 질환자 주의"
-        ],
-        duration: "2개월"
+        dosage: "1정/일",
+        timing: "취침 전",
+        benefits: ["근육 이완", "스트레스 감소", "수면 질 개선"],
+        precautions: ["신장 질환자 주의", "다른 약물과 상호작용 주의"],
+        duration: "3개월"
       }
     ],
     reason: "두통 완화, 스트레스 관리",
@@ -295,39 +283,25 @@ const mockSupplementRecommendations = [
   },
   {
     id: 2,
-    date: "2024-03-10",
+    createdAt: "2024-03-10",
     supplements: [
       {
         name: "비타민 C",
-        type: "영양제",
-        dosage: "1일 2회",
-        timing: "아침, 저녁 식후",
-        benefits: [
-          "면역력 강화",
-          "항산화 작용",
-          "피로 회복"
-        ],
-        precautions: [
-          "위산 과다 주의",
-          "저녁 섭취 시 수면 방해 가능"
-        ],
-        duration: "2주"
+        type: "비타민",
+        dosage: "1000mg/일",
+        timing: "식사와 함께",
+        benefits: ["면역력 강화", "항산화 작용", "피로 회복"],
+        precautions: ["고용량 섭취 시 위장 장애 가능", "신장 결석 주의"],
+        duration: "2개월"
       },
       {
         name: "아연",
         type: "미네랄",
-        dosage: "1일 1회",
-        timing: "아침 식후",
-        benefits: [
-          "면역 기능 향상",
-          "감기 예방",
-          "상처 치유 촉진"
-        ],
-        precautions: [
-          "공복 섭취 피하기",
-          "구리 흡수 저해 가능"
-        ],
-        duration: "1개월"
+        dosage: "15mg/일",
+        timing: "식사와 함께",
+        benefits: ["면역 기능 향상", "감기 예방", "상처 치유 촉진"],
+        precautions: ["구리 흡수 저해 가능", "과다 섭취 시 메스꺼움"],
+        duration: "2개월"
       }
     ],
     reason: "면역력 강화",
@@ -342,14 +316,15 @@ const mockSupplementRecommendations = [
 export default function MyPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, initialized } = useAuth();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState<IUserProfileData>(mockUserData);
+  const [diagnosisRecords, setDiagnosisRecords] = useState<DiagnosisRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("info");
-  const [selectedRecord, setSelectedRecord] = useState<(typeof mockHealthRecords)[0] | null>(null);
-  const [selectedHospitalRec, setSelectedHospitalRec] = useState<(typeof mockHospitalRecommendations)[0] | null>(null);
-  const [selectedSupplementRec, setSelectedSupplementRec] = useState<(typeof mockSupplementRecommendations)[0] | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<DiagnosisRecord | null>(null);
+  const [selectedHospitalRec, setSelectedHospitalRec] = useState<HospitalRecord | null>(null);
+  const [selectedSupplementRec, setSelectedSupplementRec] = useState<SupplementRecord | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [showHospitalDetail, setShowHospitalDetail] = useState(false);
   const [showSupplementDetail, setShowSupplementDetail] = useState(false);
@@ -359,9 +334,19 @@ export default function MyPage() {
   const [showEditHealth, setShowEditHealth] = useState(false);
   const [showEditLifestyle, setShowEditLifestyle] = useState(false);
 
+  // 인증 상태 체크
+  useEffect(() => {
+    if (initialized && !isLoggedIn) {
+      router.push('/login');
+    }
+  }, [initialized, isLoggedIn, router]);
+
+  // 사용자 데이터 로드
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        if (!initialized || !isLoggedIn) return;
+
         const token = localStorage.getItem('token');
         if (!token) {
           router.push('/login');
@@ -376,7 +361,14 @@ export default function MyPage() {
 
         if (!response.ok) {
           if (response.status === 401) {
+            // 토큰이 만료되었거나 유효하지 않은 경우
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
             router.push('/login');
             return;
           }
@@ -385,6 +377,18 @@ export default function MyPage() {
 
         const result = await response.json();
         if (!result.success) {
+          if (result.message.includes('토큰이 만료')) {
+            // 토큰 만료 메시지가 포함된 경우
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
+            router.push('/login');
+            return;
+          }
           throw new Error(result.message);
         }
 
@@ -397,21 +401,21 @@ export default function MyPage() {
           email: user.email || "",
           phone: user.phone || "",
           birthDate: user.birthDate || "",
-          gender: user.gender || "M",
+          gender: user.gender || undefined,
           marketingAgree: user.marketingAgree || false,
           height: healthInfo?.height || "",
           weight: healthInfo?.weight || "",
           medicalHistory: healthInfo?.chronicDiseases || "없음",
           medications: healthInfo?.medications || "없음",
-          smoking: healthInfo?.smoking || "NON",
-          drinking: healthInfo?.drinking || "NON",
+          smoking: healthInfo?.smoking || undefined,
+          drinking: healthInfo?.drinking || undefined,
           lifestyle: {
-            exercise: healthInfo?.exercise || "NONE",
-            sleep: healthInfo?.sleep || "7_TO_8",
+            exercise: healthInfo?.exercise || undefined,
+            sleep: healthInfo?.sleep || undefined,
             occupation: healthInfo?.occupation || "",
-            workStyle: healthInfo?.workStyle || "SITTING",
-            diet: healthInfo?.diet || "BALANCED",
-            mealRegularity: healthInfo?.mealRegularity || "REGULAR"
+            workStyle: healthInfo?.workStyle || undefined,
+            diet: healthInfo?.diet || undefined,
+            mealRegularity: healthInfo?.mealRegularity || undefined
           },
           createdAt: user.createdAt,
           updatedAt: user.updatedAt
@@ -423,7 +427,7 @@ export default function MyPage() {
         setError('사용자 정보를 불러오는데 실패했습니다.');
         toast({
           title: "오류",
-          description: "사용자 정보를 불러오는데 실패했습니다.",
+          description: err instanceof Error ? err.message : "사용자 정보를 불러오는데 실패했습니다.",
           variant: "destructive",
         });
       } finally {
@@ -431,12 +435,155 @@ export default function MyPage() {
       }
     };
 
-    if (isLoggedIn) {
+    if (initialized && isLoggedIn) {
       fetchUserData();
-    } else {
-      router.push('/login');
     }
-  }, [isLoggedIn, router, toast]);
+  }, [initialized, isLoggedIn, router, toast]);
+
+  // 진단 결과 로드
+  useEffect(() => {
+    const fetchDiagnosisResults = async () => {
+      try {
+        if (!initialized || !isLoggedIn) return;
+
+        console.log('=== [MyPage] 진단 결과 조회 시작 ===');
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('=== [MyPage] 토큰이 없습니다! ===');
+          throw new Error('인증 토큰이 없습니다.');
+        }
+
+        console.log('=== [MyPage] API 호출 시작 ===');
+        const response = await fetch('/api/mypage/diagnosis', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('=== [MyPage] API 응답 상태:', response.status);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            // 토큰이 만료되었거나 유효하지 않은 경우
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
+            router.push('/login');
+            return;
+          }
+          const errorData = await response.json();
+          console.error('=== [MyPage] API 에러 응답:', errorData);
+          throw new Error(errorData.message || '진단 결과를 불러오는데 실패했습니다.');
+        }
+        
+        const result = await response.json();
+        console.log('=== [MyPage] API 응답 데이터:', result);
+
+        if (!result.success) {
+          if (result.message.includes('토큰이 만료')) {
+            // 토큰 만료 메시지가 포함된 경우
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            toast({
+              title: "세션이 만료되었습니다",
+              description: "다시 로그인해주세요.",
+              variant: "destructive",
+            });
+            router.push('/login');
+            return;
+          }
+          throw new Error(result.message);
+        }
+
+        // 데이터 유효성 검사
+        if (!Array.isArray(result.data)) {
+          console.error('=== [MyPage] API 데이터가 배열이 아닙니다:', result.data);
+          throw new Error('잘못된 데이터 형식입니다.');
+        }
+
+        // 데이터 형식 변환 및 유효성 검사
+        const diagnosisData = result.data.map((record: any) => {
+          console.log('=== [MyPage] 레코드 처리 중:', record);
+
+          // 필수 필드 확인
+          if (!record.id || !record.createdAt || !record.diseases) {
+            console.error('=== [MyPage] 레코드에 필수 필드가 없습니다:', record);
+            return null;
+          }
+
+          try {
+            // diseases가 문자열인 경우 파싱
+            const diseases = typeof record.diseases === 'string' 
+              ? JSON.parse(record.diseases) 
+              : record.diseases;
+
+            // recommendedDepartments가 문자열인 경우 파싱
+            const departments = typeof record.recommendedDepartments === 'string'
+              ? JSON.parse(record.recommendedDepartments)
+              : record.recommendedDepartments;
+
+            // supplements가 문자열인 경우 파싱
+            const supplements = typeof record.supplements === 'string'
+              ? JSON.parse(record.supplements)
+              : record.supplements;
+
+            return {
+              id: record.id,
+              diagnosisId: record.diagnosisId,
+              createdAt: new Date(record.createdAt).toISOString(),
+              // 기본 정보
+              height: record.height?.toString() || "",
+              weight: record.weight?.toString() || "",
+              bmi: record.bmi?.toString() || "",
+              chronicDiseases: record.chronicDiseases || "없음",
+              medications: record.medications || "없음",
+              // 생활습관 정보
+              smoking: record.smoking || "NON",
+              drinking: record.drinking || "NON",
+              exercise: record.exercise || "NONE",
+              sleep: record.sleep || "",
+              occupation: record.occupation || "",
+              workStyle: record.workStyle || "",
+              diet: record.diet || "",
+              mealRegularity: record.mealRegularity || "",
+              // 증상 정보
+              symptoms: record.symptoms || "",
+              symptomStartDate: record.symptomStartDate || "",
+              // 진단 결과
+              diseases: Array.isArray(diseases) ? diseases : [],
+              recommendedDepartments: Array.isArray(departments) ? departments : [],
+              supplements: Array.isArray(supplements) ? supplements : []
+            };
+          } catch (error) {
+            console.error('=== [MyPage] 레코드 처리 중 에러:', error);
+            return null;
+          }
+        }).filter(Boolean);
+
+        console.log('=== [MyPage] 최종 처리된 데이터:', diagnosisData);
+        setDiagnosisRecords(diagnosisData);
+      } catch (error) {
+        console.error('=== [MyPage] fetchDiagnosisResults 에러:', error);
+        toast({
+          title: "오류",
+          description: error instanceof Error ? error.message : "진단 결과를 불러오는데 실패했습니다.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (initialized && isLoggedIn) {
+      console.log('[MyPage] User is logged in, fetching diagnosis results...');
+      fetchDiagnosisResults();
+    } else {
+      console.log('[MyPage] User is not logged in or not initialized');
+    }
+  }, [initialized, isLoggedIn, toast, router]);
 
   // 프로필 수정 핸들러
   const handleProfileUpdate = async (updatedData: Partial<IUserProfileData>) => {
@@ -515,12 +662,12 @@ export default function MyPage() {
           smoking: healthInfo.smoking,
           drinking: healthInfo.drinking,
           lifestyle: {
-            exercise: healthInfo.exercise || "NONE",
-            sleep: healthInfo.sleep || "7_TO_8",
+            exercise: healthInfo.exercise || undefined,
+            sleep: healthInfo.sleep || undefined,
             occupation: healthInfo.occupation || "",
-            workStyle: healthInfo.workStyle || "SITTING",
-            diet: healthInfo.diet || "BALANCED",
-            mealRegularity: healthInfo.mealRegularity || "REGULAR"
+            workStyle: healthInfo.workStyle || undefined,
+            diet: healthInfo.diet || undefined,
+            mealRegularity: healthInfo.mealRegularity || undefined
           }
         })
       }));
@@ -577,8 +724,12 @@ export default function MyPage() {
     const query = searchQuery.toLowerCase();
     
     if (type === 'health') {
-      return item.symptoms.main.toLowerCase().includes(query) ||
-             item.analysis.possibleConditions.some((c: any) => c.name.toLowerCase().includes(query));
+      return item.diseases.some((disease: any) => 
+        disease.diseaseName.toLowerCase().includes(query) ||
+        disease.mainSymptoms.some((symptom: string) => 
+          symptom.toLowerCase().includes(query)
+        )
+      );
     } else if (type === 'hospital') {
       return item.recommendedDepartment.toLowerCase().includes(query) ||
              item.hospitals.some((h: any) => h.name.toLowerCase().includes(query));
@@ -588,26 +739,49 @@ export default function MyPage() {
   };
 
   // 필터링된 데이터
-  const filteredHealthRecords = mockHealthRecords
-    .filter(record => filterByDate(record.date))
+  const filteredHealthRecords = diagnosisRecords
+    .filter(record => filterByDate(record.createdAt))
     .filter(record => filterBySearch(record, 'health'))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const filteredHospitalRecs = mockHospitalRecommendations
-    .filter(rec => filterByDate(rec.date))
+    .filter(rec => filterByDate(rec.createdAt))
     .filter(rec => filterBySearch(rec, 'hospital'))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const filteredSupplementRecs = mockSupplementRecommendations
-    .filter(rec => filterByDate(rec.date))
+    .filter(rec => filterByDate(rec.createdAt))
     .filter(rec => filterBySearch(rec, 'supplement'))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   // 연관 기록 이동 핸들러
   const handleRelatedRecordClick = (date: string) => {
-    const record = mockHealthRecords.find(r => r.date === date);
+    const record = diagnosisRecords.find(r => r.createdAt === date);
     if (record) {
-      setSelectedRecord(record);
+      const diagnosisRecord: DiagnosisRecord = {
+        id: record.id,
+        diagnosisId: record.diagnosisId,
+        createdAt: record.createdAt,
+        height: record.height,
+        weight: record.weight,
+        bmi: record.bmi,
+        chronicDiseases: record.chronicDiseases,
+        medications: record.medications,
+        smoking: record.smoking,
+        drinking: record.drinking,
+        exercise: record.exercise,
+        sleep: record.sleep,
+        occupation: record.occupation,
+        workStyle: record.workStyle,
+        diet: record.diet,
+        mealRegularity: record.mealRegularity,
+        symptoms: record.symptoms,
+        symptomStartDate: record.symptomStartDate,
+        diseases: record.diseases,
+        recommendedDepartments: record.recommendedDepartments,
+        supplements: record.supplements
+      };
+      setSelectedRecord(diagnosisRecord);
       setShowDetail(true);
     }
   };
@@ -776,173 +950,77 @@ export default function MyPage() {
                 />
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                    <Stethoscope className="w-5 h-5 text-[#0B4619]" />
-                  </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">건강 검색 결과 기록</h3>
-                </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {filteredHealthRecords.length > 0 ? (
-                    filteredHealthRecords.map((record, index) => (
-                      <div
-                        key={record.id}
-                        className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => {
-                          setSelectedRecord(record);
-                          setShowDetail(true);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0B4619]/5 text-[#0B4619] font-semibold">
-                              {index + 1}
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-gray-900">{record.date}</p>
-                                <Badge className="bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20">
-                                  {record.type}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-gray-600">{record.symptoms.main}</p>
-                            </div>
-                          </div>
-                          <div className="text-[#0B4619]">→</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      {dateRange?.from ? 
-                        `${dateRange.from.toLocaleDateString()} - ${dateRange.to ? dateRange.to.toLocaleDateString() : '현재'} 기간에 기록된 건강 검진이 없습니다.` : 
-                        '기록된 건강 검진이 없습니다.'}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <DiagnosisRecordCard
+                records={filteredHealthRecords}
+                onRecordClick={(record) => {
+                  const diagnosisRecord: DiagnosisRecord = {
+                    id: record.id,
+                    diagnosisId: record.diagnosisId,
+                    createdAt: record.createdAt,
+                    height: record.height,
+                    weight: record.weight,
+                    bmi: record.bmi,
+                    chronicDiseases: record.chronicDiseases,
+                    medications: record.medications,
+                    smoking: record.smoking,
+                    drinking: record.drinking,
+                    exercise: record.exercise,
+                    sleep: record.sleep,
+                    occupation: record.occupation,
+                    workStyle: record.workStyle,
+                    diet: record.diet,
+                    mealRegularity: record.mealRegularity,
+                    symptoms: record.symptoms,
+                    symptomStartDate: record.symptomStartDate,
+                    diseases: record.diseases,
+                    recommendedDepartments: record.recommendedDepartments,
+                    supplements: record.supplements
+                  };
+                  setSelectedRecord(diagnosisRecord);
+                  setShowDetail(true);
+                }}
+                dateRange={dateRange}
+              />
 
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                    <Building2 className="w-5 h-5 text-[#0B4619]" />
-                  </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">병원 추천 기록</h3>
-                </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {filteredHospitalRecs.length > 0 ? (
-                    filteredHospitalRecs.map((record, index) => (
-                      <div
-                        key={record.id}
-                        className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => {
-                          setSelectedHospitalRec(record);
-                          setShowHospitalDetail(true);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0B4619]/5 text-[#0B4619] font-semibold">
-                              {index + 1}
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-gray-900">{record.date}</p>
-                                <Badge className="bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20">
-                                  {record.recommendedDepartment}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm text-gray-600">{record.hospitals[0].name}</p>
-                                {record.hospitals.length > 1 && (
-                                  <span className="text-sm text-gray-400">외 {record.hospitals.length - 1}곳</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-[#0B4619]">→</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      {dateRange?.from ? 
-                        `${dateRange.from.toLocaleDateString()} - ${dateRange.to ? dateRange.to.toLocaleDateString() : '현재'} 기간에 추천된 병원이 없습니다.` : 
-                        '추천된 병원이 없습니다.'}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <HospitalRecordCard
+                records={filteredHospitalRecs}
+                onRecordClick={(record: HospitalRecord) => {
+                  setSelectedHospitalRec(record);
+                  setShowHospitalDetail(true);
+                }}
+                dateRange={dateRange}
+              />
 
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#0B4619]/10 p-2 rounded-lg">
-                    <Pill className="w-5 h-5 text-[#0B4619]" />
-                  </div>
-                  <h3 className="font-bold text-lg text-[#0B4619]">영양제 추천 기록</h3>
-                </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {filteredSupplementRecs.length > 0 ? (
-                    filteredSupplementRecs.map((record, index) => (
-                      <div
-                        key={record.id}
-                        className="p-4 rounded-lg border bg-white hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={() => {
-                          setSelectedSupplementRec(record);
-                          setShowSupplementDetail(true);
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[#0B4619]/5 text-[#0B4619] font-semibold">
-                              {index + 1}
-                            </div>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-gray-900">{record.date}</p>
-                                <Badge className="bg-[#0B4619]/5 text-[#0B4619] border-[#0B4619]/20">
-                                  {record.reason}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm text-gray-600">{record.supplements[0].name}</p>
-                                {record.supplements.length > 1 && (
-                                  <span className="text-sm text-gray-400">외 {record.supplements.length - 1}개</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-[#0B4619]">→</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 text-sm">
-                      {dateRange?.from ? 
-                        `${dateRange.from.toLocaleDateString()} - ${dateRange.to ? dateRange.to.toLocaleDateString() : '현재'} 기간에 추천된 영양제가 없습니다.` : 
-                        '추천된 영양제가 없습니다.'}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <SupplementRecordCard
+                records={filteredSupplementRecs}
+                onRecordClick={(record: SupplementRecord) => {
+                  setSelectedSupplementRec(record);
+                  setShowSupplementDetail(true);
+                }}
+                dateRange={dateRange}
+              />
 
               <HealthDetailModal
                 record={selectedRecord}
                 open={showDetail}
                 onOpenChange={setShowDetail}
+                userData={{
+                  name: userData.name || '',
+                  birthDate: userData.birthDate || '',
+                  gender: userData.gender || '',
+                }}
               />
 
               <HospitalDetailModal
                 record={selectedHospitalRec}
-                healthRecord={selectedHospitalRec ? mockHealthRecords.find(r => r.date === selectedHospitalRec.date) : null}
+                healthRecord={selectedHospitalRec ? mockHealthRecords.find(r => r.createdAt === selectedHospitalRec.createdAt) : null}
                 open={showHospitalDetail}
                 onOpenChange={setShowHospitalDetail}
               />
 
               <SupplementDetailModal
                 record={selectedSupplementRec}
-                healthRecord={selectedSupplementRec ? mockHealthRecords.find(r => r.date === selectedSupplementRec.date) : null}
+                healthRecord={selectedSupplementRec ? mockHealthRecords.find(r => r.createdAt === selectedSupplementRec.createdAt) : null}
                 open={showSupplementDetail}
                 onOpenChange={setShowSupplementDetail}
               />

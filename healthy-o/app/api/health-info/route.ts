@@ -4,7 +4,7 @@ import { healthInfos } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { verifyAuth } from '@/lib/auth';
 import { z } from 'zod';
-import { successResponse, errorResponse, unauthorizedError, notFoundError } from '@/utils/api-response';
+import { ApiResponse } from '@/utils/api-response';
 
 // 입력값 검증을 위한 Zod 스키마
 const healthInfoSchema = z.object({
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     // 사용자 인증
     const { userId } = await verifyAuth(req);
     if (!userId) {
-      return unauthorizedError();
+      return ApiResponse.unauthorized();
     }
 
     // 요청 데이터 파싱 및 검증
@@ -85,33 +85,41 @@ export async function POST(req: NextRequest) {
         .returning();
     }
 
-    return successResponse(
-      result[0],
-      existingInfo.length > 0 ? "건강 정보가 업데이트되었습니다." : "건강 정보가 저장되었습니다."
-    );
+    const message = existingInfo.length > 0 
+      ? "건강 정보가 업데이트되었습니다." 
+      : "건강 정보가 저장되었습니다.";
+
+    return ApiResponse.success(message, result[0]);
 
   } catch (error) {
     console.error('Error saving health info:', error);
     
     if (error instanceof z.ZodError) {
-      return errorResponse("입력값이 올바르지 않습니다.", {
+      return ApiResponse.error("입력값이 올바르지 않습니다.", 400, {
         validation: error.errors
-      }, 400);
+      });
     }
 
-    return errorResponse(
+    return ApiResponse.error(
       "건강 정보 저장 중 오류가 발생했습니다.",
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      500
+      500,
+      { error: error instanceof Error ? error.message : "Unknown error" }
     );
   }
 }
 
 export async function GET(req: NextRequest) {
   try {
+    // 사용자 인증
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return ApiResponse.unauthorized();
+    }
+
+    const token = authHeader.split(' ')[1];
     const { userId } = await verifyAuth(req);
     if (!userId) {
-      return unauthorizedError();
+      return ApiResponse.unauthorized();
     }
 
     const userIdInt = parseInt(userId);
@@ -121,7 +129,7 @@ export async function GET(req: NextRequest) {
       .limit(1);
     
     if (healthInfo.length === 0) {
-      return notFoundError('저장된 건강 정보가 없습니다.');
+      return ApiResponse.notFound('저장된 건강 정보가 없습니다.');
     }
 
     // numeric 타입을 number로 변환
@@ -132,13 +140,13 @@ export async function GET(req: NextRequest) {
       bmi: healthInfo[0].bmi ? parseFloat(healthInfo[0].bmi) : null,
     };
 
-    return successResponse(responseData, '건강 정보를 불러왔습니다.');
+    return ApiResponse.success('건강 정보를 불러왔습니다.', responseData);
   } catch (error) {
     console.error('Error loading health info:', error);
-    return errorResponse(
+    return ApiResponse.error(
       '건강 정보를 불러오는 중 오류가 발생했습니다.',
-      { error: error instanceof Error ? error.message : "Unknown error" },
-      500
+      500,
+      { error: error instanceof Error ? error.message : "Unknown error" }
     );
   }
 } 

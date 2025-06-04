@@ -223,6 +223,24 @@ export default function QuestionPage() {
       }
 
       const token = localStorage.getItem('token');
+      if (!token) {
+        toast({
+          title: "로그인이 필요한 서비스입니다.",
+          description: (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => router.push('/login')}
+                className="text-[#0B4619] underline font-medium mt-1 text-sm"
+              >
+                로그인하기
+              </button>
+            </div>
+          ),
+          duration: 3000,
+        });
+        return;
+      }
+
       const response = await fetch('/api/health-info', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -554,8 +572,10 @@ export default function QuestionPage() {
           
           if (isLoggedIn && diagnosisId) {
             document.cookie = `diagnosis_id=${diagnosisId}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`;
+            localStorage.setItem('question_submitted', 'true');
           } else if (!isLoggedIn && responseData.data?.tempDiagnosisId) {
             document.cookie = `diagnosis_id=${responseData.data.tempDiagnosisId}; path=/; expires=${expirationDate.toUTCString()}; SameSite=Lax`;
+            localStorage.setItem('question_submitted', 'true');
           }
 
           // 분석 결과 저장
@@ -667,7 +687,8 @@ export default function QuestionPage() {
       const response = await fetch('/api/health-info', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(healthData)
       });

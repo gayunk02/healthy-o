@@ -158,6 +158,7 @@ export default function HospitalPage() {
           }
           
           if (response.status === 401) {
+            localStorage.removeItem('token');  // 토큰이 유효하지 않으면 제거
             toast({
               title: "로그인이 필요합니다",
               description: "다시 로그인해주세요.",
@@ -189,8 +190,8 @@ export default function HospitalPage() {
             category: hospital.department,
             latitude: hospital.latitude,
             longitude: hospital.longitude,
-            operatingHours: "09:00 - 18:00",
-            distance: parseFloat(hospital.distance) || 0, // 문자열일 경우를 대비해 parseFloat 추가
+            operatingHours: hospital.operatingHours || "운영시간 정보 없음",
+            distance: parseFloat(hospital.distance) || 0,
             specialties: [hospital.department],
             placeUrl: hospital.placeUrl
           };
@@ -455,16 +456,16 @@ export default function HospitalPage() {
                           {hospital.distance !== undefined && (
                             <span className="text-sm font-medium text-gray-500 shrink-0">
                               {(() => {
-                                const distance = parseFloat(String(hospital.distance));
-                                if (isNaN(distance)) return '거리 정보 없음';
+                                const distanceInMeters = parseFloat(String(hospital.distance));
+                                if (isNaN(distanceInMeters)) return '거리 정보 없음';
                                 
-                                // 1km 미만일 경우 미터 단위로 표시
-                                if (distance < 1) {
-                                  return `${Math.round(distance * 1000)}m`;
+                                // 1km 이상일 경우 km 단위로 표시
+                                if (distanceInMeters >= 1000) {
+                                  return `${(distanceInMeters / 1000).toFixed(1)}km`;
                                 }
                                 
-                                // 1km 이상일 경우 소수점 한 자리까지 표시
-                                return `${distance.toFixed(1)}km`;
+                                // 1km 미만일 경우 m 단위로 표시
+                                return `${Math.round(distanceInMeters)}m`;
                               })()}
                             </span>
                           )}

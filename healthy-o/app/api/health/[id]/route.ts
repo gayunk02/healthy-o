@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { diagnosisRecords } from '@/db/schema';
+import { diagnoses } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { verify } from 'jsonwebtoken';
+import { jwtVerify } from 'jose';
 
 export async function GET(
   request: Request,
@@ -18,8 +18,24 @@ export async function GET(
     }
 
     const token = authHeader.split(' ')[1];
-    const decoded = verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: number };
-    const userId = decoded.userId;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+    
+    let userId: number;
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (!payload.id || typeof payload.id !== 'string') {
+        return NextResponse.json(
+          { message: '유효하지 않은 인증 토큰입니다.' },
+          { status: 401 }
+        );
+      }
+      userId = Number(payload.id);
+    } catch (error) {
+      return NextResponse.json(
+        { message: '유효하지 않은 인증 토큰입니다.' },
+        { status: 401 }
+      );
+    }
 
     const recordId = Number(params.id);
     if (isNaN(recordId)) {
@@ -29,8 +45,8 @@ export async function GET(
       );
     }
 
-    const record = await db.query.diagnosisRecords.findFirst({
-      where: eq(diagnosisRecords.id, recordId),
+    const record = await db.query.diagnoses.findFirst({
+      where: eq(diagnoses.id, recordId),
     });
 
     if (!record) {

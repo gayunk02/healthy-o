@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const verified = await jwtVerify(token, secret);
       
-      if (!verified.payload.sub || typeof verified.payload.sub !== 'string') {
+      if (!verified.payload.sub) {
         console.error('[Mypage API] Invalid token payload:', verified.payload);
         return ApiResponse.unauthorized('유효하지 않은 토큰입니다.');
       }
@@ -125,9 +125,9 @@ export async function PATCH(request: Request) {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const verified = await jwtVerify(token, secret);
       
-      if (!verified.payload.sub || typeof verified.payload.sub !== 'string') {
+      if (!verified.payload.sub) {
         console.error('[Mypage API] Invalid token payload:', verified.payload);
-        return ApiResponse.unauthorized();
+        return ApiResponse.unauthorized('유효하지 않은 토큰입니다.');
       }
 
       const userId = Number(verified.payload.sub);

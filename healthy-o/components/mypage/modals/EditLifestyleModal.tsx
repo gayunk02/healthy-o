@@ -10,12 +10,12 @@ import { Activity, Coffee, Dumbbell, Moon, Briefcase, PersonStanding, UtensilsCr
 import { useToast } from "@/hooks/use-toast";
 
 interface ILifestyle {
-  exercise: "NONE" | "LIGHT" | "MODERATE" | "HEAVY";
-  sleep: "LESS_5" | "5_TO_6" | "6_TO_7" | "7_TO_8" | "MORE_8";
+  exercise: "NONE" | "LIGHT" | "MODERATE" | "HEAVY" | undefined;
+  sleep: "LESS_5" | "5_TO_6" | "6_TO_7" | "7_TO_8" | "MORE_8" | undefined;
   occupation: string;
-  workStyle: "SITTING" | "STANDING" | "ACTIVE" | "MIXED";
-  diet: "BALANCED" | "MEAT" | "FISH" | "VEGGIE" | "INSTANT";
-  mealRegularity: "REGULAR" | "MOSTLY" | "IRREGULAR" | "VERY_IRREGULAR";
+  workStyle: "SITTING" | "STANDING" | "ACTIVE" | "MIXED" | undefined;
+  diet: "BALANCED" | "MEAT" | "FISH" | "VEGGIE" | "INSTANT" | undefined;
+  mealRegularity: "REGULAR" | "MOSTLY" | "IRREGULAR" | "VERY_IRREGULAR" | undefined;
 }
 
 interface EditLifestyleModalProps {
@@ -30,21 +30,24 @@ interface EditLifestyleModalProps {
 export function EditLifestyleModal({ open, onOpenChange, userData, onSubmit }: EditLifestyleModalProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<ILifestyle>({
-    exercise: "NONE",
-    sleep: "7_TO_8",
+    exercise: undefined,
+    sleep: undefined,
     occupation: "",
-    workStyle: "SITTING",
-    diet: "BALANCED",
-    mealRegularity: "REGULAR"
+    workStyle: undefined,
+    diet: undefined,
+    mealRegularity: undefined
   });
 
   useEffect(() => {
     if (userData?.lifestyle) {
-      setFormData(prev => ({
-        ...prev,
-        ...userData.lifestyle,
-        occupation: userData.lifestyle.occupation || ""
-      }));
+      setFormData({
+        exercise: userData.lifestyle.exercise || undefined,
+        sleep: userData.lifestyle.sleep || undefined,
+        occupation: userData.lifestyle.occupation || "",
+        workStyle: userData.lifestyle.workStyle || undefined,
+        diet: userData.lifestyle.diet || undefined,
+        mealRegularity: userData.lifestyle.mealRegularity || undefined
+      });
     }
   }, [userData]);
 
@@ -74,8 +77,22 @@ export function EditLifestyleModal({ open, onOpenChange, userData, onSubmit }: E
     }
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen) {
+      setFormData({
+        exercise: undefined,
+        sleep: undefined,
+        occupation: "",
+        workStyle: undefined,
+        diet: undefined,
+        mealRegularity: undefined
+      });
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[600px]">
         <DialogHeader className="mb-8">
           <DialogTitle className="text-3xl font-bold text-center text-[#0B4619] flex items-center justify-center gap-2">
