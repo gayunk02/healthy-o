@@ -97,7 +97,7 @@ export async function GET(request: Request) {
             hospitalUrl: hospital.placeUrl,
             phoneNumber: hospital.phone
           })),
-          reason: record.diagnosis.diagnosisResult.symptoms || "",
+          reason: diseases[0]?.mainSymptoms?.join(', ') || "",
           healthRecordId: record.diagnosisId,
           diagnosisId: record.diagnosis.diagnosisResult.id,
           diagnosisResults: diseases.map((disease: any) => ({
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
             description: disease.description,
             riskLevel: disease.riskLevel as "high" | "medium" | "low",
             createdAt: record.diagnosis.diagnosisResult?.createdAt?.toISOString() || new Date().toISOString(),
-            symptoms: record.diagnosis.diagnosisResult.symptoms || ""
+            symptoms: disease.mainSymptoms?.join(', ') || ""
           }))
         };
 

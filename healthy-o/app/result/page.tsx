@@ -35,7 +35,6 @@ export default function ResultPage() {
       console.log('[Result Page] Has saved result:', !!savedResult);
       
       if (status === 'completed' && savedResult) {
-        // 분석 완료된 경우
         try {
           const parsedResult = JSON.parse(savedResult);
           setDiagnosisResult(parsedResult);

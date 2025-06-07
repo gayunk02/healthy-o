@@ -160,7 +160,8 @@ export async function POST(request: Request) {
           diagnosisId: diagnosisResults.diagnosisId,
           diseases: diagnosisResults.diseases,
           createdAt: diagnosisResults.createdAt,
-          submittedAt: diagnoses.submittedAt
+          submittedAt: diagnoses.submittedAt,
+          recommendedDepartments: diagnosisResults.recommendedDepartments
         })
         .from(diagnosisResults)
         .innerJoin(diagnoses, eq(diagnosisResults.diagnosisId, diagnoses.id))
@@ -182,29 +183,16 @@ export async function POST(request: Request) {
       const latestResult = userDiagnosisResults[0];
       diagnosisId = latestResult.diagnosisId;
 
-      // 질병 정보에서 추천 진료과 추출
-      recommendedDepartments = latestResult.diseases.map(disease => {
-        switch (disease.diseaseName.toLowerCase()) {
-          case '긴장성 두통':
-            return '신경과';
-          case '빈혈':
-            return '내과';
-          case '감기':
-            return '이비인후과';
-          default:
-            return '가정의학과';
-        }
-      });
-
-      if (!recommendedDepartments || !Array.isArray(recommendedDepartments) || recommendedDepartments.length === 0) {
-        console.error('[Hospital Search API] Invalid recommendedDepartments:', recommendedDepartments);
+      // recommendedDepartments 필드에서 진료과 추출
+      if (!latestResult.recommendedDepartments || !Array.isArray(latestResult.recommendedDepartments) || latestResult.recommendedDepartments.length === 0) {
+        console.error('[Hospital Search API] Invalid recommendedDepartments:', latestResult.recommendedDepartments);
         return NextResponse.json(
           { message: '추천 진료과 정보가 없습니다.' },
           { status: 404 }
         );
       }
 
-      department = recommendedDepartments[0];
+      department = latestResult.recommendedDepartments[0];
       console.log('[Hospital Search API] Found department:', department);
 
     } catch (error) {

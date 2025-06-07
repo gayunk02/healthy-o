@@ -39,102 +39,60 @@ export default function SupplementPage() {
 
   // 캐시된 데이터 확인
   useEffect(() => {
-    const checkAndClearCache = () => {
-      const cachedSupplements = localStorage.getItem('cached_supplements');
-      const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
-      const cachedDiagnosisId = localStorage.getItem('cached_diagnosis_id');
-      const questionSubmitted = localStorage.getItem('question_submitted');
+    const cachedSupplements = localStorage.getItem('cached_supplements');
+    const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
+    const cachedDiagnosisId = localStorage.getItem('cached_diagnosis_id');
+    const questionSubmitted = localStorage.getItem('question_submitted');
+    
+    // 현재 진단 ID 확인 (쿠키에서)
+    const currentDiagnosisId = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('diagnosis_id='))
+      ?.split('=')[1];
+    
+    // 새로운 진단 ID가 있으면 캐시 무효화
+    if (currentDiagnosisId && cachedDiagnosisId !== currentDiagnosisId) {
+      console.log('[Supplement Page] New diagnosis detected, clearing cache');
+      localStorage.removeItem('cached_supplements');
+      localStorage.removeItem('supplements_cache_timestamp');
+      localStorage.removeItem('cached_diagnosis_id');
+      return;
+    }
+    
+    // 캐시가 30분 이내면 사용
+    if (cachedSupplements && cacheTimestamp) {
+      const cacheAge = Date.now() - parseInt(cacheTimestamp);
+      const thirtyMinutes = 30 * 60 * 1000;
       
-      // 현재 진단 ID 확인 (쿠키에서)
-      const currentDiagnosisId = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('diagnosis_id='))
-        ?.split('=')[1];
-
-      console.log('[Supplement Page] Cache check:', {
-        currentDiagnosisId,
-        cachedDiagnosisId,
-        hasCachedSupplements: !!cachedSupplements,
-        cacheTimestamp: cacheTimestamp ? new Date(parseInt(cacheTimestamp)).toISOString() : null,
-        questionSubmitted: !!questionSubmitted
-      });
-
-      // question 페이지에서 submit된 경우 캐시 초기화
-      if (questionSubmitted) {
-        console.log('[Supplement Page] Question was submitted, clearing cache');
-        localStorage.removeItem('cached_supplements');
-        localStorage.removeItem('supplements_cache_timestamp');
-        localStorage.removeItem('cached_diagnosis_id');
-        localStorage.removeItem('question_submitted');
-        return false;
+      if (cacheAge < thirtyMinutes) {
+        console.log('[Supplement Page] Using cached data');
+        setSupplements(JSON.parse(cachedSupplements));
+        setIsLoading(false);
+        return;
       }
-
-      // 캐시된 데이터가 유효한지 확인
-      if (cachedSupplements) {
-        try {
-          const supplements = JSON.parse(cachedSupplements);
-          if (!Array.isArray(supplements) || supplements.length === 0) {
-            console.log('[Supplement Page] Cached data is invalid or empty, clearing cache');
-            localStorage.removeItem('cached_supplements');
-            localStorage.removeItem('supplements_cache_timestamp');
-            localStorage.removeItem('cached_diagnosis_id');
-            return false;
-          }
-        } catch (error) {
-          console.log('[Supplement Page] Failed to parse cached data, clearing cache');
-          localStorage.removeItem('cached_supplements');
-          localStorage.removeItem('supplements_cache_timestamp');
-          localStorage.removeItem('cached_diagnosis_id');
-          return false;
-        }
-      }
-      
-      // 새로운 진단 ID가 있거나 캐시된 진단 ID가 다르면 캐시 무효화
-      if (currentDiagnosisId && (!cachedDiagnosisId || currentDiagnosisId !== cachedDiagnosisId)) {
-        console.log('[Supplement Page] Clearing cache due to diagnosis ID mismatch');
-        localStorage.removeItem('cached_supplements');
-        localStorage.removeItem('supplements_cache_timestamp');
-        localStorage.removeItem('cached_diagnosis_id');
-        return false;
-      }
-      
-      // 캐시가 30분 이내면 사용
-      if (cachedSupplements && cacheTimestamp) {
-        const cacheAge = Date.now() - parseInt(cacheTimestamp);
-        const thirtyMinutes = 30 * 60 * 1000;
-        
-        if (cacheAge < thirtyMinutes) {
-          const supplements = JSON.parse(cachedSupplements);
-          if (Array.isArray(supplements) && supplements.length > 0) {
-            console.log('[Supplement Page] Using valid cache');
-            setSupplements(supplements);
-            setIsLoading(false);
-            return true;
-          }
-          console.log('[Supplement Page] Cached data is empty, clearing cache');
-        } else {
-          console.log('[Supplement Page] Cache expired, clearing');
-        }
-        localStorage.removeItem('cached_supplements');
-        localStorage.removeItem('supplements_cache_timestamp');
-        localStorage.removeItem('cached_diagnosis_id');
-        return false;
-      }
-      
-      return false;
-    };
-
-    const shouldSkipFetch = checkAndClearCache();
-    if (!shouldSkipFetch) {
-      console.log('[Supplement Page] Cache invalid or cleared, will fetch new data');
     }
   }, []);
 
   // 영양제 데이터 불러오기
   useEffect(() => {
-    const fetchSupplements = async () => {
+    const fetchData = async () => {
+      if (!isLoggedIn) return;
+
       try {
         setIsLoading(true);
+
+        // 캐시된 데이터가 있으면 API 호출 건너뛰기
+        const cachedSupplements = localStorage.getItem('cached_supplements');
+        const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
+        if (cachedSupplements && cacheTimestamp) {
+          const cacheAge = Date.now() - parseInt(cacheTimestamp);
+          const thirtyMinutes = 30 * 60 * 1000;
+          
+          if (cacheAge < thirtyMinutes) {
+            console.log('[Supplement Page] Using cached data, skipping API call');
+            return;
+          }
+        }
 
         // 토큰 확인
         const token = localStorage.getItem('token');
@@ -184,10 +142,10 @@ export default function SupplementPage() {
           return;
         }
 
+        // 새로운 데이터 설정 및 캐싱
         console.log('[Supplement Page] New data received, updating cache');
         setSupplements(data.data.supplements);
 
-        // 새로운 데이터 캐싱
         const currentDiagnosisId = document.cookie
           .split('; ')
           .find(row => row.startsWith('diagnosis_id='))
@@ -213,9 +171,7 @@ export default function SupplementPage() {
       }
     };
 
-    if (isLoggedIn) {
-      fetchSupplements();
-    }
+    fetchData();
   }, [isLoggedIn, router, toast]);
 
   return (
@@ -273,7 +229,7 @@ export default function SupplementPage() {
                             <div>
                               <h4 className="font-bold text-sm text-[#0B4619] mb-2 flex items-center gap-2">
                                 <Zap className="w-4 h-4" />
-                                주요 효능
+                                개선 효과
                               </h4>
                               <ul className="space-y-1.5">
                                 {supplement.benefits.map((benefit, idx) => (

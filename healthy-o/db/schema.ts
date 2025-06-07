@@ -110,9 +110,15 @@ export const diagnosisResults = pgTable('diagnosis_results', {
     mainSymptoms: string[];
     managementTips: string[];
   }[]>(),
-  symptoms: text('symptoms').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-  supplementsViewed: boolean('supplements_viewed').default(false)
+  supplements: json('supplements').$type<{
+    supplementName: string;
+    description: string;
+    benefits: string[];
+    matchingSymptoms: string[];
+  }[]>(),
+  supplementsViewed: boolean('supplements_viewed').default(false),
+  recommendedDepartments: json('recommended_departments').notNull().default(['[]'])
 });
 
 export const diagnosisResultsRelations = relations(diagnosisResults, ({ one }) => ({
@@ -158,7 +164,7 @@ export const hospitalRecommendationsRelations = relations(hospitalRecommendation
 export const supplementRecommendations = pgTable('supplement_recommendations', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
-  diagnosisId: integer('diagnosis_id').notNull().references(() => diagnoses.id),
+  diagnosisId: integer('diagnosis_id').notNull().references(() => diagnoses.id).unique(),
   supplements: json('supplements').notNull().$type<{
     supplementName: string;
     description: string;

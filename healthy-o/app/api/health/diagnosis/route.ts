@@ -35,13 +35,18 @@ export async function POST(request: Request) {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET);
           await jwtVerify(token, secret);
         
-        // 결과 저장
-        await db.insert(diagnosisResults).values({
+        const dataToSave = {
           diagnosisId: body.diagnosisId,
-          recommendedDepartments: result.recommendedDepartments,
           diseases: result.results,
-          supplements: result.supplement_recommendations
-        });
+          supplements: result.supplement_recommendations,
+          recommendedDepartments: result.recommendedDepartments,
+          supplementsViewed: false,
+          createdAt: new Date()
+        };
+        
+        console.log('[Health Diagnosis API] Data to save:', JSON.stringify(dataToSave, null, 2));
+        
+        await db.insert(diagnosisResults).values(dataToSave);
 
           console.log('[Health Diagnosis API] Result saved for logged-in user');
         } catch (error) {
@@ -108,9 +113,11 @@ async function performGptAnalysis(data: any) {
 2. recommendedDepartments 배열: 정확히 1개의 진료과
 3. 각 질환의 mainSymptoms 배열: 1-3개의 증상
 4. 각 질환의 managementTips 배열: 1-3개의 관리수칙
-5. supplement_recommendations 배열: 1-3개의 영양제
-6. 각 영양제의 benefits 배열: 1-3개의 효능
-7. 각 영양제의 matchingSymptoms 배열: 1-3개의 증상
+5. supplement_recommendations 배열: 1-3개의 영양제 성분 (예: 비타민C, 오메가3, 마그네슘 등)
+   - 반드시 사용자의 증상과 직접적으로 관련된 영양제만 추천
+   - 일반적인 건강기능식품이 아닌, 증상 개선에 도움이 되는 성분 위주로 추천
+6. 각 영양제의 benefits 배열: 해당 영양제가 현재 증상 개선에 어떤 도움이 되는지 구체적으로 설명
+7. 각 영양제의 matchingSymptoms 배열: 해당 영양제가 개선할 수 있는 현재 증상들을 구체적으로 나열
 
 응답 형식:
 {
@@ -126,10 +133,10 @@ async function performGptAnalysis(data: any) {
   "recommendedDepartments": ["권장 진료과"],
   "supplement_recommendations": [
     {
-      "supplementName": "영양제 이름",
-      "description": "영양제 설명",
-      "benefits": ["효능 1", "효능 2"],
-      "matchingSymptoms": ["매칭 증상 1", "매칭 증상 2"]
+      "supplementName": "영양제 성분명 (예: 비타민C, 오메가3)",
+      "description": "해당 영양제가 현재 증상과 어떤 관련이 있는지 설명",
+      "benefits": ["현재 증상에 대한 구체적인 개선 효과 1", "현재 증상에 대한 구체적인 개선 효과 2"],
+      "matchingSymptoms": ["이 영양제가 개선할 수 있는 현재 증상 1", "이 영양제가 개선할 수 있는 현재 증상 2"]
     }
   ]
 }`;
@@ -144,7 +151,7 @@ async function performGptAnalysis(data: any) {
         messages: [
           {
             role: 'system',
-              content: '당신은 건강 정보 검색을 도와주는 AI 도우미입니다. 반드시 JSON 형식으로만 응답해야 하며, 다른 어떤 설명이나 텍스트도 포함하지 않습니다. 응답이 JSON 형식이 아닌 경우 시스템이 작동하지 않습니다.'
+              content: '당신은 건강 정보 검색을 도와주는 AI 도우미입니다. 사용자의 증상과 건강 상태를 분석하여, 그에 맞는 영양제 성분을 추천해야 합니다. 반드시 현재 증상과 직접적인 관련이 있는 영양제 성분만을 추천하세요. 예를 들어, 불면증이 있다면 마그네슘이나 GABA를, 관절통이 있다면 MSM이나 글루코사민을 추천하는 식으로, 증상과 영양제의 관련성이 명확해야 합니다. 응답은 반드시 JSON 형식이어야 하며, 다른 어떤 설명이나 텍스트도 포함하지 않아야 합니다.'
           },
           {
             role: 'user',
