@@ -32,11 +32,6 @@ interface HealthDetailModalProps {
   record: DiagnosisRecord | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userData?: {
-    name: string;
-    birthDate: string;
-    gender: string;
-  };
 }
 
 // 안전한 날짜 포맷팅 함수
@@ -82,7 +77,7 @@ const formatGender = (gender: string): string => {
     case 'FEMALE':
       return '여성';
     default:
-      return '정보 없음';
+      return gender || '정보 없음';
   }
 };
 
@@ -90,9 +85,10 @@ export function HealthDetailModal({
   record,
   open,
   onOpenChange,
-  userData,
 }: HealthDetailModalProps) {
   if (!record) return null;
+
+  console.log('[HealthDetailModal] Record data:', JSON.stringify(record, null, 2));
 
   const getRiskLevelText = (level: string): string => {
     switch (level) {
@@ -122,7 +118,10 @@ export function HealthDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] max-h-[80vh] overflow-y-auto" aria-describedby="health-detail-description">
+      <DialogContent 
+        className="max-w-[800px] max-h-[80vh] overflow-y-auto"
+        aria-describedby="health-detail-description"
+      >
         <DialogHeader className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-6 h-6 text-[#0B4619]" />
@@ -130,8 +129,8 @@ export function HealthDetailModal({
               건강 검색 결과 기록
             </DialogTitle>
           </div>
-          <DialogDescription id="health-detail-description" className="text-gray-500 text-sm">
-            {formatDateSafely(record.createdAt)}에 기록된 검색 결과입니다.
+          <DialogDescription id="health-detail-description" className="text-gray-500">
+            {formatDateSafely(record.createdAt)}에 기록된 검색 결과입니다
           </DialogDescription>
         </DialogHeader>
 
@@ -145,15 +144,15 @@ export function HealthDetailModal({
             <div className="grid grid-cols-3 gap-5 px-2">
               <div className="space-y-1.5">
                 <span className="text-xs font-medium text-gray-600">이름</span>
-                <p className="text-sm font-medium">{userData?.name || '정보 없음'}</p>
+                <p className="text-sm font-medium">{record.name || '정보 없음'}</p>
               </div>
               <div className="space-y-1.5">
                 <span className="text-xs font-medium text-gray-600">나이</span>
-                <p className="text-sm font-medium">{userData?.birthDate ? calculateAge(userData.birthDate) : '정보 없음'}</p>
+                <p className="text-sm font-medium">{record.age ? `${record.age}세` : '정보 없음'}</p>
               </div>
               <div className="space-y-1.5">
                 <span className="text-xs font-medium text-gray-600">성별</span>
-                <p className="text-sm font-medium">{userData?.gender ? formatGender(userData.gender) : '정보 없음'}</p>
+                <p className="text-sm font-medium">{formatGender(record.gender)}</p>
               </div>
             </div>
           </div>
@@ -168,15 +167,15 @@ export function HealthDetailModal({
               <div className="grid grid-cols-1 gap-3">
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-gray-600">키</span>
-                  <p className="text-sm font-medium">{record.height}cm</p>
+                  <p className="text-sm font-medium">{record.height ? `${record.height}cm` : '정보 없음'}</p>
                 </div>
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-gray-600">체중</span>
-                  <p className="text-sm font-medium">{record.weight}kg</p>
+                  <p className="text-sm font-medium">{record.weight ? `${record.weight}kg` : '정보 없음'}</p>
                 </div>
                 <div className="space-y-1.5">
                   <span className="text-xs font-medium text-gray-600">BMI</span>
-                  <p className="text-sm font-medium">{record.bmi}</p>
+                  <p className="text-sm font-medium">{record.bmi || '정보 없음'}</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3">
@@ -268,22 +267,22 @@ export function HealthDetailModal({
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-medium text-gray-500">검색 결과 {idx + 1}</span>
-                      <p className="font-bold text-sm text-[#0B4619]">{disease.diseaseName}</p>
+                      <p className="font-bold text-base text-[#0B4619]">{disease.diseaseName}</p>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-medium text-gray-600">위험도:</span>
-                      <span className={`text-xs font-medium ${getRiskLevelColor(disease.riskLevel)}`}>
+                      <span className="text-sm font-medium text-gray-600">위험도:</span>
+                      <span className={`text-sm font-medium ${getRiskLevelColor(disease.riskLevel)}`}>
                         {getRiskLevelText(disease.riskLevel)}
                       </span>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600">{disease.description}</p>
+                  <p className="text-sm text-gray-600">{disease.description}</p>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <p className="text-xs font-medium text-[#0B4619]">주요 증상:</p>
+                      <p className="text-sm font-medium text-[#0B4619]">주요 증상</p>
                       <ul className="space-y-1.5">
                         {disease.mainSymptoms.map((symptom, sIdx) => (
-                          <li key={sIdx} className="text-xs text-gray-600 flex items-center gap-1.5">
+                          <li key={sIdx} className="text-sm text-gray-600 flex items-center gap-1.5">
                             <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
                             {symptom}
                           </li>
@@ -291,10 +290,10 @@ export function HealthDetailModal({
                       </ul>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-xs font-medium text-[#0B4619]">관리 방법:</p>
+                      <p className="text-sm font-medium text-[#0B4619]">관리 방법</p>
                       <ul className="space-y-1.5">
                         {disease.managementTips.map((tip, tIdx) => (
-                          <li key={tIdx} className="text-xs text-gray-600 flex items-center gap-1.5">
+                          <li key={tIdx} className="text-sm text-gray-600 flex items-center gap-1.5">
                             <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
                             {tip}
                           </li>

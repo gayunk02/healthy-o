@@ -1,6 +1,6 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Clock, MapPin, Phone, Link as LinkIcon, Calendar, Search, UserRound, Heart, Building2 } from "lucide-react"
 import Link from "next/link"
@@ -25,6 +25,25 @@ const formatDate = (dateString: string | undefined | null) => {
     return "날짜 정보 없음"
   }
 }
+
+// 나이 계산 함수
+const calculateAge = (birthDate: string): number => {
+  try {
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return age;
+  } catch (error) {
+    console.error('나이 계산 오류:', error);
+    return 0;
+  }
+};
 
 interface HospitalDetailModalProps {
   record: HospitalRecord | null;
@@ -56,6 +75,12 @@ interface HospitalDetailModalProps {
   };
   setSelectedRecord?: (record: DiagnosisRecord) => void;
   setShowDetail?: (show: boolean) => void;
+  diagnosis?: {
+    id: number;
+    symptoms: string;
+    symptomStartDate: string;
+  } | null;
+  diagnosisRecord?: DiagnosisRecord | null;
 }
 
 export function HospitalDetailModal({
@@ -67,6 +92,8 @@ export function HospitalDetailModal({
   userData,
   setSelectedRecord,
   setShowDetail,
+  diagnosis,
+  diagnosisRecord,
 }: HospitalDetailModalProps) {
   if (!record) return null;
 
@@ -97,36 +124,8 @@ export function HospitalDetailModal({
   };
 
   const handleViewDiagnosisRecord = () => {
-    if (record?.diagnosisId && setSelectedRecord && setShowDetail && record.diagnosisResults) {
-      const diagnosisRecord: DiagnosisRecord = {
-        id: record.diagnosisId,
-        diagnosisId: record.diagnosisId,
-        createdAt: record.createdAt,
-        height: "",
-        weight: "",
-        bmi: "",
-        chronicDiseases: "",
-        medications: "",
-        smoking: "NON",
-        drinking: "NON",
-        exercise: "NONE",
-        sleep: "",
-        occupation: "",
-        workStyle: "",
-        diet: "",
-        mealRegularity: "",
-        symptoms: record.diagnosisResults[0]?.symptoms || "",
-        symptomStartDate: "",
-        diseases: record.diagnosisResults.map(result => ({
-          diseaseName: result.diseaseName,
-          description: result.description,
-          riskLevel: result.riskLevel as "high" | "medium" | "low",
-          mainSymptoms: [],
-          managementTips: []
-        })),
-        recommendedDepartments: [record.recommendedDepartment],
-        supplements: []
-      };
+    // diagnosis_id를 이용해서 진단 기록을 찾음
+    if (diagnosisRecord && setSelectedRecord && setShowDetail) {
       setSelectedRecord(diagnosisRecord);
       setShowDetail(true);
       onOpenChange(false);
@@ -135,20 +134,20 @@ export function HospitalDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-[800px] max-h-[80vh] overflow-y-auto"
+        aria-describedby="hospital-detail-description"
+      >
         <DialogHeader className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-6 h-6 text-[#0B4619]" />
             <DialogTitle className="text-xl font-bold text-[#0B4619]">
-              병원 검색 결과 기록
+              병원 추천 기록
             </DialogTitle>
           </div>
-          <div className="flex items-center gap-2 text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm">
-              {formatDate(record.createdAt)}
-            </span>
-          </div>
+          <DialogDescription id="hospital-detail-description" className="text-gray-500">
+            {formatDate(record.createdAt)}에 기록된 추천 결과입니다
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -170,22 +169,22 @@ export function HospitalDetailModal({
             </div>
             <div className="space-y-4 px-2">
               <div className="space-y-1.5">
-                <span className="text-xs font-medium text-gray-600">주요 증상</span>
+                <span className="text-xs font-medium text-gray-600">증상</span>
                 <div className="text-sm font-medium">
-                  {record.diagnosisResults[0]?.symptoms || "증상 정보 없음"}
+                  {diagnosis?.symptoms || "증상 정보 없음"}
                 </div>
               </div>
 
               {record.diagnosisResults && record.diagnosisResults.length > 0 && (
                 <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-gray-600">진단된 질환</span>
+                  <span className="text-xs font-medium text-gray-600">건강 검색 결과</span>
                   <div className="text-sm font-medium space-y-1">
                     {record.diagnosisResults.map((result, idx) => (
                       <div key={idx} className="flex items-center gap-2">
                         <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
                         <span>{result.diseaseName}</span>
                         <span className={`text-xs ${getRiskLevelColor(result.riskLevel)}`}>
-                          ({getRiskLevelText(result.riskLevel)})
+                          (위험도: {getRiskLevelText(result.riskLevel)})
                         </span>
                       </div>
                     ))}
@@ -201,7 +200,22 @@ export function HospitalDetailModal({
               <Heart className="w-5 h-5 text-[#0B4619]" />
               <h4 className="font-bold text-lg text-[#0B4619]">추천 사유</h4>
             </div>
-            <div className="text-sm text-gray-600 whitespace-pre-line px-2">{record.reason}</div>
+            <div className="text-sm text-gray-600 whitespace-pre-line px-2">
+              <div className="space-y-1">
+                {diagnosisRecord?.diseases?.map(disease => disease.mainSymptoms).flat().map((symptom, index) => (
+                  <div key={index} className="flex items-center gap-2 py-1">
+                    <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
+                    <span>{symptom}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 pt-3 mt-2 border-t border-gray-100">
+                <span className="text-xs text-gray-500">진료과 추천:</span>
+                <Badge variant="outline" className="bg-[#0B4619]/5 text-[#0B4619] hover:bg-[#0B4619]/5">
+                  {record.recommendedDepartment}
+                </Badge>
+              </div>
+            </div>
           </div>
 
           {/* 추천 병원 목록 */}
@@ -219,6 +233,16 @@ export function HospitalDetailModal({
                         <span className="text-xs font-medium text-gray-500">추천 병원 {idx + 1}</span>
                         <div className="flex items-center gap-2">
                           <p className="font-bold text-base text-[#0B4619]">{hospital.name}</p>
+                          {hospital.hospitalUrl && (
+                            <Link 
+                              href={hospital.hospitalUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-[#0B4619] hover:text-[#0B4619]/80"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                            </Link>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -8,9 +8,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
-import { Pill, Calendar, Search, UserRound, Heart, Coffee, Stethoscope, FileSpreadsheet, Clock, AlertCircle, Utensils, CheckCircle2, ArrowRight } from "lucide-react"
+import { Pill, Calendar, Search, UserRound, Heart, Link as LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DiagnosisRecord } from "@/types/records"
+import { Separator } from "@/components/ui/separator"
 
 // 날짜 포맷 함수 추가
 const formatDate = (dateString: string | undefined | null) => {
@@ -30,43 +33,95 @@ const formatDate = (dateString: string | undefined | null) => {
 };
 
 interface SupplementDetailModalProps {
-  record: any
-  healthRecord: any
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onViewHealthRecord?: () => void
+  record: {
+    id: number;
+    diagnosisId: number;
+    recommendedAt: string;
+    supplements: Array<{
+      supplementName: string;
+      description: string;
+      benefits: string[];
+      matchingSymptoms: string[];
+    }>;
+  } | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  setSelectedRecord?: (record: DiagnosisRecord) => void;
+  setShowDetail?: (show: boolean) => void;
+  diagnosis?: {
+    id: number;
+    symptoms: string;
+    symptomStartDate: string;
+  } | null;
+  diagnosisRecord?: DiagnosisRecord | null;
 }
 
 export function SupplementDetailModal({
   record,
-  healthRecord,
   open,
   onOpenChange,
-  onViewHealthRecord,
+  setSelectedRecord,
+  setShowDetail,
+  diagnosis,
+  diagnosisRecord,
 }: SupplementDetailModalProps) {
-  if (!record) return null
+  if (!record) return null;
+
+  const handleViewDiagnosisRecord = () => {
+    if (diagnosisRecord && setSelectedRecord && setShowDetail) {
+      setSelectedRecord(diagnosisRecord);
+      setShowDetail(true);
+      onOpenChange(false);
+    }
+  };
+
+  const getRiskLevelColor = (level: string) => {
+    switch (level.toLowerCase()) {
+      case 'high':
+        return 'text-red-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-green-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
+
+  const getRiskLevelText = (level: string) => {
+    switch (level.toLowerCase()) {
+      case 'high':
+        return '높음';
+      case 'medium':
+        return '중간';
+      case 'low':
+        return '낮음';
+      default:
+        return '정보 없음';
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[800px] max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-[800px] max-h-[80vh] overflow-y-auto"
+        aria-describedby="supplement-detail-description"
+      >
         <DialogHeader className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Search className="w-6 h-6 text-[#0B4619]" />
             <DialogTitle className="text-xl font-bold text-[#0B4619]">
-              건강 검색 결과 기록
+              영양제 추천 기록
             </DialogTitle>
           </div>
-          <div className="flex items-center gap-2 text-gray-500">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm">
-              {formatDate(record.createdAt)}
-            </span>
-          </div>
+          <DialogDescription id="supplement-detail-description" className="text-gray-500">
+            {formatDate(record.recommendedAt)}에 기록된 추천 결과입니다
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 관련 분석 결과 */}
-          {healthRecord && (
+          {/* 건강 정보 */}
+          {diagnosisRecord && (
             <div className="space-y-4 bg-gray-50/50 rounded-lg p-5">
               <div className="flex items-center justify-between border-b-2 border-[#0B4619]/10 pb-2">
                 <div className="flex items-center gap-2">
@@ -76,33 +131,36 @@ export function SupplementDetailModal({
                 <Button
                   variant="ghost"
                   className="text-[#0B4619] hover:text-[#0B4619] hover:bg-[#0B4619]/10"
-                  onClick={onViewHealthRecord}
+                  onClick={handleViewDiagnosisRecord}
                 >
                   <span className="text-sm font-medium">건강 검색 기록 보기</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
+                  <LinkIcon className="w-4 h-4 ml-1" />
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-4 px-2">
+              <div className="space-y-4 px-2">
                 <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-gray-600">주요 증상</span>
-                  <div className="text-sm font-medium">{healthRecord.symptoms.main}</div>
-                </div>
-                <div className="space-y-1.5">
-                  <span className="text-xs font-medium text-gray-600">위험도</span>
+                  <span className="text-xs font-medium text-gray-600">증상</span>
                   <div className="text-sm font-medium">
-                    {healthRecord.analysis.riskLevel}
+                    {diagnosisRecord?.symptoms || diagnosis?.symptoms || "증상 정보 없음"}
                   </div>
                 </div>
-              </div>
-              <div className="space-y-2 mt-4 px-2">
-                <span className="text-xs font-medium text-gray-600">가능성 있는 질환</span>
-                <div className="space-y-2">
-                  {healthRecord.analysis.possibleConditions.map((condition: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between py-1">
-                      <span className="text-sm font-medium">{condition.name}</span>
+
+                {diagnosisRecord?.diseases && diagnosisRecord.diseases.length > 0 && (
+                  <div className="space-y-1.5">
+                    <span className="text-xs font-medium text-gray-600">건강 검색 결과</span>
+                    <div className="text-sm font-medium space-y-1">
+                      {diagnosisRecord.diseases.map((disease, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
+                          <span>{disease.diseaseName}</span>
+                          <span className={`text-xs ${getRiskLevelColor(disease.riskLevel)}`}>
+                            (위험도: {getRiskLevelText(disease.riskLevel)})
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -113,7 +171,14 @@ export function SupplementDetailModal({
               <Heart className="w-5 h-5 text-[#0B4619]" />
               <h4 className="font-bold text-lg text-[#0B4619]">추천 사유</h4>
             </div>
-            <div className="text-sm text-gray-600 whitespace-pre-line px-2">{record.reason}</div>
+            <div className="text-sm text-gray-600 whitespace-pre-line px-2">
+              {diagnosisRecord?.diseases?.map(disease => disease.mainSymptoms).flat().map((symptom, index) => (
+                <div key={index} className="flex items-center gap-2 py-1">
+                  <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
+                  <span>{symptom}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* 추천 영양제 목록 */}
@@ -122,78 +187,48 @@ export function SupplementDetailModal({
               <Pill className="w-5 h-5 text-[#0B4619]" />
               <h4 className="font-bold text-lg text-[#0B4619]">추천 영양제 목록</h4>
             </div>
-            <div className="space-y-6">
-              {record.supplements.map((supplement: any, idx: number) => (
+            <div className="space-y-5">
+              {record.supplements.map((supplement, idx) => (
                 <div key={idx} className="border border-gray-200 bg-white rounded-lg p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-base text-[#0B4619]">{supplement.name}</p>
-                      <Badge className="bg-[#0B4619]/10 text-[#0B4619] border-none text-sm px-3 py-1 mt-2">
-                        {supplement.type}
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <Clock className="w-4 h-4 mt-0.5 text-gray-500" />
-                        <div>
-                          <p className="text-xs text-gray-600">복용 정보</p>
-                          <p className="text-sm font-medium mt-1">{supplement.dosage}, {supplement.timing}</p>
-                          <p className="text-sm font-medium">기간: {supplement.duration}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 mt-0.5 text-gray-500" />
-                        <div>
-                          <p className="text-xs text-gray-600">기대 효과</p>
-                          <ul className="mt-1 space-y-1">
-                            {supplement.benefits.map((benefit: string, benefitIdx: number) => (
-                              <li key={benefitIdx} className="flex items-center gap-2 text-sm font-medium">
-                                <span className="w-1 h-1 rounded-full bg-[#0B4619] flex-shrink-0" />
-                                {benefit}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-medium text-gray-500">추천 영양제 {idx + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-base text-[#0B4619]">{supplement.supplementName}</p>
                       </div>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 mt-0.5 text-gray-500" />
-                      <div>
-                        <p className="text-xs text-gray-600">주의사항</p>
-                        <ul className="mt-1 space-y-1">
-                          {supplement.precautions.map((precaution: string, precautionIdx: number) => (
-                            <li key={precautionIdx} className="flex items-center gap-2 text-sm font-medium">
-                              <span className="w-1 h-1 rounded-full bg-[#0B4619] flex-shrink-0" />
-                              {precaution}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                  <p className="text-sm text-gray-600 whitespace-pre-line">{supplement.description}</p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-[#0B4619]">기대 효과</p>
+                      <ul className="space-y-1.5">
+                        {supplement.benefits.map((benefit, benefitIdx) => (
+                          <li key={benefitIdx} className="text-sm text-gray-600 flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
+                            {benefit}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-[#0B4619]">관련 증상</p>
+                      <ul className="space-y-1.5">
+                        {supplement.matchingSymptoms.map((symptom, symptomIdx) => (
+                          <li key={symptomIdx} className="text-sm text-gray-600 flex items-center gap-1.5">
+                            <span className="w-1 h-1 rounded-full bg-[#0B4619]" />
+                            {symptom}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* 식이 고려사항 */}
-          <div className="space-y-4 bg-gray-50/50 rounded-lg p-5">
-            <div className="flex items-center gap-2 border-b-2 border-[#0B4619]/10 pb-2">
-              <Utensils className="w-5 h-5 text-[#0B4619]" />
-              <h4 className="font-bold text-lg text-[#0B4619]">식이 고려사항</h4>
-            </div>
-            <div className="text-sm text-gray-600 whitespace-pre-line px-2">{record.dietaryConsiderations}</div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 } 

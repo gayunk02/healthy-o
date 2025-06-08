@@ -66,36 +66,10 @@ export async function GET(request: Request) {
 
         const formattedRecord = {
           id: record.id,
-          createdAt: record.recommendedAt?.toISOString() || new Date().toISOString(),
-          supplements: record.supplements.map(supplement => ({
-            name: supplement.supplementName,
-            type: "일반의약품", // 실제로는 supplement 데이터에서 가져와야 함
-            dosage: "1일 1회", // 실제로는 supplement 데이터에서 가져와야 함
-            timing: "식후 30분", // 실제로는 supplement 데이터에서 가져와야 함
-            benefits: supplement.benefits,
-            precautions: ["식사 직후 복용 금지", "과다 복용 주의"], // 실제로는 supplement 데이터에서 가져와야 함
-            duration: "3개월" // 실제로는 supplement 데이터에서 가져와야 함
-          })),
-          reason: record.diagnosis.symptoms,
-          dietaryConsiderations: [
-            "균형 잡힌 식사하기",
-            "충분한 수분 섭취",
-            "카페인 섭취 제한"
-          ],
-          healthRecordId: record.diagnosisId,
-          condition: record.diagnosis.diagnosisResult?.diseases[0]?.diseaseName,
-          healthRecord: {
-            symptoms: {
-              main: record.diagnosis.symptoms
-            },
-            analysis: {
-              riskLevel: record.diagnosis.diagnosisResult?.diseases[0]?.riskLevel || "medium",
-              possibleConditions: record.diagnosis.diagnosisResult?.diseases.map(disease => ({
-                name: disease.diseaseName,
-                probability: disease.riskLevel === "high" ? "높음" : disease.riskLevel === "medium" ? "중간" : "낮음"
-              })) || []
-            }
-          }
+          userId: record.userId,
+          diagnosisId: record.diagnosisId,
+          supplements: record.supplements,
+          recommendedAt: record.recommendedAt?.toISOString() || new Date().toISOString()
         };
 
         console.log('[Supplement Records API] Formatted record:', JSON.stringify(formattedRecord, null, 2));

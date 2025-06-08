@@ -87,20 +87,45 @@ export async function GET(request: Request) {
           diagnosisId: diagnosis.id,
           createdAt: diagnosis.submittedAt.toISOString(),
           // 기본 정보
-          height: diagnosis.height.toString(),
-          weight: diagnosis.weight.toString(),
-          bmi: diagnosis.bmi.toString(),
-          chronicDiseases: diagnosis.chronicDiseases || null,
-          medications: diagnosis.medications || null,
+          name: diagnosis.name,
+          age: diagnosis.age,
+          gender: diagnosis.gender,
+          height: diagnosis.height?.toString(),
+          weight: diagnosis.weight?.toString(),
+          bmi: diagnosis.bmi?.toString(),
+          chronicDiseases: diagnosis.chronicDiseases || "없음",
+          medications: diagnosis.medications || "없음",
           // 생활습관 정보
-          smoking: diagnosis.smoking || "NON",
-          drinking: diagnosis.drinking || "NON",
-          exercise: diagnosis.exercise || "NONE",
-          sleep: diagnosis.sleep || "",
-          occupation: diagnosis.occupation || null,
-          workStyle: diagnosis.workStyle || "",
-          diet: diagnosis.diet || "",
-          mealRegularity: diagnosis.mealRegularity || "",
+          smoking: diagnosis.smoking === "NON" ? "비흡연" : 
+                  diagnosis.smoking === "ACTIVE" ? "흡연" : 
+                  diagnosis.smoking === "QUIT" ? "금연" : diagnosis.smoking || "정보 없음",
+          drinking: diagnosis.drinking === "NON" ? "비음주" :
+                   diagnosis.drinking === "LIGHT" ? "주 1-2회" :
+                   diagnosis.drinking === "MODERATE" ? "주 3-4회" :
+                   diagnosis.drinking === "HEAVY" ? "주 5회 이상" : diagnosis.drinking || "정보 없음",
+          exercise: diagnosis.exercise === "NONE" ? "운동 안함" :
+                   diagnosis.exercise === "LIGHT" ? "가벼운 운동 (주 1-2회)" :
+                   diagnosis.exercise === "MODERATE" ? "적당한 운동 (주 3-4회)" :
+                   diagnosis.exercise === "HEAVY" ? "활발한 운동 (주 5회 이상)" : diagnosis.exercise || "정보 없음",
+          sleep: diagnosis.sleep === "LESS_5" ? "5시간 미만" :
+                 diagnosis.sleep === "5_TO_6" ? "5-6시간" :
+                 diagnosis.sleep === "6_TO_7" ? "6-7시간" :
+                 diagnosis.sleep === "7_TO_8" ? "7-8시간" :
+                 diagnosis.sleep === "MORE_8" ? "8시간 이상" : diagnosis.sleep || "정보 없음",
+          occupation: diagnosis.occupation,
+          workStyle: diagnosis.workStyle === "SITTING" ? "주로 앉아서 근무" :
+                     diagnosis.workStyle === "STANDING" ? "주로 서서 근무" :
+                     diagnosis.workStyle === "ACTIVE" ? "활동적인 근무" :
+                     diagnosis.workStyle === "MIXED" ? "복합적인 근무" : diagnosis.workStyle || "정보 없음",
+          diet: diagnosis.diet === "BALANCED" ? "균형 잡힌 식단" :
+                diagnosis.diet === "MEAT" ? "육류 위주" :
+                diagnosis.diet === "FISH" ? "생선 위주" :
+                diagnosis.diet === "VEGGIE" ? "채식 위주" :
+                diagnosis.diet === "INSTANT" ? "인스턴트 위주" : diagnosis.diet || "정보 없음",
+          mealRegularity: diagnosis.mealRegularity === "REGULAR" ? "규칙적" :
+                          diagnosis.mealRegularity === "MOSTLY" ? "대체로 규칙적" :
+                          diagnosis.mealRegularity === "IRREGULAR" ? "불규칙적" :
+                          diagnosis.mealRegularity === "VERY_IRREGULAR" ? "매우 불규칙적" : diagnosis.mealRegularity || "정보 없음",
           // 증상 정보
           symptoms: diagnosis.symptoms || "",
           symptomStartDate: diagnosis.symptomStartDate || "",

@@ -22,6 +22,9 @@ export interface DiagnosisRecord {
   id: number;
   diagnosisId: number;
   createdAt: string;
+  name: string;
+  age: number;
+  gender: string;
   height: string;
   weight: string;
   bmi: string;
@@ -64,6 +67,9 @@ export interface Hospital {
 export interface HospitalRecord {
   id: number;
   createdAt: string;
+  name: string;
+  age: number;
+  gender: string;
   recommendedDepartment: string;
   hospitals: Array<{
     name: string;
@@ -104,18 +110,15 @@ export interface Supplement {
 // 영양제 추천 기록 타입
 export interface SupplementRecord {
   id: number;
-  createdAt: string;
+  userId: number;
+  diagnosisId: number;
   supplements: Array<{
-    name: string;
-    type: string;
-    dosage: string;
-    timing: string;
+    supplementName: string;
+    description: string;
     benefits: string[];
-    precautions: string[];
-    duration: string;
+    matchingSymptoms: string[];
   }>;
-  reason: string;
-  dietaryConsiderations: string[];
+  recommendedAt: string;
 }
 
 // 건강 검진 기록 타입

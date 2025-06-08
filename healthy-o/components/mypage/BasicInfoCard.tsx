@@ -12,16 +12,25 @@ interface BasicInfoCardProps {
 }
 
 export function BasicInfoCard({ userData, onEdit }: BasicInfoCardProps) {
-  const formatBirthDate = (birthDate: string): string => {
+  const formatBirthDate = (birthDate: string | undefined): string => {
     if (!birthDate) return '정보 없음';
     try {
       const date = new Date(birthDate);
       if (isNaN(date.getTime())) return '정보 없음';
+      
+      // YYYY-MM-DD 형식인지 확인
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateRegex.test(birthDate)) {
+        console.warn('잘못된 날짜 형식:', birthDate);
+        return '정보 없음';
+      }
+
       const year = date.getFullYear();
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
       return `${year}년 ${month}월 ${day}일`;
     } catch (error) {
+      console.error('생년월일 변환 오류:', error);
       return '정보 없음';
     }
   };
