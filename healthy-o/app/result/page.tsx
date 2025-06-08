@@ -10,6 +10,7 @@ import { AlertTriangle, ChevronDown, Stethoscope, Lightbulb, ArrowRight } from "
 import { IHealthDiagnosisResultUI, IHealthResult } from "@/types/ui";
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from '@/hooks/useAuth';
+import { clearMypageCache } from '@/utils/cache';
 
 export default function ResultPage() {
   const router = useRouter();
@@ -40,6 +41,9 @@ export default function ResultPage() {
           setDiagnosisResult(parsedResult);
           setLoading(false);
           console.log('[Result Page] Successfully loaded result');
+          
+          // 진단 결과가 완료되면 마이페이지 캐시를 무효화
+          clearMypageCache();
         } catch (error) {
           console.error('[Result Page] Error parsing result:', error);
           throw new Error('결과 데이터 형식이 올바르지 않습니다.');

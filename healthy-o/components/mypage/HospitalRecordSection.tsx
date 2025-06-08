@@ -2,10 +2,8 @@
 
 import { Building2 } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useEffect, useState } from "react"
 import { format } from "date-fns"
 import { ko } from "date-fns/locale"
-import { useAuth } from "@/hooks/useAuth"
 import type { HospitalRecord } from "@/types/records"
 import { RecordItem } from "./RecordItem"
 import { DateRange } from "react-day-picker"
@@ -29,6 +27,9 @@ interface HospitalRecordSectionProps {
   onRelatedClick: (healthRecordId: number) => void;
   dateRange?: DateRange;
   searchQuery?: string;
+  records: HospitalRecord[];
+  isLoading: boolean;
+  error?: string | null;
 }
 
 export function HospitalRecordSection({
@@ -36,74 +37,10 @@ export function HospitalRecordSection({
   onRelatedClick,
   dateRange,
   searchQuery = "",
+  records,
+  isLoading,
+  error
 }: HospitalRecordSectionProps) {
-  const [records, setRecords] = useState<HospitalRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
-
-  useEffect(() => {
-    const fetchRecords = async () => {
-      try {
-        if (!token) {
-          throw new Error("인증이 필요합니다.");
-        }
-
-        // 캐시된 데이터 확인
-        const cachedData = localStorage.getItem('hospital_records_cache');
-        const cacheTimestamp = localStorage.getItem('hospital_records_cache_timestamp');
-        
-        if (cachedData && cacheTimestamp) {
-          const cacheAge = Date.now() - parseInt(cacheTimestamp);
-          if (cacheAge < 5 * 60 * 1000) { // 5분
-            setRecords(JSON.parse(cachedData));
-            setIsLoading(false);
-            return;
-          }
-        }
-
-        const response = await fetch("/api/mypage/hospital-records", {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            throw new Error("인증이 만료되었습니다. 다시 로그인해주세요.");
-          }
-          throw new Error("병원 추천 기록을 불러오는데 실패했습니다.");
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          // 데이터 유효성 검사
-          if (!Array.isArray(data.data)) {
-            throw new Error("잘못된 데이터 형식입니다.");
-          }
-
-          // 캐시 저장
-          localStorage.setItem('hospital_records_cache', JSON.stringify(data.data));
-          localStorage.setItem('hospital_records_cache_timestamp', Date.now().toString());
-
-          setRecords(data.data);
-        } else {
-          throw new Error(data.message || "병원 추천 기록을 불러오는데 실패했습니다.");
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "오류가 발생했습니다.";
-        setError(errorMessage);
-        // 캐시 삭제
-        localStorage.removeItem('hospital_records_cache');
-        localStorage.removeItem('hospital_records_cache_timestamp');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecords();
-  }, [token]);
-
   if (isLoading) {
     return (
       <div className="bg-gray-50 p-4 rounded-lg space-y-4 border border-gray-200">

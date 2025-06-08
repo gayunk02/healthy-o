@@ -11,6 +11,7 @@ interface FilterSectionProps {
   setDateRange: (date: DateRange | undefined) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  onRefresh: () => Promise<void>;
 }
 
 export function FilterSection({
@@ -18,10 +19,12 @@ export function FilterSection({
   setDateRange,
   searchQuery,
   setSearchQuery,
+  onRefresh,
 }: FilterSectionProps) {
-  const handleReset = () => {
+  const handleReset = async () => {
     setDateRange(undefined);
     setSearchQuery("");
+    await onRefresh();
   };
 
   return (

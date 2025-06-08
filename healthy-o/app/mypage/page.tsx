@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,9 @@ import { useHospitalRecords } from "@/hooks/mypage/useHospitalRecords";
 import { useSupplementRecords } from "@/hooks/mypage/useSupplementRecords";
 import { filterByDate, filterBySearch } from "@/utils/filters";
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 // 기본 사용자 데이터 타입
 const defaultUserData: IUserProfileData = {
   id: 0,
@@ -76,10 +79,10 @@ export default function MyPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isLoggedIn, initialized, token } = useAuth();
-  const { userData, loading: userLoading, error, updateUserData } = useUserData();
-  const { records: diagnosisRecords, loading: diagnosisLoading } = useDiagnosisRecords();
-  const { records: hospitalRecords, loading: hospitalLoading } = useHospitalRecords();
-  const { records: supplementRecords, loading: supplementLoading } = useSupplementRecords();
+  const { userData, loading: userLoading, error, updateUserData} = useUserData();
+  const { records: diagnosisRecords, loading: diagnosisLoading, refresh: refreshDiagnosis, error: diagnosisError } = useDiagnosisRecords();
+  const { records: hospitalRecords, loading: hospitalLoading, refresh: refreshHospital, error: hospitalError } = useHospitalRecords();
+  const { records: supplementRecords, loading: supplementLoading, refresh: refreshSupplement, error: supplementError } = useSupplementRecords();
 
   const [activeTab, setActiveTab] = useState("info");
   const [selectedRecord, setSelectedRecord] = useState<DiagnosisRecord | null>(null);
@@ -104,6 +107,15 @@ export default function MyPage() {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditHealth, setShowEditHealth] = useState(false);
   const [showEditLifestyle, setShowEditLifestyle] = useState(false);
+
+  // 페이지 진입시 모든 데이터 새로고침
+  useEffect(() => {
+    if (isLoggedIn && initialized) {
+      refreshDiagnosis();
+      refreshHospital();
+      refreshSupplement();
+    }
+  }, [isLoggedIn, initialized]);
 
   // 인증 상태 체크
   if (!initialized) {
@@ -362,6 +374,22 @@ export default function MyPage() {
                 setDateRange={setDateRange}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                onRefresh={async () => {
+                  try {
+                    await Promise.all([
+                      refreshDiagnosis(),
+                      refreshHospital(),
+                      refreshSupplement()
+                    ]);
+                  } catch (error) {
+                    console.error('데이터 새로고침 중 오류 발생:', error);
+                    toast({
+                      title: "새로고침 실패",
+                      description: "데이터를 새로고침하는 중 오류가 발생했습니다.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
               />
 
               <div className="space-y-4">
@@ -373,6 +401,9 @@ export default function MyPage() {
                     }}
                     dateRange={dateRange}
                     searchQuery={searchQuery}
+                    records={diagnosisRecords}
+                    isLoading={diagnosisLoading}
+                    error={diagnosisError}
                   />
                   <HospitalRecordSection
                     onDetailClick={(record) => {
@@ -382,6 +413,9 @@ export default function MyPage() {
                     onRelatedClick={handleRelatedRecordClick}
                     dateRange={dateRange}
                     searchQuery={searchQuery}
+                    records={hospitalRecords}
+                    isLoading={hospitalLoading}
+                    error={hospitalError}
                   />
                   <SupplementRecordSection
                     onDetailClick={(record) => {
@@ -395,6 +429,9 @@ export default function MyPage() {
                     diagnosisRecords={diagnosisRecords}
                     dateRange={dateRange}
                     searchQuery={searchQuery}
+                    records={supplementRecords}
+                    isLoading={supplementLoading}
+                    error={supplementError}
                   />
                 </div>
               </div>

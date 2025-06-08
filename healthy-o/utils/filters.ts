@@ -24,26 +24,26 @@ export const filterBySearch = (
   const searchQuery = query.toLowerCase();
   
   try {
-    if (type === 'health') {
-      const record = item as DiagnosisRecord;
+  if (type === 'health') {
+    const record = item as DiagnosisRecord;
       if (!record.diseases) return false;
       return record.diseases.some(disease => {
         if (!disease) return false;
         const nameMatch = disease.diseaseName?.toLowerCase().includes(searchQuery) || false;
         const symptomMatch = Array.isArray(disease.mainSymptoms) && 
-          disease.mainSymptoms.some(symptom => 
+      disease.mainSymptoms.some(symptom => 
             symptom?.toLowerCase().includes(searchQuery)
-          );
+    );
         return nameMatch || symptomMatch;
       });
-    } else if (type === 'hospital') {
-      const record = item as HospitalRecord;
+  } else if (type === 'hospital') {
+    const record = item as HospitalRecord;
       const deptMatch = record.recommendedDepartment?.toLowerCase().includes(searchQuery) || false;
       const hospitalMatch = Array.isArray(record.hospitals) && 
         record.hospitals.some(h => h?.name?.toLowerCase().includes(searchQuery));
       return deptMatch || hospitalMatch;
-    } else {
-      const record = item as SupplementRecord;
+  } else {
+    const record = item as SupplementRecord;
       if (!Array.isArray(record.supplements)) return false;
       return record.supplements.some(s => 
         s?.supplementName?.toLowerCase().includes(searchQuery)

@@ -8,6 +8,7 @@ import { AlertTriangle, ChevronDown, Pill, Zap, Stethoscope, Loader2 } from "luc
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { clearMypageCache } from '@/utils/cache';
 
 interface Supplement {
   supplementName: string;
@@ -39,10 +40,10 @@ export default function SupplementPage() {
 
   // 캐시된 데이터 확인
   useEffect(() => {
+    const checkAndLoadData = async () => {
     const cachedSupplements = localStorage.getItem('cached_supplements');
     const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
     const cachedDiagnosisId = localStorage.getItem('cached_diagnosis_id');
-    const questionSubmitted = localStorage.getItem('question_submitted');
     
     // 현재 진단 ID 확인 (쿠키에서)
     const currentDiagnosisId = document.cookie
@@ -56,7 +57,8 @@ export default function SupplementPage() {
       localStorage.removeItem('cached_supplements');
       localStorage.removeItem('supplements_cache_timestamp');
       localStorage.removeItem('cached_diagnosis_id');
-      return;
+        setIsLoading(true);  // 로딩 상태 활성화
+        return;  // 두 번째 useEffect가 새로운 데이터를 가져올 수 있도록 함
     }
     
     // 캐시가 30분 이내면 사용
@@ -68,9 +70,17 @@ export default function SupplementPage() {
         console.log('[Supplement Page] Using cached data');
         setSupplements(JSON.parse(cachedSupplements));
         setIsLoading(false);
-        return;
+        } else {
+          // 캐시가 만료된 경우
+          setIsLoading(true);
+        }
+      } else {
+        // 캐시가 없는 경우
+        setIsLoading(true);
       }
-    }
+    };
+
+    checkAndLoadData();
   }, []);
 
   // 영양제 데이터 불러오기
@@ -79,20 +89,7 @@ export default function SupplementPage() {
       if (!isLoggedIn) return;
 
       try {
-        setIsLoading(true);
-
-        // 캐시된 데이터가 있으면 API 호출 건너뛰기
-        const cachedSupplements = localStorage.getItem('cached_supplements');
-        const cacheTimestamp = localStorage.getItem('supplements_cache_timestamp');
-        if (cachedSupplements && cacheTimestamp) {
-          const cacheAge = Date.now() - parseInt(cacheTimestamp);
-          const thirtyMinutes = 30 * 60 * 1000;
-          
-          if (cacheAge < thirtyMinutes) {
-            console.log('[Supplement Page] Using cached data, skipping API call');
-            return;
-          }
-        }
+        setIsLoading(true);  // API 호출 전에 로딩 상태 설정
 
         // 토큰 확인
         const token = localStorage.getItem('token');
@@ -156,6 +153,9 @@ export default function SupplementPage() {
           localStorage.setItem('supplements_cache_timestamp', Date.now().toString());
           localStorage.setItem('cached_diagnosis_id', currentDiagnosisId);
           console.log('[Supplement Page] Cache updated with new diagnosis ID:', currentDiagnosisId);
+          
+          // 영양제 추천 결과가 성공적으로 저장되면 마이페이지 캐시를 무효화
+          clearMypageCache();
         }
 
       } catch (error) {

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Phone, Clock, Loader2, Crosshair, AlertTriangle, ChevronDown, Building2 } from "lucide-react";
 import { Map, MapMarker, CustomOverlayMap } from "react-kakao-maps-sdk";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Tooltip,
@@ -19,8 +19,13 @@ import Link from "next/link";
 import { TabNavigation } from "@/components/layout/TabNavigation";
 import { IHospitalUI } from "@/types/ui";
 import { useAuth } from "@/hooks/useAuth";
+import { clearMypageCache } from '@/utils/cache';
 
-export default function HospitalPage() {
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
+// useSearchParams를 사용하는 컴포넌트를 분리
+function HospitalContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -158,7 +163,7 @@ export default function HospitalPage() {
           }
           
           if (response.status === 401) {
-            localStorage.removeItem('token');  // 토큰이 유효하지 않으면 제거
+            localStorage.removeItem('token');
             toast({
               title: "로그인이 필요합니다",
               description: "다시 로그인해주세요.",
@@ -197,13 +202,11 @@ export default function HospitalPage() {
           };
         });
 
-        console.log('[Hospital Page] Formatted hospitals with distances:', 
-          formattedHospitals.map(h => ({
-            name: h.hospitalName,
-            distance: h.distance
-          }))
-        );
+        // 병원 추천 결과가 성공적으로 저장되면 마이페이지 캐시를 무효화
+        clearMypageCache();
+
         setHospitals(formattedHospitals);
+        setIsLoading(false);
         
         // 추천 진료과 설정 (첫 번째 병원의 department 사용)
         if (formattedHospitals.length > 0) {
@@ -539,4 +542,26 @@ export default function HospitalPage() {
       </div>
     </div>
   );
-} 
+}
+
+// 메인 컴포넌트에서 Suspense로 감싸기
+export default function HospitalPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full pt-[100px] pb-20">
+        <div className="w-full max-w-[800px] mx-auto">
+          <div className="bg-white rounded-xl shadow-lg">
+            <div className="px-6 py-10">
+              <div className="flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-[#0B4619]" />
+                <span className="ml-2 text-gray-600">페이지를 불러오는 중...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <HospitalContent />
+    </Suspense>
+  );
+}
