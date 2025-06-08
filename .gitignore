@@ -1,0 +1,47 @@
+# 루트 경로: TEAM-05/
+
+# dependencies
+healthy-o/node_modules/
+healthy-o/.pnp
+healthy-o/.pnp.*
+healthy-o/.yarn/*
+!healthy-o/.yarn/patches
+!healthy-o/.yarn/plugins
+!healthy-o/.yarn/releases
+!healthy-o/.yarn/versions
+
+# testing
+healthy-o/coverage
+
+# next.js
+healthy-o/.next/
+healthy-o/out/
+
+# production
+healthy-o/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env
+healthy-o/.env*
+
+# vercel
+healthy-o/.vercel
+
+# typescript
+healthy-o/*.tsbuildinfo
+healthy-o/next-env.d.ts
+
+# cursor
+.cursorrules
+
+# docs
+healthy-o/docs/dev/
